@@ -1,0 +1,18 @@
+.navbar {
+  width: 100%;
+  background-color: #2e3440;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logoCentered {
+  display: inline-block;
+  font: 18px system-ui;
+  color: #ffffff;
+  font-weight: bold;
+  width: 140px;
+  padding-top: 25px;
+  padding-bottom: 25px;
+  text-decoration: none;
+}
