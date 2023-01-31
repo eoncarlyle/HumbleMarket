@@ -1,6 +1,7 @@
 package com.iainschmitt.perdiction;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -9,28 +10,36 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureWebTestClient(timeout = "36000")
 @TestPropertySource(locations = "classpath:application-test.properties")
-@AutoConfigureWebTestClient(timeout = "20s")
 public class UserApiIntegrationTest {
     private static final String USERS_URI_PATH = "/users";
 
-    private static WebTestClient webTestClient;
+    @Autowired
+    private WebTestClient webTestClient;
     @Autowired
     private UserService userService;
 
-    @BeforeAll
-    static void setupWebTestClient() {
-        webTestClient = WebTestClient
-            .bindToServer()
-            .baseUrl("http://localhost:8080")
-            .build();
+    @BeforeEach
+    void clearTestUserDB() {
+        userService.deleteAll();
     }
 
-    //TODO
     @Test
     void fetchUser_Success() {
-
+        var user = new User("user1", "user1@iainschmitt.com");
+        userService.createUser(user);
+        webTestClient.get()
+            .uri(USERS_URI_PATH + "/" + user.getUserName())
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatusCode.valueOf(200))
+            .expectBody()
+            .jsonPath("$.userName")
+            .isEqualTo(user.getUserName())
+            .jsonPath("$.email")
+            .isEqualTo(user.getEmail());
     }
 
     @Test
