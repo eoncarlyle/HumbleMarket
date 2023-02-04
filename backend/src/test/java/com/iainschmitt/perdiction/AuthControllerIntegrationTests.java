@@ -30,13 +30,13 @@ public class AuthControllerIntegrationTests {
     }
 
     @Test
-    void singupUser_Success() {
+    void signUpUser_Success() {
         var user = new User("user1@iainschmitt.com");
         user.setPassword("!A_Minimal_Password_Really");
         webTestClient.post()
             .uri(AUTH_URI_PATH + "/signup")
             .bodyValue(
-                new SignUpData(){{
+                new AuthData(){{
                     setEmail(user.getEmail());
                     setPassword(user.getPassword());
                 }}
@@ -51,13 +51,13 @@ public class AuthControllerIntegrationTests {
     }
 
     @Test
-    void singupUser_AuthFailure() {
+    void singUpUser_AuthFailure() {
         var user = new User("user1@iainschmitt.com");
         user.setPassword(" ");
         webTestClient.post()
             .uri(AUTH_URI_PATH + "/signup")
             .bodyValue(
-                new SignUpData(){{
+                new AuthData(){{
                     setEmail(user.getEmail());
                     setPassword(user.getPassword());
                 }}
@@ -71,7 +71,7 @@ public class AuthControllerIntegrationTests {
 
 
     @Test
-    void singupUser_BadJson() {
+    void singUpUser_BadJson() {
         webTestClient.post()
             .uri(AUTH_URI_PATH + "/echo")
             .bodyValue(
@@ -83,5 +83,81 @@ public class AuthControllerIntegrationTests {
             .expectBody()
             .returnResult();
 
+    }
+
+    @Test
+    void logInUser_Success() {
+        var user = new User("user1@iainschmitt.com");
+        user.setPassword("!A_Minimal_Password_Really");
+        userService.createUser(user);
+
+        webTestClient.post()
+            .uri(AUTH_URI_PATH + "/login")
+            .bodyValue(
+                new AuthData(){{
+                    setEmail(user.getEmail());
+                    setPassword(user.getPassword());
+                }}
+            )
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatusCode.valueOf(200))
+            .expectBody()
+            .returnResult();
+    }
+
+    @Test
+    void logInUser_UserDoesntExist() {
+        var user = new User("user1@iainschmitt.com");
+        user.setPassword("!A_Minimal_Password_Really");
+
+        webTestClient.post()
+            .uri(AUTH_URI_PATH + "/login")
+            .bodyValue(
+                new AuthData(){{
+                    setEmail(user.getEmail());
+                    setPassword(user.getPassword());
+                }}
+            )
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatusCode.valueOf(401))
+            .expectBody()
+            .returnResult();
+    }
+
+    @Test
+    void singUpUser_WrongPassword() {
+        var user = new User("user1@iainschmitt.com");
+        user.setPassword("!A_Minimal_Password_Really");
+
+        webTestClient.post()
+            .uri(AUTH_URI_PATH + "/login")
+            .bodyValue(
+                new AuthData(){{
+                    setEmail(user.getEmail());
+                    setPassword("!A_Different_Password_Really");
+                }}
+            )
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatusCode.valueOf(401))
+            .expectBody()
+            .returnResult();
+    }
+
+    @Test
+    void logInUser_BadJson() {
+        var user = new User("user1@iainschmitt.com");
+        user.setPassword("!A_Minimal_Password_Really");
+
+        webTestClient.post()
+            .uri(AUTH_URI_PATH + "/login")
+            .bodyValue("{\"email\":\"user1@iainschmitt.com\"}")
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatusCode.valueOf(415))
+            .expectBody()
+            .returnResult();
     }
 }

@@ -34,4 +34,9 @@ public class ExceptionControllerAdvice {
     public ResponseEntity<ErrorReturnData> illegalArgumentExceptionHandler(Exception e) {
         return createErrorReturnEntity(e, 422);
     }
+
+    @ExceptionHandler(NotAuthorizedException.class)
+    public ResponseEntity<ErrorReturnData> notAuthorizedExceptionHandler(Exception e) {
+        return createErrorReturnEntity(e, 401);
+    }
 }

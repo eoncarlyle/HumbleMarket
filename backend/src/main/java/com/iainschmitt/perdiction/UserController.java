@@ -14,8 +14,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-
-
     @GetMapping("/{userEmail}")
     public ResponseEntity<User> getUserByEmail(@PathVariable String userEmail) {
         return ResponseEntity.ok(userService.getUserByEmail(userEmail));

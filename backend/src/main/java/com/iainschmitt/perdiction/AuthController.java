@@ -4,8 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,15 +23,14 @@ public class AuthController {
 
     // TODO:
     // Integration tests for 400, 422, 201 return codes
-    @PostMapping(value = "/signup")
-    public ResponseEntity<SignUpReturnData> getUserByUserName(@RequestBody SignUpData signUpData) {
-        authService.validateSignUpData(signUpData);
-        return new ResponseEntity<>(authService.createUserAccount(signUpData), HttpStatus.CREATED);
+    @PostMapping(value = "/login")
+    public ResponseEntity<LogInReturnData> logIn(@RequestBody AuthData authData) {
+        return new ResponseEntity<>(authService.logInUserAccount(authData), HttpStatus.OK);
     }
 
-    @PostMapping(value = "/echo")
-    public ResponseEntity<Object> echo(@Valid @RequestBody SignUpData signUpData) {
-        authService.validateSignUpData(signUpData);
-        return new ResponseEntity<>(signUpData, HttpStatus.CREATED);
+    @PostMapping(value = "/signup")
+    public ResponseEntity<SignUpReturnData> signUp(@RequestBody AuthData authData) {
+        authData.validate();
+        return new ResponseEntity<>(authService.createUserAccount(authData), HttpStatus.CREATED);
     }
 }
