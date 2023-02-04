@@ -1,6 +1,7 @@
 package com.iainschmitt.perdiction;
 
 
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import lombok.Getter;
 
@@ -8,12 +9,13 @@ import lombok.Getter;
 public class User {
     @Id
     private String id;
-    private final String userName;
     private final String email;
+    @Setter
     private String password;
 
-    public User(String userName, String email) {
-        this.userName = userName;
+    //TODO: Change this constructor to inlcude both email and password
+    //TODO: Don't even accept passwords, accept password hashes
+    public User(String email) {
         this.email = email;
         this.password = null;
     }
@@ -22,6 +24,6 @@ public class User {
     public String toString() {
         return String.format(
             "User[id=%s, displayName='%s']",
-            getId(), getUserName());
+            getId(), getEmail());
     }
 }

@@ -1,24 +1,37 @@
 package com.iainschmitt.perdiction;
 
-import java.util.HashMap;
 
-import com.google.gson.Gson;
+import jakarta.validation.ValidationException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+//TODO: Use GSON in place of the clumsy string concatenation here
+
 @ControllerAdvice
 public class ExceptionControllerAdvice {
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<String> notFoundExceptionHandler(Exception e) {
 
-        String body = "{\"status\": 404, \"body\": \"" + e.toString() + "\"}";
+    public ResponseEntity<ErrorReturnData> createErrorReturnEntity(Exception e, int status) {
         return new
             ResponseEntity<>(
-            body,
-            HttpStatusCode.valueOf(404)
+            ErrorReturnData.of(status, e.getMessage()),
+            HttpStatusCode.valueOf(status)
         );
     }
-}
 
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ErrorReturnData> validationExceptionHandler(Exception e) {
+        return createErrorReturnEntity(e, 422);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorReturnData> notFoundExceptionHandler(Exception e) {
+        return createErrorReturnEntity(e, 404);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorReturnData> illegalArgumentExceptionHandler(Exception e) {
+        return createErrorReturnEntity(e, 422);
+    }
+}

@@ -18,10 +18,13 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public User getUserByUserName(String userName) {
-        var value = Optional.ofNullable(userRepository.findByUserName(userName));
+    public User getUserByEmail(String email) {
+        var value = Optional.ofNullable(userRepository.findByEmail(email));
         return value
-            .orElseThrow(() -> new NotFoundException("User with name '%s' does not exist", userName));
+            .orElseThrow(() -> new NotFoundException("User with email '%s' does not exist", email));
     }
 
+    public Boolean exists(String email) {
+        return userRepository.existsByEmail(email);
+    }
 }

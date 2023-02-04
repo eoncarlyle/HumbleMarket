@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @TestPropertySource(locations = "classpath:application-test.properties")
-public class UserRepositoryTest {
+public class UserRepositoryTests {
 
     @Autowired
     private UserService userService;
@@ -26,25 +26,24 @@ public class UserRepositoryTest {
     @Test
     void createUserDocument_Success() {
         var users = new User[] {
-            new User("user1", "user1@iainschmitt.com"),
-            new User("user2", "user2@iainschmitt.com"),
+            new User("user1@iainschmitt.com"),
+            new User("user2@iainschmitt.com"),
         };
 
         User storedUser;
         for (final User user: users) {
             userService.createUser(user);
-            storedUser = userService.getUserByUserName(user.getUserName());
-            assertThat(storedUser.getUserName()).isEqualTo(user.getUserName());
+            storedUser = userService.getUserByEmail(user.getEmail());
             assertThat(storedUser.getEmail()).isEqualTo(user.getEmail());
         }
     }
 
     @Test
     void fetchUser_UserNotFound() {
-        var messageTemplate = "User with name '%s' does not exist";
-        var userName = "uncreatedUser";
+        var messageTemplate = "User with email '%s' does not exist";
+        var userEmail = "uncreatedUser@iainschmitt.com";
         assertThatExceptionOfType(NotFoundException.class)
-            .isThrownBy(() -> userService.getUserByUserName(userName))
-            .withMessageContaining(String.format(messageTemplate, userName));
+            .isThrownBy(() -> userService.getUserByEmail(userEmail))
+            .withMessageContaining(String.format(messageTemplate, userEmail));
     }
 }

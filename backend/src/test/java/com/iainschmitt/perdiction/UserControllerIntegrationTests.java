@@ -1,6 +1,5 @@
 package com.iainschmitt.perdiction;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +12,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient(timeout = "36000")
 @TestPropertySource(locations = "classpath:application-test.properties")
-public class UserApiIntegrationTest {
+public class UserControllerIntegrationTests {
     private static final String USERS_URI_PATH = "/users";
 
     @Autowired
@@ -28,16 +27,14 @@ public class UserApiIntegrationTest {
 
     @Test
     void fetchUser_Success() {
-        var user = new User("user1", "user1@iainschmitt.com");
+        var user = new User("user1@iainschmitt.com");
         userService.createUser(user);
         webTestClient.get()
-            .uri(USERS_URI_PATH + "/" + user.getUserName())
+            .uri(USERS_URI_PATH + "/" + user.getEmail())
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatusCode.valueOf(200))
             .expectBody()
-            .jsonPath("$.userName")
-            .isEqualTo(user.getUserName())
             .jsonPath("$.email")
             .isEqualTo(user.getEmail());
     }
@@ -51,7 +48,7 @@ public class UserApiIntegrationTest {
             .expectStatus()
             .isEqualTo(HttpStatusCode.valueOf(404))
             .expectBody()
-            .jsonPath("$.body")
-            .isEqualTo("com.iainschmitt.perdiction.NotFoundException: User with name '" + uncreatedUser + "' does not exist");
+            .jsonPath("$.message")
+            .isEqualTo("User with email '" + uncreatedUser + "' does not exist");
     }
 }
