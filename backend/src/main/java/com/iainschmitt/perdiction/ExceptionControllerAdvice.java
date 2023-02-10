@@ -7,8 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-//TODO: Use GSON in place of the clumsy string concatenation here
-
 @ControllerAdvice
 public class ExceptionControllerAdvice {
 

@@ -10,7 +10,7 @@ import lombok.Data;
 public class AuthData {
     @Email
     private String email;
-    @Pattern(regexp = "[a-zA-Z0-9!@#$%^&*()_+|;,./<>?]{8,64}")
+    @Pattern(regexp = "[a-zA-Z0-9!@#_\\-]{8,64}")
     private String password;
 
     public void validate() {

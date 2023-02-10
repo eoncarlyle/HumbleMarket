@@ -17,161 +17,111 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class AuthControllerIntegrationTests {
 
-  private static final String AUTH_URI_PATH = "/auth";
+    private static final String AUTH_URI_PATH = "/auth";
 
-  @Autowired
-  private WebTestClient webTestClient;
+    @Autowired
+    private WebTestClient webTestClient;
 
-  @Autowired
-  private UserService userService;
+    @Autowired
+    private UserService userService;
 
-  @BeforeEach
-  void clearTestUserDB() {
-    userService.deleteAll();
-  }
+    @BeforeEach
+    void clearTestUserDB() {
+        userService.deleteAll();
+    }
 
-  @Test
-  void signUpUser_Success() {
-    var user = new User("user1@iainschmitt.com");
-    user.setPassword("!A_Minimal_Password_Really");
-    webTestClient
-      .post()
-      .uri(AUTH_URI_PATH + "/signup")
-      .bodyValue(
-        new AuthData() {
-          {
-            setEmail(user.getEmail());
-            setPassword(user.getPassword());
-          }
-        }
-      )
-      .exchange()
-      .expectStatus()
-      .isEqualTo(HttpStatusCode.valueOf(201))
-      .expectBody()
-      .returnResult();
+    @Test
+    void signUpUser_Success() {
+        var user = new User("user1@iainschmitt.com");
+        user.setPassword("!A_Minimal_Password_Really");
+        webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
+            {
+                setEmail(user.getEmail());
+                setPassword(user.getPassword());
+            }
+        }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(201)).expectBody().returnResult();
 
-    assertThat(userService.exists(user.getEmail())).isTrue();
-  }
+        assertThat(userService.exists(user.getEmail())).isTrue();
+    }
 
-  @Test
-  void singUpUser_AuthFailure() {
-    var user = new User("user1@iainschmitt.com");
-    user.setPassword(" ");
-    webTestClient
-      .post()
-      .uri(AUTH_URI_PATH + "/signup")
-      .bodyValue(
-        new AuthData() {
-          {
-            setEmail(user.getEmail());
-            setPassword(user.getPassword());
-          }
-        }
-      )
-      .exchange()
-      .expectStatus()
-      .isEqualTo(HttpStatusCode.valueOf(422))
-      .expectBody()
-      .returnResult();
-  }
+    @Test
+    void singUpUser_AuthValidationFailure() {
+        var user = new User("user1@iainschmitt.com");
+        user.setPassword(" ");
+        userService.createUser(user);
+        webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
+            {
+                setEmail(user.getEmail());
+                setPassword(user.getPassword());
+            }
+        }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(422)).expectBody().returnResult();
+    }
 
-  @Test
-  void singUpUser_BadJson() {
-    webTestClient
-      .post()
-      .uri(AUTH_URI_PATH + "/signup")
-      .bodyValue("{\"email\":\"user1@iainschmitt.com\"}")
-      .exchange()
-      .expectStatus()
-      .isEqualTo(HttpStatusCode.valueOf(415))
-      .expectBody()
-      .returnResult();
-  }
+    @Test
+    void singUpUser_AuthFailureDuplicate() {
+        var user = new User("user1@iainschmitt.com");
+        user.setPassword("!A_Minimal_Password_Really");
+        userService.createUser(user);
+        webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
+            {
+                setEmail(user.getEmail());
+                setPassword(user.getPassword());
+            }
+        }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401)).expectBody().returnResult();
+    }
 
-  @Test
-  void logInUser_Success() {
-    var user = new User("user1@iainschmitt.com");
-    user.setPassword("!A_Minimal_Password_Really");
-    userService.createUser(user);
+    @Test
+    void singUpUser_BadJson() {
+        webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue("{\"email\":\"user1@iainschmitt.com\"}")
+                .exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(415)).expectBody().returnResult();
+    }
 
-    webTestClient
-      .post()
-      .uri(AUTH_URI_PATH + "/login")
-      .bodyValue(
-        new AuthData() {
-          {
-            setEmail(user.getEmail());
-            setPassword(user.getPassword());
-          }
-        }
-      )
-      .exchange()
-      .expectStatus()
-      .isEqualTo(HttpStatusCode.valueOf(200))
-      .expectBody()
-      .returnResult();
-  }
+    @Test
+    void logInUser_Success() {
+        var user = new User("user1@iainschmitt.com");
+        user.setPassword("!A_Minimal_Password_Really");
+        userService.createUser(user);
 
-  @Test
-  void logInUser_UserDoesntExist() {
-    var user = new User("user1@iainschmitt.com");
-    user.setPassword("!A_Minimal_Password_Really");
+        webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(new AuthData() {
+            {
+                setEmail(user.getEmail());
+                setPassword(user.getPassword());
+            }
+        }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(200)).expectBody().returnResult();
+    }
 
-    webTestClient
-      .post()
-      .uri(AUTH_URI_PATH + "/login")
-      .bodyValue(
-        new AuthData() {
-          {
-            setEmail(user.getEmail());
-            setPassword(user.getPassword());
-          }
-        }
-      )
-      .exchange()
-      .expectStatus()
-      .isEqualTo(HttpStatusCode.valueOf(401))
-      .expectBody()
-      .returnResult();
-  }
+    @Test
+    void logInUser_UserDoesntExist() {
+        var user = new User("user1@iainschmitt.com");
+        user.setPassword("!A_Minimal_Password_Really");
 
-  @Test
-  void singUpUser_WrongPassword() {
-    var user = new User("user1@iainschmitt.com");
-    user.setPassword("!A_Minimal_Password_Really");
+        webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(new AuthData() {
+            {
+                setEmail(user.getEmail());
+                setPassword(user.getPassword());
+            }
+        }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401)).expectBody().returnResult();
+    }
 
-    webTestClient
-      .post()
-      .uri(AUTH_URI_PATH + "/login")
-      .bodyValue(
-        new AuthData() {
-          {
-            setEmail(user.getEmail());
-            setPassword("!A_Different_Password_Really");
-          }
-        }
-      )
-      .exchange()
-      .expectStatus()
-      .isEqualTo(HttpStatusCode.valueOf(401))
-      .expectBody()
-      .returnResult();
-  }
+    @Test
+    void singUpUser_WrongPassword() {
+        var user = new User("user1@iainschmitt.com");
+        user.setPassword("!A_Minimal_Password_Really");
 
-  @Test
-  void logInUser_BadJson() {
-    var user = new User("user1@iainschmitt.com");
-    user.setPassword("!A_Minimal_Password_Really");
+        webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(new AuthData() {
+            {
+                setEmail(user.getEmail());
+                setPassword("!A_Different_Password_Really");
+            }
+        }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401)).expectBody().returnResult();
+    }
 
-    webTestClient
-      .post()
-      .uri(AUTH_URI_PATH + "/login")
-      .bodyValue("{\"email\":\"user1@iainschmitt.com\"}")
-      .exchange()
-      .expectStatus()
-      .isEqualTo(HttpStatusCode.valueOf(415))
-      .expectBody()
-      .returnResult();
-  }
+    @Test
+    void logInUser_BadJson() {
+        var user = new User("user1@iainschmitt.com");
+        user.setPassword("!A_Minimal_Password_Really");
+
+        webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue("{\"email\":\"user1@iainschmitt.com\"}").exchange()
+                .expectStatus().isEqualTo(HttpStatusCode.valueOf(415)).expectBody().returnResult();
+    }
 }

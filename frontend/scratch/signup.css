@@ -15,7 +15,7 @@ body {
 .logo-centered {
   display: inline-block;
   font: 18px system-ui;
-  color: #ffffff;
+  color: #eceff4;
   font-weight: bold;
   width: 140px;
   padding-top: 25px;
@@ -53,7 +53,7 @@ body {
   border: 1px solid #a3be8c;
   border-radius: 4px;
   background-color: #a3be8c;
-  color: #ffffff;
+  color: #eceff4;
   font: 18px system-ui, sans-serif;
   font-weight: bold;
   padding: 2px;
@@ -109,7 +109,7 @@ body {
   border: 1px solid #a3be8c;
   border-radius: 4px;
   background-color: #a3be8c;
-  color: #ffffff;
+  color: #ECEFF4;
   font: 18px system-ui, sans-serif;
   font-weight: bold;
 }

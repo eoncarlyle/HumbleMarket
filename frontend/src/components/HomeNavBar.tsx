@@ -1,4 +1,4 @@
-import classes from "./HomeNavBar.module.css";
+import classes from "../styles/HomeNavBar.module.css";
 import { Link } from "react-router-dom";
 
 function HomeNavBar() {

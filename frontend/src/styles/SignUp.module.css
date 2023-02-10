@@ -1,3 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap");
+
+body {
+  margin: 0;
+}
+
 .navbar {
   width: 100%;
   background-color: #2e3440;
@@ -6,14 +12,22 @@
   align-items: center;
 }
 
-.logo-centered {
+.logoCentered {
   display: inline-block;
   font: 18px system-ui;
-  color: #ffffff;
+  color: #eceff4;
   font-weight: bold;
   width: 140px;
   padding-top: 25px;
   padding-bottom: 25px;
+}
+
+form {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+  gap: 35px;
 }
 
 .sectionBox {
@@ -28,12 +42,11 @@
   font: 30px "IBM Plex Sans", sans-serif;
   margin-top: 60px;
   text-align: left;
-  width: min(calc(100% - 200px), 350px);
   height: 45px;
 }
 
-.logInInput {
-  width: min(calc(100% - 200px), 350px);
+.signInInput {
+  width: 350px;
   height: 45px;
   border: 1px solid #2e3440;
   border-radius: 4px;
@@ -41,8 +54,18 @@
   font: 18px "IBM Plex Sans", sans-serif;
 }
 
-.logIn {
-  width: min(calc(100% - 200px), 350px);
+.signInInputError {
+  width: 350px;
+  height: 45px;
+  border: 1px solid #2e3440;
+  border-radius: 4px;
+  color: #ffffff;
+  font: 18px "IBM Plex Sans", sans-serif;
+  background-color: #bf616a;
+}
+
+.createAccount {
+  width: 350px;
   height: 45px;
   border: 1px solid #a3be8c;
   border-radius: 4px;
@@ -53,33 +76,21 @@
   padding: 2px;
 }
 
-.logInForgot {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-direction: row;
-  gap: 150px;
-}
-
-.logInForgetPrompt {
-  font: 16px "IBM Plex Sans", sans-serif;
-  color: #2e3440;
-}
-
-.logInForgetAction {
-  font: 16px "IBM Plex Sans", sans-serif;
-  color: #a3be8c;
-  font-weight: bold;
-}
-
 .signInSubtitle {
   font: 20px "IBM Plex Sans", sans-serif;
   color: #2e3440;
 }
 
-.signUpLink {
+.signInLink {
   font: 20px "IBM Plex Sans", sans-serif;
   color: #a3be8c;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.signInErrors {
+  font: 16px "IBM Plex Sans", sans-serif;
+  color: #bf616a;
   font-weight: bold;
   text-decoration: none;
 }

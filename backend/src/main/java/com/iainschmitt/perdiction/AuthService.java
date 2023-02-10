@@ -1,15 +1,14 @@
 package com.iainschmitt.perdiction;
-import java.util.Date;
-import java.time.Instant;
-import java.security.Key;
-import java.nio.charset.StandardCharsets;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.time.Instant;
+import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 
 @Service
 public class AuthService {
@@ -53,7 +52,7 @@ public class AuthService {
         authData.validate();
 
         if (userService.exists(authData.getEmail())) {
-            throw new IllegalArgumentException(String.format(
+            throw new NotAuthorizedException(String.format(
                 "User with email '%s' already exists",
                 authData.getEmail()
             ));
