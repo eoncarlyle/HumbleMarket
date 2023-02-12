@@ -1,16 +1,18 @@
-import classes from "../styles/NavBar.module.css";
+import classes from "../styles/Auth.module.css";
 import { Outlet } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 function NavBar() {
   return (
     <>
-      <div className={classes.navbar}>
+      <header className={classes.navbar}>
         <Link to="/" className={classes.logoCentered}>
           Schmitt's Humblemarket
         </Link>
-      </div>
-      <Outlet />
+      </header>
+      <body>
+        <Outlet />
+      </body>
     </>
   );
 }

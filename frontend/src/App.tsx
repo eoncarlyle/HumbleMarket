@@ -1,22 +1,29 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import HomePage from "./pages/Home";
+import HomePage from "./pages/HomePage";
 import NavBar from "./components/NavBar";
-import LogInSection, { action as logInAction } from "./components/LogInSection";
-import SignUpSection, { action as signUpAction } from "./components/SignUpSection";
-
-//TODO: Clean up CSS: remove unused classes, make variables consistent and meaningful
+import LogInBody from "./components/LogInBody";
+import SignUpBody from "./components/SignUpBody";
+import { action as signUpAction } from "./util/SignUpAction";
+import { action as logInAction } from "./util/LogInAction";
+import { getAuthToken } from "./util/auth";
+import { action as logOutAction } from "./components/Logout";
+import RootLayout from "./components/RootLayout";
 
 const router = createBrowserRouter([
   {
     path: "/",
+    element: <RootLayout />,
+    loader: getAuthToken,
+    id: "root",
     children: [
       { path: "/", element: <HomePage /> },
       {
         path: "auth",
         element: <NavBar />,
         children: [
-          { path: "login", element: <LogInSection />, action: logInAction },
-          { path: "signup", element: <SignUpSection />, action: signUpAction },
+          { path: "login", element: <LogInBody />, action: logInAction },
+          { path: "signup", element: <SignUpBody />, action: signUpAction },
+          { path: "logout", action: logOutAction },
         ],
       },
     ],

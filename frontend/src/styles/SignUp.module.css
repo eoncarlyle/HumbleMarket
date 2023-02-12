@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans&display=swap");
+/* Deprecated */
 
 body {
   margin: 0;
@@ -45,6 +45,7 @@ form {
   height: 45px;
 }
 
+/* Changed to authInput  */
 .signInInput {
   width: 350px;
   height: 45px;
@@ -54,6 +55,7 @@ form {
   font: 18px "IBM Plex Sans", sans-serif;
 }
 
+/*Changed to authInputError*/
 .signInInputError {
   width: 350px;
   height: 45px;
@@ -64,6 +66,7 @@ form {
   background-color: #bf616a;
 }
 
+/*Changed to authMainButton*/
 .createAccount {
   width: 350px;
   height: 45px;
@@ -76,11 +79,13 @@ form {
   padding: 2px;
 }
 
+/* Changed to authSubtitle*/
 .signInSubtitle {
   font: 20px "IBM Plex Sans", sans-serif;
   color: #2e3440;
 }
 
+/* Changed to authLink*/
 .signInLink {
   font: 20px "IBM Plex Sans", sans-serif;
   color: #a3be8c;
@@ -88,6 +93,7 @@ form {
   text-decoration: none;
 }
 
+/* changed to authInputError */
 .signInErrors {
   font: 16px "IBM Plex Sans", sans-serif;
   color: #bf616a;

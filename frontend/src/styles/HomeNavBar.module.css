@@ -21,6 +21,9 @@
 .navbarRight {
   list-style: none;
   align-items: right;
+  display: flex;
+  gap: 30px;
+  margin-right: 30px;
 }
 
 .navLogin {
@@ -28,17 +31,26 @@
   color: #eceff4;
   background-color: #2e3440;
   border: none;
-  margin: 30px;
   text-decoration: none;
+  align-self: center;
 }
 
 .navSignup {
   font: 18px system-ui;
   color: #eceff4;
   padding: 10px;
-  margin-right: 30px;
   border: #a3be8c;
   border-radius: 5px;
   background-color: #a3be8c;
+  text-decoration: none;
+}
+
+.navLogout {
+  font: 18px system-ui;
+  color: #eceff4;
+  padding: 10px;
+  border: #d08770;
+  border-radius: 5px;
+  background-color: #d08770;
   text-decoration: none;
 }

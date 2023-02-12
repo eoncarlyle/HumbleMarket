@@ -1,3 +1,4 @@
+/* Deprecated */
 .navbar {
   width: 100%;
   background-color: #2e3440;
@@ -40,6 +41,7 @@ form {
   height: 45px;
 }
 
+/* Changed to authInput  */
 .logInInput {
   width: 350px;
   height: 45px;
@@ -49,6 +51,7 @@ form {
   font: 18px "IBM Plex Sans", sans-serif;
 }
 
+/*Changed to authMainButton*/
 .logIn {
   width: 350px;
   height: 45px;
@@ -61,6 +64,7 @@ form {
   padding: 2px;
 }
 
+/*Changed to authForgot*/
 .logInForgot {
   display: flex;
   justify-content: space-between;
@@ -69,22 +73,26 @@ form {
   gap: 150px;
 }
 
+/*Changed to authForgotPrompt*/
 .logInForgetPrompt {
   font: 16px "IBM Plex Sans", sans-serif;
   color: #2e3440;
 }
 
+/*Changed to authForgotAction*/
 .logInForgetAction {
   font: 16px "IBM Plex Sans", sans-serif;
   color: #a3be8c;
   font-weight: bold;
 }
 
+/* Changed to authSubtitle*/
 .signInSubtitle {
   font: 20px "IBM Plex Sans", sans-serif;
   color: #2e3440;
 }
 
+/* Changed to authLink*/
 .signUpLink {
   font: 20px "IBM Plex Sans", sans-serif;
   color: #a3be8c;

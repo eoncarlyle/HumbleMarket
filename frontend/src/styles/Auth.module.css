@@ -1,0 +1,120 @@
+:root {
+  --input-width: 350px;
+  --pure-white: #ffffff;
+  --off-white: #eceff4;
+  --dark-blue: #2e3440;
+  --input-text: #4c566a;
+  --green: #a3be8c;
+  --red: #bf616a;
+}
+
+form {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.navbar {
+  width: 100%;
+  background-color: var(--dark-blue);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logoCentered {
+  display: inline-block;
+  font: 18px system-ui;
+  color: var(--off-white);
+  font-weight: bold;
+  width: 140px;
+  padding-top: 25px;
+  padding-bottom: 25px;
+  text-decoration: none;
+}
+
+.sectionBox {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+  gap: 35px;
+}
+
+.sectionHeader {
+  font: 30px "IBM Plex Sans", sans-serif;
+  margin-top: 60px;
+  text-align: left;
+  height: 45px;
+}
+
+.authInput {
+  width: var(--input-width);
+  height: 45px;
+  border: 1px solid var(--dark-blue);
+  border-radius: 4px;
+  color: var(--input-text);
+  font: 18px "IBM Plex Sans", sans-serif;
+}
+
+.authInputError {
+  width: var(--input-width);
+  height: 45px;
+  border: 1px solid var(--dark-blue);
+  border-radius: 4px;
+  color: var(--pure-white);
+  font: 18px "IBM Plex Sans", sans-serif;
+  background-color: var(--red);
+}
+
+.authErrorFeedback {
+  font: 16px "IBM Plex Sans", sans-serif;
+  color: var(--red);
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.authMainButton {
+  width: var(--input-width);
+  height: 45px;
+  border: 1px solid var(--green);
+  border-radius: 4px;
+  background-color: var(--green);
+  color: var(--pure-white);
+  font: 18px system-ui, sans-serif;
+  font-weight: bold;
+  padding: 2px;
+}
+
+.authForgot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  gap: 150px;
+}
+
+.authForgotPrompt {
+  font: 16px "IBM Plex Sans", sans-serif;
+  color: var(--dark-blue);
+}
+
+.authForgotAction {
+  font: 16px "IBM Plex Sans", sans-serif;
+  color: var(--green);
+  font-weight: bold;
+}
+
+.authSubtitle {
+  font: 20px "IBM Plex Sans", sans-serif;
+  color: var(--dark-blue);
+}
+
+.authLink {
+  font: 20px "IBM Plex Sans", sans-serif;
+  color: #a3be8c;
+  font-weight: bold;
+  text-decoration: none;
+}

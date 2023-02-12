@@ -1,11 +1,11 @@
 import HomeNavBar from "../components/HomeNavBar";
-import HomeSection from "../components/HomeSection";
+import HomeBody from "../components/HomeBody";
 
 const HomePage = () => {
   return (
     <>
       <HomeNavBar />
-      <HomeSection />
+      <HomeBody />
     </>
   );
 };
