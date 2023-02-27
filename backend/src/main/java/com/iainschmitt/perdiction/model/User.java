@@ -11,7 +11,8 @@ public class User {
     private final String email;
     @Setter
     private String password;
-    private int credits;
+    @Setter
+    private float credits;
 
     // TODO: Change this constructor to inlcude both email and password
     // TODO: Don't even accept passwords, accept password hashes
@@ -24,4 +25,13 @@ public class User {
     public String toString() {
         return String.format("User[id=%s, displayName='%s']", getId(), getEmail());
     }
+
+    public void depositCredits(float credits) {
+        this.credits += credits;
+    }
+
+    public void withdrawCredits(float credits) {
+        this.credits -= credits;
+    }
+
 }

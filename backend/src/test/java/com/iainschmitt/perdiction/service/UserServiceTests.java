@@ -14,7 +14,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @SpringBootTest
-@TestPropertySource(locations = "classpath:application-test.properties")
 public class UserServiceTests {
 
     @Autowired
@@ -31,7 +30,7 @@ public class UserServiceTests {
         User storedUser;
 
         for (final User user : users) {
-            userService.createUser(user);
+            userService.saveUser(user);
             storedUser = userService.getUserByEmail(user.getEmail());
             assertThat(storedUser.getEmail()).isEqualTo(user.getEmail());
         }

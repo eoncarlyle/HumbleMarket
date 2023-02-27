@@ -14,7 +14,6 @@ import com.iainschmitt.perdiction.service.UserService;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient(timeout = "36000")
-@TestPropertySource(locations = "classpath:application-test.properties")
 public class UserControllerIntegrationTests {
     private static final String USERS_URI_PATH = "/users";
 
@@ -31,7 +30,7 @@ public class UserControllerIntegrationTests {
     @Test
     void fetchUser_Success() {
         var user = new User("user1@iainschmitt.com");
-        userService.createUser(user);
+        userService.saveUser(user);
         webTestClient.get().uri(USERS_URI_PATH + "/" + user.getEmail()).exchange().expectStatus()
                 .isEqualTo(HttpStatusCode.valueOf(200)).expectBody().jsonPath("$.email").isEqualTo(user.getEmail());
     }

@@ -18,13 +18,18 @@ public class UserService {
         userRepository.deleteAll();
     }
 
-    public void createUser(User user) {
+    public void saveUser(User user) {
         userRepository.save(user);
     }
 
     public User getUserByEmail(String email) {
         var value = Optional.ofNullable(userRepository.findByEmail(email));
         return value.orElseThrow(() -> new NotFoundException("User with email '%s' does not exist", email));
+    }
+
+    public User getUserById(String id) {
+        var value = userRepository.findById(id);
+        return value.orElseThrow(() -> new NotFoundException("User with email '%s' does not exist", id));
     }
 
     public Boolean exists(String email) {

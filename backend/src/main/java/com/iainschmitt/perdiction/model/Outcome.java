@@ -1,9 +1,15 @@
 package com.iainschmitt.perdiction.model;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@AllArgsConstructor
+@Getter
+@Setter
 public class Outcome {
-    private String marketId;
-    private String claim;
+    private final String claim;
+    private float price;
+    private int sharesY;
+    private int sharesN;
 }

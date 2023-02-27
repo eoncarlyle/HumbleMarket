@@ -17,7 +17,6 @@ import com.iainschmitt.perdiction.service.UserService;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient(timeout = "36000")
-@TestPropertySource(locations = "classpath:application-test.properties")
 public class AuthControllerIntegrationTests {
 
     private static final String AUTH_URI_PATH = "/auth";
@@ -51,7 +50,7 @@ public class AuthControllerIntegrationTests {
     void singUpUser_AuthValidationFailure() {
         var user = new User("user1@iainschmitt.com");
         user.setPassword(" ");
-        userService.createUser(user);
+        userService.saveUser(user);
         webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
             {
                 setEmail(user.getEmail());
@@ -64,7 +63,7 @@ public class AuthControllerIntegrationTests {
     void singUpUser_AuthFailureDuplicate() {
         var user = new User("user1@iainschmitt.com");
         user.setPassword("!A_Minimal_Password_Really");
-        userService.createUser(user);
+        userService.saveUser(user);
         webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
             {
                 setEmail(user.getEmail());
@@ -83,7 +82,7 @@ public class AuthControllerIntegrationTests {
     void logInUser_Success() {
         var user = new User("user1@iainschmitt.com");
         user.setPassword("!A_Minimal_Password_Really");
-        userService.createUser(user);
+        userService.saveUser(user);
 
         webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(new AuthData() {
             {

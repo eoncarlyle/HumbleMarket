@@ -1,7 +1,10 @@
 package com.iainschmitt.perdiction.service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 
+import com.iainschmitt.perdiction.model.rest.MarketData;
 import io.jsonwebtoken.security.Keys;
 import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +24,6 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
-@TestPropertySource(locations = "classpath:application-test.properties")
 public class AuthServiceTests {
 
     @Autowired
@@ -127,7 +129,7 @@ public class AuthServiceTests {
     public void logInUserAccount_Success() {
         var user = new User("user1@iainschmitt.com");
         user.setPassword("!A_Minimal_Password_Really");
-        userService.createUser(user);
+        userService.saveUser(user);
 
         assertThatNoException().isThrownBy(() -> authService.logInUserAccount(new AuthData() {
             {

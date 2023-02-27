@@ -23,6 +23,8 @@ import com.iainschmitt.perdiction.model.rest.SignUpReturnData;
 public class AuthService {
     // TODO Put this in application.properties, something isn't working with that
     // TODO injection right now
+
+    // TODO use `plus(Duration.ofSeconds)` both here and in the tests
     public static String secret = "e1e354166fd7ebc50dee83388faf4930f3ec409c16c18c641cfd85a953012370";
     public static Key KEY = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     public static long FIVE_DAYS = 432000L;
@@ -59,7 +61,7 @@ public class AuthService {
         }
         var newUser = new User(authData.getEmail());
         newUser.setPassword(authData.getPassword());
-        userService.createUser(newUser);
+        userService.saveUser(newUser);
 
         return SignUpReturnData.builder().message("User account creation successful").email(authData.getEmail())
                 .token(createToken(newUser)).build();
