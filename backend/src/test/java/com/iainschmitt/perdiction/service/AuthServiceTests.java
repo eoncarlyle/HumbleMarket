@@ -22,6 +22,7 @@ import com.iainschmitt.perdiction.service.UserService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
 @SpringBootTest
 public class AuthServiceTests {
@@ -65,7 +66,7 @@ public class AuthServiceTests {
     @Test
     public void userAccountCreation_Success() {
         var user = new User("user1@iainschmitt.com");
-        user.setPasswordHash("!A_Minimal_Password_Really");
+        user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
 
         // Anoynmous class done here because @Builder conflicts with @ResponseBody
         // parsing
@@ -82,7 +83,7 @@ public class AuthServiceTests {
     @Test
     public void userAccountCreation_DuplicationFailure() {
         var user1 = new User("user1@iainschmitt.com");
-        user1.setPasswordHash("!A_Minimal_Password_Really");
+        user1.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         assertThat(userService.exists(user1.getEmail())).isFalse();
         assertThatNoException().isThrownBy(() -> authService.createUserAccount(new AuthData() {
             {
@@ -93,7 +94,7 @@ public class AuthServiceTests {
         assertThatThrownBy(() -> authService.createUserAccount(new AuthData() {
             {
                 setEmail(user1.getEmail());
-                setPasswordHash("!A_Different_Minimal_Password_Really");
+                setPasswordHash(sha256Hex("!A_Different_Minimal_Password_Really"));
             }
         })).isInstanceOf(NotAuthorizedException.class);
         assertThat(userService.exists(user1.getEmail())).isTrue();
@@ -128,7 +129,7 @@ public class AuthServiceTests {
     @Test
     public void logInUserAccount_Success() {
         var user = new User("user1@iainschmitt.com");
-        user.setPasswordHash("!A_Minimal_Password_Really");
+        user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         userService.saveUser(user);
 
         assertThatNoException().isThrownBy(() -> authService.logInUserAccount(new AuthData() {
@@ -143,7 +144,7 @@ public class AuthServiceTests {
     @Test
     public void logInUserAccount_UserDoesntExist() {
         var user = new User("user1@iainschmitt.com");
-        user.setPasswordHash("!A_Minimal_Password_Really");
+        user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
 
         assertThatThrownBy(() -> authService.logInUserAccount(new AuthData() {
             {

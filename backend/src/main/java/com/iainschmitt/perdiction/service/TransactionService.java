@@ -258,7 +258,7 @@ public class TransactionService {
     public static float priceRecalc(int sharesY, int sharesN) {
         var Y = (float) sharesY;
         var N = (float) sharesN;
-        return Math.round(N / (N + Y));
+        return N / (N + Y);
     }
 
     public static float unroundedSharesN(float price, float marketMakerK) {
