@@ -1,6 +1,8 @@
 import * as EmailValidator from "email-validator";
-import { setAuthToken, type ValidationData } from "../util/auth";
 import { redirect } from "react-router-dom";
+import sha256 from "crypto-js/sha256";
+
+import { setAuthToken, type ValidationData } from "../util/auth";
 
 export async function action({ request }: any) {
   const formData = await request.formData();
@@ -39,10 +41,12 @@ export async function action({ request }: any) {
     return validationData;
   }
 
+  var passwordHash = sha256(password).toString();
+
   //Request and post-request authentication
   const authData = {
     email: email,
-    password: password,
+    passwordHash: passwordHash,
   };
 
   const hostname = new URL(request.url).hostname;
@@ -67,6 +71,5 @@ export async function action({ request }: any) {
 
   const responseData = await response.json();
   setAuthToken(responseData.token);
-
   return redirect("/");
 }

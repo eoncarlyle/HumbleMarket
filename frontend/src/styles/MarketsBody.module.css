@@ -1,0 +1,105 @@
+:root {
+  --input-width: 350px;
+  --pure-white: #ffffff;
+  --off-white: #eceff4;
+  --grey: #d8dee9;
+  --dark-blue: #2e3440;
+  --text: #4c566a;
+  --green: #a3be8c;
+  --red: #bf616a;
+}
+
+.question {
+  font: 18px system-ui;
+  margin: 0px;
+  font-weight: bold;
+}
+
+.body {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  margin: 15px;
+  flex-wrap: wrap;
+}
+
+.question {
+  margin-top: 5px;
+}
+
+.closeDate {
+  margin-top: 5px;
+}
+
+.marketBox {
+  font: 16px "IBM Plex Sans", sans-serif;
+  color: var(--dark-blue);
+  border: 3px solid var(--grey);
+  border-radius: 10px;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 450px;
+  height: 250px;
+  padding: 10px;
+  display: flex;
+  margin: 10px;
+}
+
+.outcome {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.outcomeContainer {
+  justify-content: flex-end;
+}
+
+.prices {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.priceYes {
+  color: var(--pure-white);
+  margin-right: 10px;
+  background-color: var(--green);
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.priceNo {
+  color: var(--pure-white);
+  margin-left: 10px;
+  background-color: var(--red);
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.furtherInfoContainer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.furtherInfoSubContainer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.furtherInfo {
+  margin: 10px;
+  background-color: var(--grey);
+  font-weight: bold;
+  border-radius: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}

@@ -65,7 +65,7 @@ public class AuthServiceTests {
     @Test
     public void userAccountCreation_Success() {
         var user = new User("user1@iainschmitt.com");
-        user.setPassword("!A_Minimal_Password_Really");
+        user.setPasswordHash("!A_Minimal_Password_Really");
 
         // Anoynmous class done here because @Builder conflicts with @ResponseBody
         // parsing
@@ -73,7 +73,7 @@ public class AuthServiceTests {
         assertThatNoException().isThrownBy(() -> authService.createUserAccount(new AuthData() {
             {
                 setEmail(user.getEmail());
-                setPassword(user.getPassword());
+                setPasswordHash(user.getPasswordHash());
             }
         }));
         assertThat(userService.exists(user.getEmail())).isTrue();
@@ -82,18 +82,18 @@ public class AuthServiceTests {
     @Test
     public void userAccountCreation_DuplicationFailure() {
         var user1 = new User("user1@iainschmitt.com");
-        user1.setPassword("!A_Minimal_Password_Really");
+        user1.setPasswordHash("!A_Minimal_Password_Really");
         assertThat(userService.exists(user1.getEmail())).isFalse();
         assertThatNoException().isThrownBy(() -> authService.createUserAccount(new AuthData() {
             {
                 setEmail(user1.getEmail());
-                setPassword(user1.getPassword());
+                setPasswordHash(user1.getPasswordHash());
             }
         }));
         assertThatThrownBy(() -> authService.createUserAccount(new AuthData() {
             {
                 setEmail(user1.getEmail());
-                setPassword("!A_Different_Minimal_Password_Really");
+                setPasswordHash("!A_Different_Minimal_Password_Really");
             }
         })).isInstanceOf(NotAuthorizedException.class);
         assertThat(userService.exists(user1.getEmail())).isTrue();
@@ -102,12 +102,12 @@ public class AuthServiceTests {
     @Test
     public void userAccountCreation_EmailValidationFailure() {
         var user = new User("NotAnEmail");
-        user.setPassword("!A_Minimal_Password_Really");
+        user.setPasswordHash("!A_Minimal_Password_Really");
 
         assertThatThrownBy(() -> authService.createUserAccount(new AuthData() {
             {
                 setEmail(user.getEmail());
-                setPassword(user.getPassword());
+                setPasswordHash(user.getPasswordHash());
             }
         })).isInstanceOf(ValidationException.class);
     }
@@ -115,12 +115,12 @@ public class AuthServiceTests {
     @Test
     public void userAccountCreation_PasswordValidationFailure() {
         var user = new User("user1@iainschmitt.com");
-        user.setPassword("!pass");
+        user.setPasswordHash("!pass");
 
         assertThatThrownBy(() -> authService.createUserAccount(new AuthData() {
             {
                 setEmail(user.getEmail());
-                setPassword(user.getPassword());
+                setPasswordHash(user.getPasswordHash());
             }
         })).isInstanceOf(ValidationException.class);
     }
@@ -128,13 +128,13 @@ public class AuthServiceTests {
     @Test
     public void logInUserAccount_Success() {
         var user = new User("user1@iainschmitt.com");
-        user.setPassword("!A_Minimal_Password_Really");
+        user.setPasswordHash("!A_Minimal_Password_Really");
         userService.saveUser(user);
 
         assertThatNoException().isThrownBy(() -> authService.logInUserAccount(new AuthData() {
             {
                 setEmail(user.getEmail());
-                setPassword(user.getPassword());
+                setPasswordHash(user.getPasswordHash());
             }
         }));
         assertThat(userService.exists(user.getEmail())).isTrue();
@@ -143,12 +143,12 @@ public class AuthServiceTests {
     @Test
     public void logInUserAccount_UserDoesntExist() {
         var user = new User("user1@iainschmitt.com");
-        user.setPassword("!A_Minimal_Password_Really");
+        user.setPasswordHash("!A_Minimal_Password_Really");
 
         assertThatThrownBy(() -> authService.logInUserAccount(new AuthData() {
             {
                 setEmail(user.getEmail());
-                setPassword(user.getPassword());
+                setPasswordHash(user.getPasswordHash());
             }
         })).isInstanceOf(NotAuthorizedException.class);
     }

@@ -1,5 +1,8 @@
 package com.iainschmitt.perdiction.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import lombok.Getter;
@@ -10,15 +13,16 @@ public class User {
     private String id;
     private final String email;
     @Setter
-    private String password;
+    private String passwordHash;
     @Setter
     private float credits;
+    private Map<String, Notification> notifications;
 
     // TODO: Change this constructor to inlcude both email and password
-    // TODO: Don't even accept passwords, accept password hashes
     public User(String email) {
         this.email = email;
-        this.password = null;
+        this.passwordHash = null;
+        notifications = new HashMap<>();
     }
 
     @Override
@@ -34,4 +38,11 @@ public class User {
         this.credits -= credits;
     }
 
+    public void addNotification(String marketId, String message, String link) {
+        notifications.put(marketId, new Notification(message, link));
+    }
+
+    public void removeNotification(String marketId) {
+        notifications.remove(marketId);
+    }
 }

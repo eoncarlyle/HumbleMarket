@@ -5,6 +5,7 @@ import LogInBody from "./components/LogInBody";
 import SignUpBody from "./components/SignUpBody";
 import { action as signUpAction } from "./util/SignUpAction";
 import { action as logInAction } from "./util/LogInAction";
+import { loader as homeLoader } from "./util/MarketsLoader";
 import { getAuthToken } from "./util/auth";
 import { action as logOutAction } from "./components/Logout";
 import RootLayout from "./components/RootLayout";
@@ -16,7 +17,7 @@ const router = createBrowserRouter([
     loader: getAuthToken,
     id: "root",
     children: [
-      { path: "/", element: <HomePage /> },
+      { path: "/", element: <HomePage />, loader: homeLoader },
       {
         path: "auth",
         element: <NavBar />,

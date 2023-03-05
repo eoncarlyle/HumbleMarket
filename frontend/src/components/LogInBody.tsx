@@ -2,8 +2,6 @@ import classes from "../styles/Auth.module.css";
 import { Form, Link, redirect, useActionData } from "react-router-dom";
 import { type ValidationData } from "../util/auth";
 
-//TODO: Hash passwords
-
 function LogInBody() {
   const validationData = useActionData() as ValidationData;
 

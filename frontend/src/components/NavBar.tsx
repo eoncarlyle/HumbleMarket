@@ -10,9 +10,7 @@ function NavBar() {
           Schmitt's Humblemarket
         </Link>
       </header>
-      <body>
-        <Outlet />
-      </body>
+      <Outlet />
     </>
   );
 }

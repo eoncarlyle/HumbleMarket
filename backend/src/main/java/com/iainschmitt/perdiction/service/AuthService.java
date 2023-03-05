@@ -42,6 +42,10 @@ public class AuthService {
                 .claim("email", user.getEmail()).signWith(KEY).compact();
     }
 
+    public boolean authenticateToken(String jwsString) {
+        return authenticateToken(jwsString, KEY);
+    }
+
     public boolean authenticateToken(String jwsString, Key key) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwsString);
@@ -60,7 +64,7 @@ public class AuthService {
             throw new NotAuthorizedException(String.format("User with email '%s' already exists", authData.getEmail()));
         }
         var newUser = new User(authData.getEmail());
-        newUser.setPassword(authData.getPassword());
+        newUser.setPasswordHash(authData.getPasswordHash());
         userService.saveUser(newUser);
 
         return SignUpReturnData.builder().message("User account creation successful").email(authData.getEmail())
@@ -70,8 +74,8 @@ public class AuthService {
     public LogInReturnData logInUserAccount(AuthData authData) {
         authData.validate();
         var email = authData.getEmail();
-        var password = authData.getPassword();
-        if (!userService.exists(email) || !userService.getUserByEmail(email).getPassword().equals(password)) {
+        var password = authData.getPasswordHash();
+        if (!userService.exists(email) || !userService.getUserByEmail(email).getPasswordHash().equals(password)) {
             // if (!userService.exists(email)) {
             throw new NotAuthorizedException("Failed authentication: username or password is incorrect");
         }

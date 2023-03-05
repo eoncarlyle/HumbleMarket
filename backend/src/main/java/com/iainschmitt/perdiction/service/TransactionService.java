@@ -208,9 +208,12 @@ public class TransactionService {
 
     public MarketReturnData close(Market market, int correctOutcomeIndex) {
         market.setClosed(true);
-        // TODO: Notify creator to resolve market
-        // Notifications: embeded reference in User table
         marketRepository.save(market);
+        var creator = userService.getUserById(market.getCreatorId());
+        var message = String.format("Market '%s' has closed, please resolve it by providing the correct answer",
+                market.getQuestion());
+        // TODO: Figure out where link should go
+        creator.addNotification(market.getId(), message, "");
         return new MarketReturnData("");
     }
 
@@ -255,7 +258,7 @@ public class TransactionService {
     public static float priceRecalc(int sharesY, int sharesN) {
         var Y = (float) sharesY;
         var N = (float) sharesN;
-        return N / (N + Y);
+        return Math.round(N / (N + Y));
     }
 
     public static float unroundedSharesN(float price, float marketMakerK) {

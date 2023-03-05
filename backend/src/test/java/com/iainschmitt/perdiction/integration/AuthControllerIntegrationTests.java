@@ -1,15 +1,16 @@
 package com.iainschmitt.perdiction.integration;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
 import com.iainschmitt.perdiction.model.rest.AuthData;
 import com.iainschmitt.perdiction.model.User;
@@ -35,11 +36,11 @@ public class AuthControllerIntegrationTests {
     @Test
     void signUpUser_Success() {
         var user = new User("user1@iainschmitt.com");
-        user.setPassword("!A_Minimal_Password_Really");
+        user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
             {
                 setEmail(user.getEmail());
-                setPassword(user.getPassword());
+                setPasswordHash(user.getPasswordHash());
             }
         }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(201)).expectBody().returnResult();
 
@@ -49,12 +50,12 @@ public class AuthControllerIntegrationTests {
     @Test
     void singUpUser_AuthValidationFailure() {
         var user = new User("user1@iainschmitt.com");
-        user.setPassword(" ");
+        user.setPasswordHash(" ");
         userService.saveUser(user);
         webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
             {
                 setEmail(user.getEmail());
-                setPassword(user.getPassword());
+                setPasswordHash(user.getPasswordHash());
             }
         }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(422)).expectBody().returnResult();
     }
@@ -62,12 +63,12 @@ public class AuthControllerIntegrationTests {
     @Test
     void singUpUser_AuthFailureDuplicate() {
         var user = new User("user1@iainschmitt.com");
-        user.setPassword("!A_Minimal_Password_Really");
+        user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         userService.saveUser(user);
         webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
             {
                 setEmail(user.getEmail());
-                setPassword(user.getPassword());
+                setPasswordHash(user.getPasswordHash());
             }
         }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401)).expectBody().returnResult();
     }
@@ -81,13 +82,13 @@ public class AuthControllerIntegrationTests {
     @Test
     void logInUser_Success() {
         var user = new User("user1@iainschmitt.com");
-        user.setPassword("!A_Minimal_Password_Really");
+        user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         userService.saveUser(user);
 
         webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(new AuthData() {
             {
                 setEmail(user.getEmail());
-                setPassword(user.getPassword());
+                setPasswordHash(user.getPasswordHash());
             }
         }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(200)).expectBody().returnResult();
     }
@@ -95,12 +96,12 @@ public class AuthControllerIntegrationTests {
     @Test
     void logInUser_UserDoesntExist() {
         var user = new User("user1@iainschmitt.com");
-        user.setPassword("!A_Minimal_Password_Really");
+        user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
 
         webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(new AuthData() {
             {
                 setEmail(user.getEmail());
-                setPassword(user.getPassword());
+                setPasswordHash(user.getPasswordHash());
             }
         }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401)).expectBody().returnResult();
     }
@@ -108,12 +109,12 @@ public class AuthControllerIntegrationTests {
     @Test
     void singUpUser_WrongPassword() {
         var user = new User("user1@iainschmitt.com");
-        user.setPassword("!A_Minimal_Password_Really");
+        user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
 
         webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(new AuthData() {
             {
                 setEmail(user.getEmail());
-                setPassword("!A_Different_Password_Really");
+                setPasswordHash(sha256Hex("!A_Different_Password_Really"));
             }
         }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401)).expectBody().returnResult();
     }
@@ -121,7 +122,7 @@ public class AuthControllerIntegrationTests {
     @Test
     void logInUser_BadJson() {
         var user = new User("user1@iainschmitt.com");
-        user.setPassword("!A_Minimal_Password_Really");
+        user.setPasswordHash("!A_Minimal_Password_Really");
 
         webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue("{\"email\":\"user1@iainschmitt.com\"}").exchange()
                 .expectStatus().isEqualTo(HttpStatusCode.valueOf(415)).expectBody().returnResult();

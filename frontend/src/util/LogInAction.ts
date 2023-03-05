@@ -1,6 +1,8 @@
+import { redirect } from "react-router-dom";
+import sha256 from "crypto-js/sha256";
+
 import * as EmailValidator from "email-validator";
 import { setAuthToken, type ValidationData } from "../util/auth";
-import { redirect } from "react-router-dom";
 
 export async function action({ request }: any) {
   const formData = await request.formData();
@@ -24,13 +26,16 @@ export async function action({ request }: any) {
     return validationData;
   }
 
+  var passwordHash = sha256(password).toString();
+
   //Request and post-request authentication
   const authData = {
     email: email,
-    password: password,
+    passwordHash: passwordHash,
   };
 
-  const hostname = new URL(request.url).hostname;
+  //TODO: May want to centralise this
+  const hostname = new URL(window.location.href).hostname;
 
   const response = await fetch("http://" + hostname + ":8080/auth/login", {
     method: "POST",

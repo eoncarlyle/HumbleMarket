@@ -240,7 +240,6 @@ public class TransactionServiceTests {
         var initialOutcomeZeroPrice = market.getOutcomes().get(0).getPrice();
         var initialOutcomeOnePrice = market.getOutcomes().get(1).getPrice();
         var shares = 3;
-        var startingCredits = bank.getCredits() + user.getCredits();
         var initialTotalCredits = totalCredits();
 
         transactionService.purchase(user.getId(), market.getId(), 0, PositionDirection.YES, shares);
@@ -260,6 +259,26 @@ public class TransactionServiceTests {
     @Test
     public void sale_InsufficientSharesFailure() {
         // TODO: Test with multiple positions so that the validUserShares is tested
+    }
+
+    @Test
+    public void close_SingleOutomce() {
+        // TODO: Include user notification
+    }
+
+    @Test
+    public void close_MultiOutomce() {
+        // TODO: Include user notification
+    }
+
+    @Test
+    public void resolve_Success() {
+        // TODO
+    }
+
+    @Test
+    public void resolve_UnderdefinedFailure() {
+        // TODO
     }
 
     private String getAdminId() {

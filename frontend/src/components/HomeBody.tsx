@@ -1,13 +1,14 @@
-import classes from "../styles/HomeSection.module.css";
 import { Link, useRouteLoaderData } from "react-router-dom";
+
+import classes from "../styles/HomeSection.module.css";
+import MarketsBody from "./MarketsBody";
 
 function HomeBody() {
   const token = useRouteLoaderData("root") as string;
-  console.log(token);
   return (
-    <body>
+    <>
       {token ? (
-        <></>
+        <MarketsBody />
       ) : (
         <>
           <div className={classes.body}>
@@ -24,7 +25,7 @@ function HomeBody() {
           </div>
         </>
       )}
-    </body>
+    </>
   );
 }
 
