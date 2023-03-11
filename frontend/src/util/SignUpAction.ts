@@ -2,7 +2,7 @@ import * as EmailValidator from "email-validator";
 import { redirect } from "react-router-dom";
 import sha256 from "crypto-js/sha256";
 
-import { setAuthToken, type ValidationData } from "../util/auth";
+import { setAuthToken, type ValidationData } from "./Auth";
 
 export async function action({ request }: any) {
   const formData = await request.formData();

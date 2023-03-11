@@ -11,23 +11,28 @@ import lombok.Setter;
 public class Market {
     @Id
     private String id;
+    // seqId is the order in which the market was created
+    // Used in UI, didn't want to use Mongodb Database IDs for this
+    // TODO: consider unique constraint on this
+    private final int seqId;
     private final String question;
     private final String creatorId;
     private final int marketMakerK;
     private final long closeDate;
     private final List<Outcome> outcomes;
-    private boolean isPublic;
+    private final boolean isPublic;
     @Setter
     private boolean isClosed;
     @Setter
     private boolean isResolved;
 
-    // TODO: I recall issues with using builders on databse stored classes, but
+    // TODO: I recall issues with using builders in repository stored classes, but
     // might be worth looking into
     // TODO: A market lifecycle is Open -> Closed -> Resolved, there are probably
     // better ways to handle this than with the isClosed and isResolved booleans
-    public Market(String question, String creatorId, int marketMakerK, long closeDate, List<Outcome> outcomes,
-            boolean isPublic, boolean isClosed, boolean isResolved) {
+    public Market(int seqId, String question, String creatorId, int marketMakerK, long closeDate,
+            List<Outcome> outcomes, boolean isPublic, boolean isClosed, boolean isResolved) {
+        this.seqId = seqId;
         this.question = question;
         this.creatorId = creatorId;
         this.marketMakerK = marketMakerK;

@@ -1,5 +1,7 @@
 package com.iainschmitt.perdiction.model;
 
+import java.math.BigDecimal;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +11,7 @@ import lombok.Setter;
 @Setter
 public class Outcome {
     private final String claim;
-    private float price;
+    private BigDecimal price;
     private int sharesY;
     private int sharesN;
 }

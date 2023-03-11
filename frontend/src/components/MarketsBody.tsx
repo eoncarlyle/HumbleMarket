@@ -1,45 +1,84 @@
-import { useLoaderData } from "react-router-dom";
+import { useState } from "react";
+import { useRouteLoaderData, Link } from "react-router-dom";
 
 import classes from "../styles/MarketsBody.module.css";
+import Market from "../model/Market";
+import Outcome from "../model/Outcome";
+import { priceNumberFormat } from "../util/Numeric";
+import PositionDirection from "../model/PositionDirection";
+import TransactionType from "../model/TransactionType";
+
+// TODO: Put prices, outcome claims on different lines for small screens
+function OutcomeBox(outcome: Outcome, singleMarketURI: string, selectedOutcomeIndex: number) {
+  return (
+    <div className={classes.outcome}>
+      <div> {outcome.claim} </div>
+      <div className={classes.prices}>
+        <Link
+          state={{
+            transactionType: TransactionType.Purchase,
+            positionDirection: PositionDirection.Yes,
+            outcomeIndex: selectedOutcomeIndex,
+            shares: 1,
+          }}
+          to={singleMarketURI}
+          className={classes.priceYes}
+        >
+          Yes: {priceNumberFormat(outcome.price)} CR
+        </Link>
+        <Link
+          state={{
+            transactionType: TransactionType.Purchase,
+            positionDirection: PositionDirection.No,
+            outcomeIndex: selectedOutcomeIndex,
+            shares: 1,
+          }}
+          to={singleMarketURI}
+          className={classes.priceNo}
+        >
+          No: {priceNumberFormat(1 - outcome.price)} CR
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function SingleMarketLink(market: Market, singleMarketURI: string) {
+  return (
+    <Link to={singleMarketURI} className={classes.singleMarketLink}>
+      {market.outcomes.length < 3 ? <>View Market</> : <> View Market: {market.outcomes.length - 2} more outcomes</>}
+    </Link>
+  );
+}
+
+function MarketBox(market: Market) {
+  var closeDate = new Date(market.closeDate);
+  var singleMarketURI = "/market/" + market.seqId;
+  return (
+    <div className={classes.marketBox}>
+      <div>
+        <div className={classes.question}>{market.question}</div>
+        <div className={classes.closeDate}>
+          Close Date: {closeDate.toDateString()} at {closeDate.toLocaleTimeString()}
+        </div>
+      </div>
+      <div className={classes.outcomeContainer}>
+        {/* //TODO This neccesitated turning off strict null checks in tsconfig.json, investigate this later */}
+        {OutcomeBox(market.outcomes.at(0), singleMarketURI, 0)}
+        {market.outcomes.length > 2 ? OutcomeBox(market.outcomes.at(1), singleMarketURI, 1) : <></>}
+      </div>
+      <div className={classes.singleMarketLinkContainer}>
+        <div className={classes.singleMarketLinkSubContainer}>{SingleMarketLink(market, singleMarketURI)}</div>
+      </div>
+    </div>
+  );
+}
 
 function MarketsBody() {
-  const markets = useLoaderData() as any;
+  const markets = useRouteLoaderData("home") as Array<Market>;
   return (
-    //TODO: Use `BigDecimal` for prices, doubles for credits, integers for share numbers
     //TODO: show markets on desktop as a 2 column grid
-    <div className={classes.body}>
-      {markets.map((market: any) => (
-        <div className={classes.marketBox}>
-          <div>
-            <div className={classes.question}>{market.question}</div>
-            <div className={classes.closeDate}> Close Date: {market.closeDate} </div>
-          </div>
-          <div className={classes.outcomeContainer}>
-            {market.outcomes.slice(0, 2).map((outcome: any) => (
-              <div className={classes.outcome}>
-                <div> {outcome.claim} </div>
-                <div className={classes.prices}>
-                  <div className={classes.priceYes}>Yes: {0.39} CR</div>
-                  <div className={classes.priceNo}>No: {0.61} CR</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className={classes.furtherInfoContainer}>
-            <div className={classes.furtherInfoSubContainer}>
-              {/* I am not proud of this but I don't know a better way to do this*/}
-              <div className={classes.furtherInfo}>
-                {market.outcomes.length < 3 ? (
-                  <>View Market</>
-                ) : (
-                  <> View Market: {market.outcomes.length - 2} more outcomes</>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
+    <div className={classes.body}>{markets.map((market: Market) => MarketBox(market))}</div>
   );
 }
 

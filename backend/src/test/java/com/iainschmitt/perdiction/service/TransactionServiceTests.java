@@ -22,9 +22,12 @@ import com.iainschmitt.perdiction.repository.PositionRepository;
 import com.iainschmitt.perdiction.repository.TransactionRepository;
 import com.iainschmitt.perdiction.repository.UserRepository;
 
+import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import static com.iainschmitt.perdiction.service.TransactionService.toBigDecimal;
 
 @SpringBootTest
 public class TransactionServiceTests {
@@ -66,7 +69,7 @@ public class TransactionServiceTests {
         assertThatNoException().isThrownBy(() -> transactionService.createMarket(marketData));
         assertThat(marketRepository.existsByQuestion(marketData.getQuestion())).isTrue();
         var outcome = marketRepository.findByQuestion(marketData.getQuestion()).getOutcomes().get(0);
-        assertThat(outcome.getPrice()).isEqualTo(0.5f);
+        assertThat(outcome.getPrice()).isEqualTo(toBigDecimal(0.5d));
         assertThat(outcome.getSharesN()).isEqualTo(10);
         assertThat(outcome.getSharesY()).isEqualTo(10);
     }
@@ -81,7 +84,7 @@ public class TransactionServiceTests {
         assertThatNoException().isThrownBy(() -> transactionService.createMarket(marketData));
         assertThat(marketRepository.existsByQuestion(marketData.getQuestion())).isTrue();
         var firstOutcome = marketRepository.findByQuestion(marketData.getQuestion()).getOutcomes().get(0);
-        assertThat(firstOutcome.getPrice()).isEqualTo(1f / 3f);
+        assertThat(firstOutcome.getPrice()).isEqualTo(toBigDecimal(1d / 3d));
         assertThat(firstOutcome.getSharesN()).isEqualTo(7);
         assertThat(firstOutcome.getSharesY()).isEqualTo(14);
     }
@@ -112,14 +115,14 @@ public class TransactionServiceTests {
         var positions = positionRepository.findAll();
         var outcome = markets.get(0).getOutcomes().get(0);
 
-        assertThat(bank.getCredits()).isEqualTo(1_000_000f + shares * initialPrice);
-        assertThat(user.getCredits()).isEqualTo(100f - shares * initialPrice);
+        assertThat(bank.getCredits()).isEqualTo(1_000_000d + shares * initialPrice.doubleValue());
+        assertThat(user.getCredits()).isEqualTo(100d - shares * initialPrice.doubleValue());
         assertThat(markets.size()).isEqualTo(1);
         assertThat(transactions.size()).isEqualTo(1);
         assertThat(positions.size()).isEqualTo(1);
         assertThat(bank.getCredits() + user.getCredits()).isEqualTo(startingCredits);
 
-        assertThat(outcome.getSharesN()).isEqualTo(8);
+        assertThat(outcome.getSharesN()).isEqualTo(9);
         assertThat(outcome.getSharesY()).isEqualTo(12);
 
         assertThat(transactions.get(0).getDirection()).isEqualTo(PositionDirection.NO);
@@ -146,7 +149,8 @@ public class TransactionServiceTests {
 
         transactionService.purchase(user.getId(), market.getId(), 0, PositionDirection.NO, shares);
         assertThat(totalCredits()).isEqualTo(initialTotalCredits);
-        assertThat(positionRepository.findAll().get(0).getPriceAtBuy()).isEqualTo(1 - initialOutcomeZeroPrice);
+        assertThat(positionRepository.findAll().get(0).getPriceAtBuy())
+                .isEqualTo(toBigDecimal(1d - initialOutcomeZeroPrice.doubleValue()));
 
         transactionService.purchase(user.getId(), market.getId(), 1, PositionDirection.YES, shares);
         assertThat(positionRepository.findAll().get(1).getPriceAtBuy()).isEqualTo(initialOutcomeOnePrice);
@@ -247,7 +251,8 @@ public class TransactionServiceTests {
         assertThat(totalCredits()).isEqualTo(initialTotalCredits);
 
         transactionService.purchase(user.getId(), market.getId(), 1, PositionDirection.NO, shares);
-        assertThat(positionRepository.findAll().get(1).getPriceAtBuy()).isEqualTo(1 - initialOutcomeOnePrice);
+        assertThat(positionRepository.findAll().get(1).getPriceAtBuy())
+                .isEqualTo(toBigDecimal(1d - initialOutcomeOnePrice.doubleValue()));
         assertThat(totalCredits()).isEqualTo(initialTotalCredits);
     }
 
@@ -281,6 +286,31 @@ public class TransactionServiceTests {
         // TODO
     }
 
+    // Creates documents for doing frontend UI testing
+    @Test
+    public void frontendMarketTest() {
+        var marketData = defaultSingleOutcomeMarket(getAdminId());
+        transactionService.createMarket(marketData);
+        transactionService.createMarket(marketData);
+        marketData = defaultMultiOutcomeMarket(getAdminId());
+        transactionService.createMarket(marketData);
+        marketData = MarketData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
+                .creatorId(getAdminId()).marketMakerK(100)
+                .closeDate(Instant.now().plus(Duration.ofHours(1L)).toEpochMilli()).isPublic(true)
+                .outcomeClaims(new ArrayList<String>() {
+                    {
+                        add("Less than 40 °F");
+                        add("Between 40 °F and 50 °F");
+                        add("Greather than 50 °F");
+                    }
+                }).build();
+        transactionService.createMarket(marketData);
+
+        var user = new User("user1@mail.com");
+        user.setPasswordHash(sha256Hex("password"));
+        userService.saveUser(user);
+    }
+
     private String getAdminId() {
         return userService.getUserByEmail(TransactionService.ADMIN_EMAIL).getId();
     }
@@ -308,12 +338,13 @@ public class TransactionServiceTests {
                 }).build();
     }
 
-    private float totalCredits() {
+    private double totalCredits() {
         return totalCredits(TransactionService.BANK_EMAIL, DEFAULT_USER_EMAIL);
     }
 
-    private float totalCredits(String bankEmail, String userEmail) {
+    private double totalCredits(String bankEmail, String userEmail) {
         return userService.getUserByEmail(DEFAULT_USER_EMAIL).getCredits()
                 + userService.getUserByEmail(TransactionService.BANK_EMAIL).getCredits();
     }
+
 }

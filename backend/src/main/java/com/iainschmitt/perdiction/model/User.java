@@ -15,7 +15,7 @@ public class User {
     @Setter
     private String passwordHash;
     @Setter
-    private float credits;
+    private double credits;
     private Map<String, Notification> notifications;
 
     // TODO: Change this constructor to inlcude both email and password
@@ -30,11 +30,11 @@ public class User {
         return String.format("User[id=%s, displayName='%s']", getId(), getEmail());
     }
 
-    public void depositCredits(float credits) {
+    public void depositCredits(double credits) {
         this.credits += credits;
     }
 
-    public void withdrawCredits(float credits) {
+    public void withdrawCredits(double credits) {
         this.credits -= credits;
     }
 

@@ -1,8 +1,6 @@
 import classes from "../styles/Auth.module.css";
 import { Form, Link, useActionData } from "react-router-dom";
-import { type ValidationData } from "../util/auth";
-
-//TODO: Hash passwords
+import { type ValidationData } from "../util/Auth";
 
 function SignUpBody() {
   const validationData = useActionData() as ValidationData;

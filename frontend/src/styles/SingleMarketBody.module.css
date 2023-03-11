@@ -10,9 +10,14 @@
 }
 
 .question {
-  font: 18px system-ui;
+  font: 28px system-ui;
   margin: 0px;
   font-weight: bold;
+  margin-bottom: 2px;
+}
+
+button {
+  all: unset;
 }
 
 .body {
@@ -24,44 +29,42 @@
 }
 
 .question {
-  margin-top: 5px;
+  margin-top: 15px;
 }
 
 .closeDate {
-  margin-top: 5px;
+  margin-top: 15px;
 }
 
 .marketBox {
   font: 16px "IBM Plex Sans", sans-serif;
   color: var(--dark-blue);
-  border: 3px solid var(--grey);
-  border-radius: 10px;
   flex-direction: column;
   justify-content: space-between;
-  width: min(450px, 75%);
-  height: 250px;
+  width: min(650px, 75%);
   padding: 10px;
   display: flex;
-  margin: 10px;
+  margin: 20px;
 }
 
 .outcome {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   justify-content: space-between;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin-top: 15px;
+  margin-bottom: 15px;
   align-items: center;
 }
 
 .outcomeContainer {
   justify-content: flex-end;
+  margin-top: 20px;
 }
 
 .prices {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
 }
 
@@ -106,4 +109,56 @@
   padding-bottom: 5px;
   text-decoration: none;
   color: var(--dark-blue);
+}
+
+.transactionForm {
+  border: 4px solid var(--grey);
+  border-radius: 10px;
+  padding: 10px;
+  font: 16px "IBM Plex Sans", sans-serif;
+  display: flex;
+  justify-content: flex-start;
+  width: min(300px, 75%);
+}
+
+.activeTransaction {
+  font: 20px "system-ui", sans-serif;
+  font-weight: bold;
+  margin: 10px;
+}
+
+.inactiveTransaction {
+  font: 20px "system-ui", sans-serif;
+  margin: 10px;
+}
+
+.orderSection {
+  display: flex;
+  flex-direction: row;
+  align-items: space-around;
+}
+
+.orderSubSection {
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+}
+
+input {
+  font-family: inherit; /* 1 */
+  font-size: 100%; /* 1 */
+  line-height: 1.15; /* 1 */
+  margin: 0; /* 2 */
+  width: max(50%, 75px);
+  border-radius: 4px;
+  border: 1px solid var(--dark-blue);
+}
+
+.orderButton {
+  font: 18px system-ui;
+  color: var(--pure-white);
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #d08770;
+  text-decoration: none;
 }

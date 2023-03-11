@@ -15,4 +15,6 @@ public interface MarketRepository extends MongoRepository<Market, String> {
     Boolean existsByQuestion(String question);
 
     Market findByQuestion(String question);
+
+    Market findBySeqId(int seqId);
 }

@@ -13,10 +13,10 @@ public class Transaction {
     private final int outcomeIndex;
     private final PositionDirection direction;
     private final TransactionType transactionType;
-    private final float credits;
+    private final double credits;
 
     public Transaction(String srcUserId, String dstUserId, String marketId, int outcomeIndex,
-            PositionDirection direction, TransactionType transactionType, float credits) {
+            PositionDirection direction, TransactionType transactionType, double credits) {
         this.srcUserId = srcUserId;
         this.dstUserId = dstUserId;
         this.marketId = marketId;

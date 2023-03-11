@@ -1,5 +1,8 @@
 package com.iainschmitt.perdiction.service;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -35,26 +38,28 @@ public class TransactionService {
     @Autowired
     private UserService userService;
 
-    public static String ADMIN_EMAIL = "admin@iainschmitt.com";
-    public static String BANK_EMAIL = "bank@iainschmitt.com";
+    public final static String ADMIN_EMAIL = "admin@iainschmitt.com";
+    public final static String BANK_EMAIL = "bank@iainschmitt.com";
+    public final static MathContext MATH_CONTEXT = new MathContext(2, RoundingMode.CEILING);
 
     public MarketReturnData createMarket(MarketData marketData) {
-        // TODO: Implement validation, unique question names
+        // TODO: Implement validation: unique question names and outputs
         marketData.validate();
+        var seqId = (int) marketRepository.count() + 1;
 
         // TODO: consider how we want to accomodate different market making styles in
-        // the future
-        float startingPrice = 1f / ((float) marketData.getOutcomeClaims().size() + 1f);
-        var startingSharesY = Math.round(unroundedSharesY(startingPrice, marketData.getMarketMakerK()));
-        var startingSharesN = Math.round(unroundedSharesN(startingPrice, marketData.getMarketMakerK()));
+        // the future: a lot of this math should be moved to the market class
+        var startingPrice = toBigDecimal(1d / (marketData.getOutcomeClaims().size() + 1d));
+        var startingSharesY = (int) Math.round(unroundedSharesY(startingPrice, marketData.getMarketMakerK()));
+        var startingSharesN = (int) Math.round(unroundedSharesN(startingPrice, marketData.getMarketMakerK()));
         var outcomes = new ArrayList<Outcome>() {
             {
                 marketData.getOutcomeClaims().forEach(outcomeClaim -> add(
                         new Outcome(outcomeClaim, startingPrice, startingSharesY, startingSharesN)));
             }
         };
-        var market = new Market(marketData.getQuestion(), marketData.getCreatorId(), marketData.getMarketMakerK(),
-                marketData.getCloseDate(), outcomes, marketData.isPublic(), false, false);
+        var market = new Market(seqId, marketData.getQuestion(), marketData.getCreatorId(),
+                marketData.getMarketMakerK(), marketData.getCloseDate(), outcomes, marketData.isPublic(), false, false);
 
         // TODO: Include non-happy path expcetion handling
         marketRepository.save(market);
@@ -79,9 +84,12 @@ public class TransactionService {
         if (market.isClosed()) {
             throw new IllegalArgumentException("Cannot transact on closed market");
         }
+        // ! Might be playing a dangerous game with respect to the type conversions and
+        // rounding, neccesitates later checks
         var outcome = market.getOutcomes().get(outcomeIndex);
-        var positionPrice = direction.equals(PositionDirection.YES) ? outcome.getPrice() : 1 - outcome.getPrice();
-        var tradeValue = positionPrice * shares;
+        var positionPrice = direction.equals(PositionDirection.YES) ? outcome.getPrice()
+                : toBigDecimal(1d - outcome.getPrice().doubleValue());
+        var tradeValue = positionPrice.doubleValue() * shares;
 
         if (tradeValue > user.getCredits()) {
             throw new IllegalArgumentException("Insufficient Funds");
@@ -110,8 +118,8 @@ public class TransactionService {
         }
         var newPrice = priceRecalc(outcome.getSharesY(), outcome.getSharesN());
         outcome.setPrice(newPrice);
-        outcome.setSharesY(Math.round(unroundedSharesY(newPrice, market.getMarketMakerK())));
-        outcome.setSharesN(Math.round(unroundedSharesN(newPrice, market.getMarketMakerK())));
+        outcome.setSharesY((int) Math.round(unroundedSharesY(newPrice, market.getMarketMakerK())));
+        outcome.setSharesN((int) Math.round(unroundedSharesN(newPrice, market.getMarketMakerK())));
 
         // Saving Changes
         marketRepository.save(market);
@@ -143,7 +151,7 @@ public class TransactionService {
         }
         var bank = getBankUser();
         var outcome = market.getOutcomes().get(outcomeIndex);
-        var tradeValue = outcome.getPrice() * shares;
+        var tradeValue = outcome.getPrice().doubleValue() * shares;
 
         var validPositions = positionRepository.findByUserIdAndMarketIdOrderByPriceAtBuyDesc(user.getId(),
                 market.getId());
@@ -191,8 +199,8 @@ public class TransactionService {
 
         var price = priceRecalc(outcome.getSharesY(), outcome.getSharesN());
         outcome.setPrice(price);
-        outcome.setSharesY(Math.round(unroundedSharesY(price, market.getMarketMakerK())));
-        outcome.setSharesN(Math.round(unroundedSharesN(price, market.getMarketMakerK())));
+        outcome.setSharesY((int) Math.round(unroundedSharesY(price, market.getMarketMakerK())));
+        outcome.setSharesN((int) Math.round(unroundedSharesN(price, market.getMarketMakerK())));
 
         // Saving Changes
         marketRepository.save(market);
@@ -255,17 +263,21 @@ public class TransactionService {
         return new MarketReturnData("");
     }
 
-    public static float priceRecalc(int sharesY, int sharesN) {
-        var Y = (float) sharesY;
-        var N = (float) sharesN;
-        return N / (N + Y);
+    public static BigDecimal toBigDecimal(double val) {
+        return new BigDecimal(val, MATH_CONTEXT);
     }
 
-    public static float unroundedSharesN(float price, float marketMakerK) {
-        return (float) Math.sqrt((price * marketMakerK) / (1 - price));
+    public static BigDecimal priceRecalc(int sharesY, int sharesN) {
+        var Y = (double) sharesY;
+        var N = (double) sharesN;
+        return toBigDecimal(N / (N + Y));
     }
 
-    public static float unroundedSharesY(float price, float marketMakerK) {
+    public static double unroundedSharesN(BigDecimal price, int marketMakerK) {
+        return Math.sqrt((price.doubleValue() * marketMakerK) / (1d - price.doubleValue()));
+    }
+
+    public static double unroundedSharesY(BigDecimal price, int marketMakerK) {
         return marketMakerK / unroundedSharesN(price, marketMakerK);
     }
 

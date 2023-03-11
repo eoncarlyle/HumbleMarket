@@ -1,7 +1,8 @@
 package com.iainschmitt.perdiction.model;
 
-import org.springframework.data.annotation.Id;
+import java.math.BigDecimal;
 
+import org.springframework.data.annotation.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,10 +18,10 @@ public class Position {
     private final int shares;
     // TODO: Change this to something decimal specific
     @Setter
-    private float priceAtBuy;
+    private BigDecimal priceAtBuy;
 
     public Position(String userId, String marketId, int outcomeIndex, PositionDirection direction, int shares,
-            float priceAtBuy) {
+            BigDecimal priceAtBuy) {
         this.userId = userId;
         this.marketId = marketId;
         this.outcomeIndex = outcomeIndex;

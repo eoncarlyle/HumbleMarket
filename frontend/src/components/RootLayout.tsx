@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Outlet, useLoaderData, useSubmit } from "react-router-dom";
-import { tokenDuration, tokenExpired } from "../util/auth";
+import { tokenDuration, tokenExpired } from "../util/Auth";
 
 function RootLayout() {
   const token = useLoaderData();
