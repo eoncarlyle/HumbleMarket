@@ -4,12 +4,14 @@ import sha256 from "crypto-js/sha256";
 import * as EmailValidator from "email-validator";
 import { setAuthToken, type ValidationData } from "./Auth";
 
-export async function action({ request }: any) {
+//TODO: trim email input on this and SignUp equivalent
+
+export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
 
   const validationData: ValidationData = { errors: new Set(), messages: [] };
-  const email: string = formData.get("email");
-  const password: string = formData.get("password");
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
 
   //Pre-request validation
   if (!EmailValidator.validate(email)) {

@@ -86,6 +86,7 @@ form {
   font: 18px system-ui, sans-serif;
   font-weight: bold;
   padding: 2px;
+  text-align: center;
 }
 
 .authForgot {

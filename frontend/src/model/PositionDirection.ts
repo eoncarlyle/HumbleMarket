@@ -1,6 +1,6 @@
 enum PositionDirection {
-  Yes = "Yes",
-  No = "No",
+  YES = "YES",
+  NO = "NO",
 }
 
 export default PositionDirection;

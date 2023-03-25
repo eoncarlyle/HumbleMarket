@@ -7,5 +7,4 @@ import lombok.Getter;
 @AllArgsConstructor
 public class Notification {
     private String message;
-    private String link;
 }

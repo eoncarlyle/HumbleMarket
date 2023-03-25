@@ -68,9 +68,22 @@ button {
   align-items: center;
 }
 
+.priceContainerYes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-right: 15px;
+}
+
+.priceContainerNo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 15px;
+}
+
 .priceYes {
   color: var(--pure-white);
-  margin-right: 10px;
   background-color: var(--green);
   padding: 5px;
   border-radius: 5px;
@@ -79,7 +92,6 @@ button {
 
 .priceNo {
   color: var(--pure-white);
-  margin-left: 10px;
   background-color: var(--red);
   padding: 5px;
   border-radius: 5px;
@@ -117,7 +129,7 @@ button {
   padding: 10px;
   font: 16px "IBM Plex Sans", sans-serif;
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   width: min(300px, 75%);
 }
 
@@ -161,4 +173,25 @@ input {
   border-radius: 5px;
   background-color: #d08770;
   text-decoration: none;
+}
+
+.simpleInvalid {
+  color: var(--red);
+  font-weight: bold;
+}
+
+.simpleValid {
+  color: var(--green);
+  font-weight: bold;
+}
+
+.bottomLink {
+  font: 16px system-ui;
+  font-weight: bold;
+  margin-top: 15px;
+  margin-bottom: 25px;
+  color: #d08770;
+  text-decoration: none;
+  border-radius: 5px;
+  padding: 10px;
 }

@@ -3,6 +3,9 @@ package com.iainschmitt.perdiction.model;
 import java.math.BigDecimal;
 
 import org.springframework.data.annotation.Id;
+
+import com.iainschmitt.perdiction.model.rest.PositionReturnData;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +19,6 @@ public class Position {
     private final int outcomeIndex;
     private final PositionDirection direction;
     private final int shares;
-    // TODO: Change this to something decimal specific
     @Setter
     private BigDecimal priceAtBuy;
 

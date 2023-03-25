@@ -1,6 +1,7 @@
-import classes from "../styles/Auth.module.css";
 import { Form, Link, useActionData } from "react-router-dom";
+
 import { type ValidationData } from "../util/Auth";
+import classes from "../styles/Auth.module.css";
 
 function SignUpBody() {
   const validationData = useActionData() as ValidationData;

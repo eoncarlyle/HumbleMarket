@@ -1,5 +1,5 @@
-import classes from "../styles/HomeNavBar.module.css";
 import { Link, Form, useRouteLoaderData, Outlet } from "react-router-dom";
+import classes from "../styles/HomeNavBar.module.css";
 
 function HomeNavBar() {
   const token = useRouteLoaderData("root") as string;
@@ -11,9 +11,14 @@ function HomeNavBar() {
         </Link>
         <div className={classes.navbarRight}>
           {token ? (
-            <Form action="/auth/logout" method="post">
-              <button className={classes.navLogout}>Log out</button>
-            </Form>
+            <>
+              <Link to="/account" className={classes.navLogin}>
+                Account
+              </Link>
+              <Form action="/auth/logout" method="post">
+                <button className={classes.navLogout}>Log out</button>
+              </Form>
+            </>
           ) : (
             <>
               <Link to="/auth/login" className={classes.navLogin}>

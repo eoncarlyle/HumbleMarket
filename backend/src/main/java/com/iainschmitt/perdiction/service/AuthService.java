@@ -5,6 +5,9 @@ import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
@@ -42,16 +45,43 @@ public class AuthService {
                 .claim("email", user.getEmail()).signWith(KEY).compact();
     }
 
+    // TODO: Please find a better name for this
     public boolean authenticateToken(String jwsString) {
         return authenticateToken(jwsString, KEY);
     }
 
     public boolean authenticateToken(String jwsString, Key key) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwsString);
+            getClaims(jwsString, key);
             return true;
         } catch (SignatureException e) {
             return false;
+        } catch (ExpiredJwtException e) {
+            return false;
+        } catch (Exception e) {
+            throw new RuntimeException("Exception thrown during JWT authentication", e);
+        }
+    }
+
+    public Jws<Claims> getClaims(String jwsString, Key key) {
+        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwsString);
+    }
+
+    public Jws<Claims> getClaims(String jwsString) {
+        return Jwts.parserBuilder().setSigningKey(KEY).build().parseClaimsJws(jwsString);
+    }
+
+    // TODO: Please find a better name for this
+    public void authenticateTokenThrows(String token) {
+        if (!authenticateToken(token)) {
+            throw new NotAuthorizedException("Failed authentication: invalid token");
+        }
+    }
+
+    public String getClaim(String jwsString, String claim) {
+        try {
+            var claims = getClaims(jwsString, KEY);
+            return claims.getBody().get(claim, String.class);
         } catch (Exception e) {
             throw new RuntimeException("Exception thrown during JWT authentication", e);
         }

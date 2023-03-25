@@ -1,19 +1,31 @@
   **Project Goal**
 - Create a (fake money) prediction market that allows for public and private prediction markets
 
-**Pre-private launch To Do**
+
+
+**Pre-private Launch To Do**
+- Description
+  - Markets page, single market page, and account details tested on 4-5 users
+  - No user-created markets, all resolution done by administrator
+  - 
+
 - Backend
+    - Fix the negative credit issue!
+  - Minimal logging
+  - Implement transaction fees
   - Finish stubbed tests
   - Time-dependant market logic
-  - Minimal logging
   - Move JWT, other sensitive security aspects to application.properties 
 
+- Frontend
+  - Make better transaction submission forms: should have some feedback when button pressed/prevents from double submission 
+
+
+**Pre-launch To Do**
 - Frontend
   - Watch Kevin Powell's tutorials
     - [Flexbox](https://www.youtube.com/watch?v=hwbqquXww-U&list=PL4-IK0AVhVjMSb9c06AjRlTpvxL3otpUd&ab_channel=KevinPowell)
     - [Responsive grid](https://www.youtube.com/watch?v=sKFW3wek21Q&ab_channel=KevinPowell)
-  - Individual market pages for transactions
-  - Notification handling
     - Creator to close market
     - Resolution of market
   - Creating market pages
@@ -51,6 +63,3 @@ __Frontend Notes__
 The Future
 - Prediction contests
 - USDC for real money _if and only if_ it is legal
-
-
-Helmet_Stability4_Visible

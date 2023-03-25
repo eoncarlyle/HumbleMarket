@@ -1,8 +1,10 @@
-import classes from "../styles/Auth.module.css";
-import { Form, Link, redirect, useActionData } from "react-router-dom";
+import { Form, Link, useActionData } from "react-router-dom";
+
 import { type ValidationData } from "../util/Auth";
 
-function LogInBody() {
+import classes from "../styles/Auth.module.css";
+
+function LogInContent() {
   const validationData = useActionData() as ValidationData;
 
   return (
@@ -51,4 +53,4 @@ function LogInBody() {
   );
 }
 
-export default LogInBody;
+export default LogInContent;

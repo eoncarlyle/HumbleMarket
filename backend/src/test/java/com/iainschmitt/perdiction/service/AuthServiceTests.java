@@ -153,4 +153,12 @@ public class AuthServiceTests {
             }
         })).isInstanceOf(NotAuthorizedException.class);
     }
+
+    @Test
+    public void getClaims_Success() {
+        var user = new User("user3@iainschmitt.com");
+        var jwsString = authService.createToken(user, 60L);
+        assertThat(authService.authenticateToken(jwsString, AuthService.KEY)).isTrue();
+        assertThat(authService.getClaim(jwsString, "email")).isEqualTo(user.getEmail());
+    }
 }

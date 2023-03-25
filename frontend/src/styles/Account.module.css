@@ -1,0 +1,28 @@
+:root {
+  --input-width: 350px;
+  --pure-white: #ffffff;
+  --off-white: #eceff4;
+  --dark-blue: #2e3440;
+  --input-text: #4c566a;
+  --green: #a3be8c;
+  --red: #bf616a;
+}
+
+.body {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  margin: 15px;
+  flex-wrap: wrap;
+}
+
+.sectionBox {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 35px;
+  margin: 10px;
+  width: min(550px, 75%);
+  font: 18px "IBM Plex Sans", sans-serif;
+}

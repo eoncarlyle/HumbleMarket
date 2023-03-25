@@ -38,8 +38,8 @@ public class User {
         this.credits -= credits;
     }
 
-    public void addNotification(String marketId, String message, String link) {
-        notifications.put(marketId, new Notification(message, link));
+    public void addNotification(String marketId, String message) {
+        notifications.put(marketId, new Notification(message));
     }
 
     public void removeNotification(String marketId) {

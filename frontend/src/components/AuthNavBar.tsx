@@ -1,8 +1,8 @@
-import classes from "../styles/Auth.module.css";
 import { Outlet } from "react-router-dom";
 import { Link } from "react-router-dom";
+import classes from "../styles/Auth.module.css";
 
-function NavBar() {
+function AuthNavBar() {
   return (
     <>
       <header className={classes.navbar}>
@@ -15,4 +15,4 @@ function NavBar() {
   );
 }
 
-export default NavBar;
+export default AuthNavBar;

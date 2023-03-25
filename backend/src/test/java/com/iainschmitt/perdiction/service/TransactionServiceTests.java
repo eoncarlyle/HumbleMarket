@@ -104,7 +104,7 @@ public class TransactionServiceTests {
         var startingCredits = bank.getCredits() + user.getCredits();
         var initialTotalCredits = totalCredits();
 
-        transactionService.purchase(user.getId(), market.getId(), 0, PositionDirection.NO, shares);
+        transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, shares);
         assertThat(totalCredits()).isEqualTo(initialTotalCredits);
 
         bank = transactionService.getBankUser();
@@ -147,12 +147,13 @@ public class TransactionServiceTests {
         var shares = 3;
         var initialTotalCredits = totalCredits();
 
-        transactionService.purchase(user.getId(), market.getId(), 0, PositionDirection.NO, shares);
+        transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, shares);
+
         assertThat(totalCredits()).isEqualTo(initialTotalCredits);
         assertThat(positionRepository.findAll().get(0).getPriceAtBuy())
                 .isEqualTo(toBigDecimal(1d - initialOutcomeZeroPrice.doubleValue()));
 
-        transactionService.purchase(user.getId(), market.getId(), 1, PositionDirection.YES, shares);
+        transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 1, PositionDirection.YES, shares);
         assertThat(positionRepository.findAll().get(1).getPriceAtBuy()).isEqualTo(initialOutcomeOnePrice);
         assertThat(totalCredits()).isEqualTo(initialTotalCredits);
     }
@@ -168,9 +169,10 @@ public class TransactionServiceTests {
         var market = marketRepository.findAll().get(0);
         market.setClosed(true);
         marketRepository.save(market);
-
-        assertThatThrownBy(() -> transactionService.purchase(user.getId(), market.getId(), 0, PositionDirection.NO, 3))
-                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Cannot transact on closed market");
+        assertThatThrownBy(
+                () -> transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, 3))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("Cannot transact on closed market");
     }
 
     @Test
@@ -182,8 +184,9 @@ public class TransactionServiceTests {
         var marketData = defaultSingleOutcomeMarket(getAdminId());
         transactionService.createMarket(marketData);
         var market = marketRepository.findAll().get(0);
-        assertThatThrownBy(() -> transactionService.purchase(user.getId(), market.getId(), 0, PositionDirection.NO, 3))
-                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Insufficient Funds");
+        assertThatThrownBy(
+                () -> transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, 3))
+                        .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Insufficient Funds");
     }
 
     @Test
@@ -195,9 +198,10 @@ public class TransactionServiceTests {
         var marketData = defaultSingleOutcomeMarket(getAdminId());
         transactionService.createMarket(marketData);
         var market = marketRepository.findAll().get(0);
-        assertThatThrownBy(() -> transactionService.purchase(user.getId(), market.getId(), 0, PositionDirection.NO, 9))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Too many shares requested, at least two remaining shares need to be purchased");
+        assertThatThrownBy(
+                () -> transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, 9))
+                        .isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
+                                "Too many shares requested, at least two remaining shares need to be purchased");
     }
 
     @Test
@@ -246,24 +250,55 @@ public class TransactionServiceTests {
         var shares = 3;
         var initialTotalCredits = totalCredits();
 
-        transactionService.purchase(user.getId(), market.getId(), 0, PositionDirection.YES, shares);
+        transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.YES, shares);
         assertThat(positionRepository.findAll().get(0).getPriceAtBuy()).isEqualTo(initialOutcomeZeroPrice);
         assertThat(totalCredits()).isEqualTo(initialTotalCredits);
 
-        transactionService.purchase(user.getId(), market.getId(), 1, PositionDirection.NO, shares);
+        transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 1, PositionDirection.NO, shares);
         assertThat(positionRepository.findAll().get(1).getPriceAtBuy())
                 .isEqualTo(toBigDecimal(1d - initialOutcomeOnePrice.doubleValue()));
+        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+
+        transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.YES, 2);
+        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 1, PositionDirection.NO, 2);
+        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+    }
+
+    @Test
+    public void sale_InsufficientSharesFailure() {
+        var user = new User(DEFAULT_USER_EMAIL);
+        var bank = transactionService.getBankUser();
+        user.setCredits(100f);
+        userService.saveUser(user);
+
+        var marketData = defaultMultiOutcomeMarket(getAdminId());
+        transactionService.createMarket(marketData);
+        var market = marketRepository.findAll().get(0);
+        var initialOutcomeZeroPrice = market.getOutcomes().get(0).getPrice();
+        var initialOutcomeOnePrice = market.getOutcomes().get(1).getPrice();
+        var shares = 3;
+        var initialTotalCredits = totalCredits();
+
+        // Only buy transaction
+        transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.YES, shares);
+        assertThat(positionRepository.findAll().get(0).getPriceAtBuy()).isEqualTo(initialOutcomeZeroPrice);
+        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+
+        // Valid sale of 2 shares of 0/Yes
+        transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.YES, 2);
+        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+
+        // Invalid sale of 1 share of 1/No
+        assertThatThrownBy(
+                () -> transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 1, PositionDirection.NO, 1))
+                        .isInstanceOf(IllegalArgumentException.class);
         assertThat(totalCredits()).isEqualTo(initialTotalCredits);
     }
 
     @Test
     public void sale_ClosedMarketFailure() {
-        // TODO
-    }
-
-    @Test
-    public void sale_InsufficientSharesFailure() {
-        // TODO: Test with multiple positions so that the validUserShares is tested
+        // TODO: Test with multiple positions so that all validUserShares code paths are
     }
 
     @Test
