@@ -11,26 +11,28 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import lombok.Getter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
 import com.iainschmitt.perdiction.exceptions.NotAuthorizedException;
 import com.iainschmitt.perdiction.model.User;
 import com.iainschmitt.perdiction.model.rest.AuthData;
 import com.iainschmitt.perdiction.model.rest.LogInReturnData;
 import com.iainschmitt.perdiction.model.rest.SignUpReturnData;
 
+@Getter
 @Service
 public class AuthService {
-    // TODO Put this in application.properties, something isn't working with that
-    // TODO injection right now
-
     // TODO use `plus(Duration.ofSeconds)` both here and in the tests
-    public static String secret = "e1e354166fd7ebc50dee83388faf4930f3ec409c16c18c641cfd85a953012370";
-    public static Key KEY = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-    public static long FIVE_DAYS = 432000L;
+   
+    public final long FIVE_DAYS = 432000L;
+    
+    @Autowired
+    ExternalisedConfiguration externalConfig;
 
     @Autowired
     private UserService userService;
@@ -40,14 +42,18 @@ public class AuthService {
         return createToken(user, FIVE_DAYS);
     }
 
+    public void check() {
+       System.out.println(); 
+    }
+
     public String createToken(User user, Long secondsUntilExpiration) {
         return Jwts.builder().setExpiration(Date.from(Instant.now().plusSeconds(secondsUntilExpiration)))
-                .claim("email", user.getEmail()).signWith(KEY).compact();
+                .claim("email", user.getEmail()).signWith(getKey()).compact();
     }
 
     // TODO: Please find a better name for this
     public boolean authenticateToken(String jwsString) {
-        return authenticateToken(jwsString, KEY);
+        return authenticateToken(jwsString, getKey());
     }
 
     public boolean authenticateToken(String jwsString, Key key) {
@@ -68,7 +74,7 @@ public class AuthService {
     }
 
     public Jws<Claims> getClaims(String jwsString) {
-        return Jwts.parserBuilder().setSigningKey(KEY).build().parseClaimsJws(jwsString);
+        return Jwts.parserBuilder().setSigningKey(getKey()).build().parseClaimsJws(jwsString);
     }
 
     // TODO: Please find a better name for this
@@ -80,7 +86,7 @@ public class AuthService {
 
     public String getClaim(String jwsString, String claim) {
         try {
-            var claims = getClaims(jwsString, KEY);
+            var claims = getClaims(jwsString, getKey());
             return claims.getBody().get(claim, String.class);
         } catch (Exception e) {
             throw new RuntimeException("Exception thrown during JWT authentication", e);
@@ -112,5 +118,9 @@ public class AuthService {
 
         return LogInReturnData.builder().message("Log in successful")
                 .token(createToken(userService.getUserByEmail(email))).build();
+    }
+
+    public Key getKey() {
+        return externalConfig.getKey();
     }
 }

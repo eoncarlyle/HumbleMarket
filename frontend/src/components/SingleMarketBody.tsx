@@ -32,10 +32,10 @@ function SingleMarketBody() {
     <>
       <div className={classes.body}>
         <SingleMarketDetail market={market} setOrder={setOrder} />
+        <TransactionForm market={market} order={order} setOrder={setOrder} />
         <Link to="/" className={classes.bottomLink}>
           Back to other markets
         </Link>
-        <TransactionForm market={market} order={order} setOrder={setOrder} />
       </div>
     </>
   );

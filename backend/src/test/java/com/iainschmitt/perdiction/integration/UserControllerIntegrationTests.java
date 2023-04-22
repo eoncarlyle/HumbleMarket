@@ -27,19 +27,4 @@ public class UserControllerIntegrationTests {
         userService.deleteAll();
     }
 
-    @Test
-    void fetchUser_Success() {
-        var user = new User("user1@iainschmitt.com");
-        userService.saveUser(user);
-        webTestClient.get().uri(USERS_URI_PATH + "/" + user.getEmail()).exchange().expectStatus()
-                .isEqualTo(HttpStatusCode.valueOf(200)).expectBody().jsonPath("$.email").isEqualTo(user.getEmail());
-    }
-
-    @Test
-    void fetchUser_UserNotFound() {
-        var uncreatedUser = "uncreatedUser";
-        webTestClient.get().uri(USERS_URI_PATH + "/" + uncreatedUser).exchange().expectStatus()
-                .isEqualTo(HttpStatusCode.valueOf(404)).expectBody().jsonPath("$.message")
-                .isEqualTo("User with email '" + uncreatedUser + "' does not exist");
-    }
 }

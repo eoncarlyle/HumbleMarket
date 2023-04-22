@@ -10,6 +10,7 @@ import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
@@ -40,9 +41,10 @@ public class AuthServiceTests {
 
     @Test
     public void decodeJwt_SignatureVerificationSuccess() {
+        authService.check();
         var user = new User("user1@iainschmitt.com");
         var jwsString = authService.createToken(user, 60L);
-        assertThat(authService.authenticateToken(jwsString, AuthService.KEY)).isTrue();
+        assertThat(authService.authenticateToken(jwsString, authService.getKey())).isTrue();
     }
 
     @Test
@@ -158,7 +160,7 @@ public class AuthServiceTests {
     public void getClaims_Success() {
         var user = new User("user3@iainschmitt.com");
         var jwsString = authService.createToken(user, 60L);
-        assertThat(authService.authenticateToken(jwsString, AuthService.KEY)).isTrue();
+        assertThat(authService.authenticateToken(jwsString, authService.getKey())).isTrue();
         assertThat(authService.getClaim(jwsString, "email")).isEqualTo(user.getEmail());
     }
 }

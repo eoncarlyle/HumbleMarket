@@ -33,7 +33,6 @@ const router = createBrowserRouter([
           { path: "/market/:seqId", element: <SingleMarketBody />, loader: singleMarketLoader },
           { path: "/account", element: <Account />, loader: accountLoader },
         ],
-        errorElement: <ErrorPlaceholder />,
       },
       {
         path: "auth",
@@ -45,6 +44,7 @@ const router = createBrowserRouter([
         ],
       },
     ],
+    errorElement: <ErrorPlaceholder />,
   },
 ]);
 
