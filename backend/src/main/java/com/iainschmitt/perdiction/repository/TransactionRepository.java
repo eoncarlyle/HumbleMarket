@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import com.iainschmitt.perdiction.model.Position;
-import com.iainschmitt.perdiction.model.Transaction;
+import com.iainschmitt.perdiction.model.MarketTransaction;
 
-public interface TransactionRepository extends MongoRepository<Transaction, String> {
+public interface TransactionRepository extends MongoRepository<MarketTransaction, String> {
 
 }

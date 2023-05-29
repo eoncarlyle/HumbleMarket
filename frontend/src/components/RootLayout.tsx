@@ -1,16 +1,18 @@
 import { useEffect } from "react";
 import { Outlet, useLoaderData, useSubmit } from "react-router-dom";
-import { tokenDuration, tokenExpired } from "../util/Auth";
+import { tokenDuration } from "../util/Auth";
 
 function RootLayout() {
   const token = useLoaderData();
   const submit = useSubmit();
-
-  //TODO: Create timeout to delete token on expiration 
-  if (token && tokenExpired()) {
-      submit(null, { action: "/auth/logout", method: "post" });
-      return;
-  }
+  useEffect(() => {
+    if (token) {
+      setTimeout(() => {
+        submit(null, { action: "/auth/logout", method: "post" });
+      }, tokenDuration());
+    }
+  }, [token, submit]);
+  //TODO: Create timeout to delete token on expiration
 
   return <Outlet />;
 }

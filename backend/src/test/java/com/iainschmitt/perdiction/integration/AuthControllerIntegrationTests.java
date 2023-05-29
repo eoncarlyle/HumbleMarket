@@ -98,12 +98,15 @@ public class AuthControllerIntegrationTests {
         var user = new User("user1@iainschmitt.com");
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
 
-        webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(new AuthData() {
+        var response = webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(new AuthData() {
             {
                 setEmail(user.getEmail());
                 setPasswordHash(user.getPasswordHash());
             }
         }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401)).expectBody().returnResult();
+
+        var myVar = new String(response.getResponseBody()); 
+        System.out.println(myVar);
     }
 
     @Test

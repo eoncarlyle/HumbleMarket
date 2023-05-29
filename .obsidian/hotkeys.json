@@ -1,0 +1,30 @@
+{
+  "editor:focus-top": [],
+  "app:toggle-left-sidebar": [
+    {
+      "modifiers": [
+        "Ctrl",
+        "Shift"
+      ],
+      "key": "ArrowRight"
+    }
+  ],
+  "editor:focus-left": [
+    {
+      "modifiers": [
+        "Alt",
+        "Mod"
+      ],
+      "key": ","
+    }
+  ],
+  "editor:focus-right": [
+    {
+      "modifiers": [
+        "Alt",
+        "Mod"
+      ],
+      "key": "."
+    }
+  ]
+}

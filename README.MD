@@ -7,58 +7,43 @@
 - Description
   - Markets page, single market page, and account details tested on 4-5 users
   - No user-created markets, all resolution done by administrator
-  - 
 
 - Backend
-    - Fix the negative credit issue!
-  - Minimal logging
   - Implement transaction fees
   - Finish stubbed tests
   - Time-dependant market logic
-  - Move JWT, other sensitive security aspects to application.properties 
+  - MarketTransactionService changes in new branch
+    - Sell-side changes
+      - Per-share sell proceeds not to be calculated with $P = n_i (n_i + y_i)^{-1}$ but instead by $P=n_f(n_f + y_f)^{-1}$
+      - This will require sending a table to the client of all $P$ for all possible values of $n_f$ and $y_f$ given client's current positions
+      - This can be represented easily in JSON - given that each request for single-market information is already tied to a particular user account
+
+    - Buy and sell side changes
+      - Instead of trying to get overly creative with websockets for real-time pricing, we can get much of the value of real-time by rejecting transactions with outdated pricing information
+      - This means sending the pricing data with the buy/sell branch
+        - Reject transactions with out-of-date pricing
 
 - Frontend
-  - Make better transaction submission forms: should have some feedback when button pressed/prevents from double submission 
+  - Better table formatting
+  - Fix navbar taking up too much space on large screen sizes
+  - Generally centralise the styling
 
 
-**Pre-launch To Do**
-- Frontend
-  - Watch Kevin Powell's tutorials
-    - [Flexbox](https://www.youtube.com/watch?v=hwbqquXww-U&list=PL4-IK0AVhVjMSb9c06AjRlTpvxL3otpUd&ab_channel=KevinPowell)
-    - [Responsive grid](https://www.youtube.com/watch?v=sKFW3wek21Q&ab_channel=KevinPowell)
-    - Creator to close market
-    - Resolution of market
-  - Creating market pages
-    - Mutualy exclusive outcomes, limitations on claim lengths
-  - Remove every implicit any
-  - Remove mentions of 'body' in elements
-  - Make idomatic CSS classes
-  - Put external imports above internal imports
-  - Review of var and const
-  - Write `{MarketBox(market)` as `<MarketBox market={market} />` and `function MarketBox({ market }: { market: Market })`
+
+- Both
+  - Transaction-like transactions
+  - Figure out why we have more decimal points than we should in the database table
 
 __Post-launch To Do__
+
 - Implement frontend unit testing 
 - Frontend: implement password-forgot-emails
-- Show market preview for
 
 - Question: How will future events be handled in a way that is persistent?
     - Storage is handled by the Markets table
     - Every 30 minutes, search the table and determine if a market is going to expire in the next 30 minutes or if it has already expired (think: app crashing right before market resolves, want to handle this accordingly)
         - There are many ways to think about this but every single one depends on a time-invariant resolution method making changes to the database
 
-
-__Frontend Notes__
-- During login write the following information to local storage
-  - User email
-  - User credits
-  - User notifications
-- Don't let the user place an impossible transaction
-  - Buy: Insufficient credits to buy with or shares to buy out
-  - Sale: Insufficient shares to sell
-
-**Backend Notes**
-- We are using integers in many places that might be inappropriate if we were dealing with 10 orders of magnitude higher
 
 The Future
 - Prediction contests

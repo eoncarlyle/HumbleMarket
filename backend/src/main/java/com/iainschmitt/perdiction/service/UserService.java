@@ -42,7 +42,7 @@ public class UserService {
 
     public User getUserById(String id) {
         var value = userRepository.findById(id);
-        return value.orElseThrow(() -> new NotFoundException("User with email '%s' does not exist", id));
+        return value.orElseThrow(() -> new NotFoundException("User with id '%s' does not exist", id));
     }
 
     public Boolean exists(String email) {

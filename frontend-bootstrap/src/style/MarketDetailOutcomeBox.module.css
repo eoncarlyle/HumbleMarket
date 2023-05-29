@@ -1,0 +1,9 @@
+.marketButton {
+  width: auto;
+  margin: 3%;
+}
+
+.outcomeRow {
+  justify-content: center;
+  align-items: center; 
+}

@@ -1,5 +1,6 @@
 package com.iainschmitt.perdiction.service;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -9,11 +10,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Example;
 
 import com.iainschmitt.perdiction.model.Position;
 import com.iainschmitt.perdiction.model.Market;
 import com.iainschmitt.perdiction.model.Outcome;
 import com.iainschmitt.perdiction.model.PositionDirection;
+import com.iainschmitt.perdiction.model.MarketTransaction;
 import com.iainschmitt.perdiction.model.TransactionType;
 import com.iainschmitt.perdiction.model.User;
 import com.iainschmitt.perdiction.model.rest.MarketData;
@@ -27,13 +30,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import static com.iainschmitt.perdiction.service.TransactionService.toBigDecimal;
+import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigDecimal;
 
 @SpringBootTest
 public class TransactionServiceTests {
 
     @Autowired
-    private TransactionService transactionService;
+    private MarketTransactionService transactionService;
     @Autowired
     private MarketRepository marketRepository;
     @Autowired
@@ -52,11 +55,11 @@ public class TransactionServiceTests {
         positionRepository.deleteAll();
         transactionRepository.deleteAll();
 
-        var bank = new User(TransactionService.BANK_EMAIL);
+        var bank = new User(MarketTransactionService.BANK_EMAIL);
         bank.setCredits(1_000_000f);
         userService.saveUser(bank);
 
-        userService.saveUser(new User(TransactionService.ADMIN_EMAIL));
+        userService.saveUser(new User(MarketTransactionService.ADMIN_EMAIL));
     }
 
     @Test
@@ -79,7 +82,7 @@ public class TransactionServiceTests {
         var user = new User(DEFAULT_USER_EMAIL);
         userService.saveUser(user);
 
-        var marketData = defaultMultiOutcomeMarket(TransactionService.ADMIN_EMAIL);
+        var marketData = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
 
         assertThatNoException().isThrownBy(() -> transactionService.createMarket(marketData));
         assertThat(marketRepository.existsByQuestion(marketData.getQuestion())).isTrue();
@@ -201,7 +204,7 @@ public class TransactionServiceTests {
         assertThatThrownBy(
                 () -> transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, 9))
                         .isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
-                                "Too many shares requested, at least two remaining shares need to be purchased");
+                                "Too many shares requested");
     }
 
     @Test
@@ -313,7 +316,42 @@ public class TransactionServiceTests {
 
     @Test
     public void resolve_Success() {
-        // TODO
+        var user0 = new User(DEFAULT_USER_EMAIL);
+        var user1 = new User("user2@iainschmitt.com");
+        var startingCredits = 98.5f;
+        user0.setCredits(startingCredits);
+        user1.setCredits(startingCredits);
+        userService.saveUser(user0);
+        userService.saveUser(user1);
+
+        var marketData = defaultSingleOutcomeMarket(getAdminId());
+        transactionService.createMarket(marketData);
+        var market = marketRepository.findAll().get(0);
+        var selectedOutcomeIndex = 0;
+        var tradedShares = 3;
+        var shareCost = toBigDecimal(0.5d);
+
+        var position0 = new Position(user0.getId(), market.getId(), selectedOutcomeIndex, PositionDirection.YES,
+                tradedShares, shareCost);
+        var position1 = new Position(user1.getId(), market.getId(), selectedOutcomeIndex, PositionDirection.NO,
+                tradedShares, shareCost);
+
+        positionRepository.save(position0);
+        positionRepository.save(position1);
+
+        transactionService.close(market, selectedOutcomeIndex);
+
+        assertThatThrownBy(() -> transactionService.sale(user0, market, selectedOutcomeIndex, PositionDirection.YES, 3))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Cannot transact on closed market");
+        assertThatThrownBy(
+                () -> transactionService.purchase(user0, market, selectedOutcomeIndex, PositionDirection.YES, 3))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("Cannot transact on closed market");
+
+        transactionService.resolve(market, selectedOutcomeIndex, PositionDirection.YES);
+
+        assertThat(userService.getUserById(user0.getId()).getCredits()).isEqualTo(101.5d);
+        assertThat(userService.getUserById(user1.getId()).getCredits()).isEqualTo(98.5d);
     }
 
     @Test
@@ -347,7 +385,11 @@ public class TransactionServiceTests {
     }
 
     private String getAdminId() {
-        return userService.getUserByEmail(TransactionService.ADMIN_EMAIL).getId();
+        return userService.getUserByEmail(MarketTransactionService.ADMIN_EMAIL).getId();
+    }
+    
+    private String getBankId() {
+        return userService.getUserByEmail(MarketTransactionService.BANK_EMAIL).getId();
     }
 
     private MarketData defaultSingleOutcomeMarket(String creatorId) {
@@ -374,12 +416,12 @@ public class TransactionServiceTests {
     }
 
     private double totalCredits() {
-        return totalCredits(TransactionService.BANK_EMAIL, DEFAULT_USER_EMAIL);
+        return totalCredits(MarketTransactionService.BANK_EMAIL, DEFAULT_USER_EMAIL);
     }
 
     private double totalCredits(String bankEmail, String userEmail) {
         return userService.getUserByEmail(DEFAULT_USER_EMAIL).getCredits()
-                + userService.getUserByEmail(TransactionService.BANK_EMAIL).getCredits();
+                + userService.getUserByEmail(MarketTransactionService.BANK_EMAIL).getCredits();
     }
 
 }

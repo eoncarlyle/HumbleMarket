@@ -25,7 +25,7 @@ import com.iainschmitt.perdiction.service.UserService;
 import lombok.SneakyThrows;
 
 import com.iainschmitt.perdiction.service.AuthService;
-import com.iainschmitt.perdiction.service.TransactionService;
+import com.iainschmitt.perdiction.service.MarketTransactionService;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.repository.PositionRepository;
 import com.iainschmitt.perdiction.repository.TransactionRepository;
@@ -42,7 +42,7 @@ public class TransactionControllerIntegrationTests {
     @Autowired
     private AuthService authService;
     @Autowired
-    private TransactionService transactionService;
+    private MarketTransactionService transactionService;
     @Autowired
     private MarketRepository marketRepository;
     @Autowired
@@ -61,11 +61,11 @@ public class TransactionControllerIntegrationTests {
         positionRepository.deleteAll();
         transactionRepository.deleteAll();
 
-        var bank = new User(TransactionService.BANK_EMAIL);
+        var bank = new User(MarketTransactionService.BANK_EMAIL);
         bank.setCredits(1_000_000d);
         userService.saveUser(bank);
 
-        userService.saveUser(new User(TransactionService.ADMIN_EMAIL));
+        userService.saveUser(new User(MarketTransactionService.ADMIN_EMAIL));
     }
 
     @Test
@@ -76,7 +76,7 @@ public class TransactionControllerIntegrationTests {
         userService.saveUser(user);
         var token = authService.createToken(user);
 
-        var market = defaultMultiOutcomeMarket(TransactionService.ADMIN_EMAIL);
+        var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
         transactionService.createMarket(market);
         webTestClient.post().uri(MARKET_URI_PATH + "/1/outcome/1/YES/purchase/1").header("Authorization", token)
                 .exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(202)).expectBody().returnResult();
@@ -90,7 +90,7 @@ public class TransactionControllerIntegrationTests {
         userService.saveUser(user);
         var token = authService.createToken(user);
 
-        var market = defaultMultiOutcomeMarket(TransactionService.ADMIN_EMAIL);
+        var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
         transactionService.createMarket(market);
         var response = webTestClient.post().uri(MARKET_URI_PATH + "/1/outcome/1/YES/purchase/1")
                 .header("Authorization", token).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(422))
@@ -122,7 +122,7 @@ public class TransactionControllerIntegrationTests {
         userService.saveUser(user);
         var token = authService.createToken(user);
 
-        var market = defaultMultiOutcomeMarket(TransactionService.ADMIN_EMAIL);
+        var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
         transactionService.createMarket(market);
         var response = webTestClient.post().uri(MARKET_URI_PATH + "/1/outcome/1/YES/sale/1")
                 .header("Authorization", token).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(422))
@@ -141,7 +141,7 @@ public class TransactionControllerIntegrationTests {
         var token = authService.createToken(user, 0l);
         Thread.sleep(1001L);
 
-        var market = defaultMultiOutcomeMarket(TransactionService.ADMIN_EMAIL);
+        var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
         transactionService.createMarket(market);
 
         var response = webTestClient.post().uri(MARKET_URI_PATH + "/1/outcome/1/YES/sale/1")

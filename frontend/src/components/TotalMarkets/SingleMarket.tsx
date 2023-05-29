@@ -25,7 +25,7 @@ function SingleMarket({ market }: SingleMarketProps) {
           singleMarketURI={singleMarketURI}
           selectedOutcomeIndex={0}
         />
-        {market.outcomes.length > 2 ? (
+        {market.outcomes.length > 1 ? (
           <TotalMarketsOutcomeBox
             outcome={market.outcomes.at(1)}
             singleMarketURI={singleMarketURI}

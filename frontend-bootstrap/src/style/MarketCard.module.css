@@ -1,0 +1,26 @@
+.marketCard {
+  margin: 3% auto 3% auto;
+  width: min(90%, 700px);
+}
+
+.marketCardTitle {
+  text-align: left;
+}
+
+.marketCardText {
+  text-align: left;
+  margin: 0% 0% 3% 0% 
+}
+
+.marketTabs {
+  margin: auto;
+  width: min(550px, 90%);
+}
+
+.marketTabContent {
+  margin: 3%
+}
+
+.homeMarketLink {
+  margin: 6%
+}

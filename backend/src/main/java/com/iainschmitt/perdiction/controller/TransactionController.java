@@ -23,7 +23,7 @@ import com.iainschmitt.perdiction.model.Market;
 import com.iainschmitt.perdiction.model.PositionDirection;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.service.AuthService;
-import com.iainschmitt.perdiction.service.TransactionService;
+import com.iainschmitt.perdiction.service.MarketTransactionService;
 
 @RestController
 @RequestMapping("/market")
@@ -31,7 +31,7 @@ import com.iainschmitt.perdiction.service.TransactionService;
 @Slf4j
 public class TransactionController {
     @Autowired
-    private TransactionService transactionService;
+    private MarketTransactionService transactionService;
 
     @Autowired
     private AuthService authService;
@@ -63,8 +63,6 @@ public class TransactionController {
                 outcomeIndex, PositionDirection.valueOf(positionDirection), shares), HttpStatus.ACCEPTED);
     }
 
-    // ! Sometimes shows 'insufficent credits' incorrectly, probably is an issue
-    // with incorrectly using http status codes
     @PostMapping(value = "/{seqId}/outcome/{outcomeIndex}/{positionDirection}/sale/{shares}")
     public ResponseEntity<TransactionReturnData> sale(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @PathVariable int seqId, @PathVariable int outcomeIndex, @PathVariable PositionDirection positionDirection,
