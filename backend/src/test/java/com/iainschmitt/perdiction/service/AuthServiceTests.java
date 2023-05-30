@@ -1,24 +1,17 @@
 package com.iainschmitt.perdiction.service;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.Instant;
 
-import com.iainschmitt.perdiction.model.rest.MarketData;
 import io.jsonwebtoken.security.Keys;
 import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 
 import com.iainschmitt.perdiction.exceptions.NotAuthorizedException;
 import com.iainschmitt.perdiction.model.rest.AuthData;
 import com.iainschmitt.perdiction.model.User;
-import com.iainschmitt.perdiction.service.AuthService;
-import com.iainschmitt.perdiction.service.UserService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;

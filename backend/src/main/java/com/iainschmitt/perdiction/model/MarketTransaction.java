@@ -1,5 +1,7 @@
 package com.iainschmitt.perdiction.model;
 
+import java.math.BigDecimal;
+
 import org.springframework.data.annotation.Id;
 import lombok.Getter;
 
@@ -13,10 +15,10 @@ public class MarketTransaction {
     private final int outcomeIndex;
     private final PositionDirection direction;
     private final TransactionType transactionType;
-    private final double credits;
+    private final BigDecimal credits;
 
     public MarketTransaction(String srcUserId, String dstUserId, String marketId, int outcomeIndex,
-            PositionDirection direction, TransactionType transactionType, double credits) {
+            PositionDirection direction, TransactionType transactionType, BigDecimal credits) {
         this.srcUserId = srcUserId;
         this.dstUserId = dstUserId;
         this.marketId = marketId;

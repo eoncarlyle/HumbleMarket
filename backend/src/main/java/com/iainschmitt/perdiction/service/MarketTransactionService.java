@@ -8,14 +8,12 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.repository.PositionRepository;
 import com.iainschmitt.perdiction.repository.TransactionRepository;
-
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
 import com.iainschmitt.perdiction.model.Market;
 import com.iainschmitt.perdiction.model.User;
 import com.iainschmitt.perdiction.model.Outcome;
@@ -23,7 +21,7 @@ import com.iainschmitt.perdiction.model.Position;
 import com.iainschmitt.perdiction.model.MarketTransaction;
 import com.iainschmitt.perdiction.model.TransactionType;
 import com.iainschmitt.perdiction.model.PositionDirection;
-import com.iainschmitt.perdiction.model.rest.MarketData;
+import com.iainschmitt.perdiction.model.rest.MarketCreationData;
 import com.iainschmitt.perdiction.model.rest.TransactionReturnData;
 
 @Service
@@ -40,9 +38,9 @@ public class MarketTransactionService {
 
     public final static String ADMIN_EMAIL = "admin@iainschmitt.com";
     public final static String BANK_EMAIL = "bank@iainschmitt.com";
-    public final static MathContext MATH_CONTEXT = new MathContext(2, RoundingMode.CEILING);
+    public final static RoundingMode ROUNDING_RULE = RoundingMode.HALF_UP;
 
-    public TransactionReturnData createMarket(MarketData marketData) {
+    public TransactionReturnData createMarket(MarketCreationData marketData) {
         // TODO: Implement validation: unique question names and outputs
         marketData.validate();
         // TODO: Consider a better way of doing this
@@ -100,20 +98,18 @@ public class MarketTransactionService {
         var outcome = market.getOutcomes().get(outcomeIndex);
         var positionPrice = direction.equals(PositionDirection.YES) ? outcome.getPrice()
                 : toBigDecimal(1d - outcome.getPrice().doubleValue());
-        var tradeValue = positionPrice.doubleValue() * shares;
+        var tradeValue = positionPrice.multiply(toBigDecimal(shares));
 
-        if (tradeValue > user.getCredits()) {
+        if (user.getCredits().compareTo(tradeValue) == -1) {
             throw new IllegalArgumentException("Insufficient Funds");
         }
         if (direction.equals(PositionDirection.YES) && (outcome.getSharesY() - 2 < shares)) {
-            throw new IllegalArgumentException(
-                    "Too many shares requested");
+            throw new IllegalArgumentException("Too many shares requested");
         } else if (direction.equals(PositionDirection.NO) && (outcome.getSharesN() - 2 < shares)) {
-            throw new IllegalArgumentException(
-                    "Too many shares requested");
+            throw new IllegalArgumentException("Too many shares requested");
         }
 
-        log.info("Validation checks passed");
+        log.info("Purchase validation checks passed");
         // Transaction, Position Handling
         var bank = getBankUser();
 
@@ -185,8 +181,10 @@ public class MarketTransactionService {
         return sale(user, market, outcomeIndex, direction, shares);
     }
 
+    // TODO: Depreciate method
     public TransactionReturnData sale(User user, Market market, int outcomeIndex, PositionDirection direction,
             int shares) {
+
         log.info("Sale transaction attempted for:");
         log.info(String.format("User: %s", user.getEmail()));
         log.info(String.format("Market: %s", market.getId()));
@@ -207,11 +205,11 @@ public class MarketTransactionService {
             throw new IllegalArgumentException("Insufficient Shares");
         }
 
-        log.info("Validation checks passed");
+        log.info("Sale validation checks passed");
 
         var bank = getBankUser();
         var outcome = market.getOutcomes().get(outcomeIndex);
-        var tradeValue = outcome.getPrice().doubleValue() * shares;
+        var tradeValue = outcome.getPrice().multiply(toBigDecimal(shares));
 
         log.info(String.format("Starting bank credits:", bank.getCredits()));
         log.info(String.format("Starting user credits:", user.getCredits()));
@@ -289,12 +287,27 @@ public class MarketTransactionService {
         return new TransactionReturnData("");
     }
 
+    public TransactionReturnData sale(User user, Market market, int outcomeIndex, PositionDirection direction,
+            int shares, BigDecimal sharePrice) {
+
+        log.info("Sale transaction attempted for:");
+        log.info(String.format("User: %s", user.getEmail()));
+        log.info(String.format("Market: %s", market.getId()));
+        log.info(String.format("Outcome index: %d", outcomeIndex));
+        log.info(String.format("Direction: %s", direction.toString()));
+        log.info(String.format("Shares: %d", shares));
+        log.info(String.format("Share Price: %d", sharePrice));
+
+        // TODO: Fill out
+        return new TransactionReturnData("");
+    }
+
     public TransactionReturnData close(Market market, int correctOutcomeIndex) {
         market.setClosed(true);
         marketRepository.save(market);
         var creator = userService.getUserById(market.getCreatorId());
-        
-        //TODO: Correct notification stuff
+
+        // TODO: Fill out notifications
         var message = String.format("Market '%s' has closed, please resolve it by providing the correct answer",
                 market.getQuestion());
         creator.addNotification(market.getId(), message);
@@ -303,8 +316,8 @@ public class MarketTransactionService {
     }
 
     public TransactionReturnData resolve(Market market, int outcomeIndex, PositionDirection direction) {
-        
-        //TODO: throw exception for markets that aren't closed
+
+        // TODO: throw exception for markets that aren't closed
         if (market.getOutcomes().size() > 1 && direction.equals(PositionDirection.NO)) {
             throw new IllegalArgumentException("Underdefined resolution criteria");
         }
@@ -320,30 +333,34 @@ public class MarketTransactionService {
             }
             if (correct) {
                 // Each share redeems at a credit value of 1
-                transactions.add(new MarketTransaction(getBankUserId(), position.getUserId(), market.getId(), outcomeIndex,
-                        position.getDirection(), TransactionType.RESOLUTION, (double) position.getShares()));
+                transactions.add(new MarketTransaction(getBankUserId(), position.getUserId(), market.getId(),
+                        outcomeIndex, position.getDirection(), TransactionType.RESOLUTION, toBigDecimal(1d * position.getShares())));
             } else {
-                transactions.add(new MarketTransaction(getBankUserId(), position.getUserId(), market.getId(), outcomeIndex,
-                        position.getDirection(), TransactionType.RESOLUTION, 0));
+                transactions.add(new MarketTransaction(getBankUserId(), position.getUserId(), market.getId(),
+                        outcomeIndex, position.getDirection(), TransactionType.RESOLUTION, toBigDecimal(0d)));
             }
         }
 
         var bank = getBankUser();
         for (var transaction : transactions) {
             var clientUser = userService.getUserById(transaction.getDstUserId());
-            clientUser.setCredits(clientUser.getCredits() + transaction.getCredits());
-            bank.setCredits(bank.getCredits() - transaction.getCredits());
+            clientUser.setCredits(clientUser.getCredits().add(transaction.getCredits()));
+            bank.setCredits(bank.getCredits().subtract(transaction.getCredits()));
             userService.saveUser(clientUser);
             transactionRepository.save(transaction);
         }
-        
+
         userService.saveUser(getBankUser());
         positionRepository.deleteByMarketId(market.getId());
         return new TransactionReturnData("");
     }
 
     public static BigDecimal toBigDecimal(double val) {
-        return new BigDecimal(val, MATH_CONTEXT);
+        return new BigDecimal(val).setScale(2, ROUNDING_RULE);
+    }
+
+    public static BigDecimal toBigDecimal(int val) {
+        return toBigDecimal((double) val);
     }
 
     public static BigDecimal priceRecalc(int sharesY, int sharesN) {

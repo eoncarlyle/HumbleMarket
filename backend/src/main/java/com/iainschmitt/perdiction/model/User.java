@@ -1,5 +1,6 @@
 package com.iainschmitt.perdiction.model;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +16,10 @@ public class User {
     @Setter
     private String passwordHash;
     @Setter
-    private double credits;
+    
+    @Getter
+    private BigDecimal credits;
+    // TODO: Overall just fix the notifications
     private Map<String, Notification> notifications;
 
     // TODO: Change this constructor to inlcude both email and password
@@ -30,12 +34,12 @@ public class User {
         return String.format("User[id=%s, displayName='%s']", getId(), getEmail());
     }
 
-    public void depositCredits(double credits) {
-        this.credits += credits;
+    public void depositCredits(BigDecimal credits) {
+        this.credits = this.credits.add(credits);
     }
 
-    public void withdrawCredits(double credits) {
-        this.credits -= credits;
+    public void withdrawCredits(BigDecimal credits) {
+        this.credits = this.credits.subtract(credits);
     }
 
     public void addNotification(String marketId, String message) {

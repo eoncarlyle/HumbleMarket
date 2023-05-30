@@ -12,6 +12,6 @@ import lombok.Setter;
 @Builder
 public class AccountReturnData {
     private String email;
-    private double credits;
+    private BigDecimal credits;
     private List<PositionReturnData> positionsReturnData;
 }

@@ -1,6 +1,5 @@
 package com.iainschmitt.perdiction.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import lombok.extern.slf4j.Slf4j;
 
-import com.iainschmitt.perdiction.exceptions.NotAuthorizedException;
-import com.iainschmitt.perdiction.model.rest.TransactionData;
 import com.iainschmitt.perdiction.model.rest.TransactionReturnData;
 import com.iainschmitt.perdiction.model.Market;
 import com.iainschmitt.perdiction.model.PositionDirection;
@@ -29,7 +26,7 @@ import com.iainschmitt.perdiction.service.MarketTransactionService;
 @RequestMapping("/market")
 @CrossOrigin(origins = "*")
 @Slf4j
-public class TransactionController {
+public class MarketTransactionController {
     @Autowired
     private MarketTransactionService transactionService;
 

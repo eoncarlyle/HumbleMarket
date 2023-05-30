@@ -3,10 +3,6 @@ package com.iainschmitt.perdiction.model;
 import java.math.BigDecimal;
 
 import org.springframework.data.annotation.Id;
-
-import com.iainschmitt.perdiction.model.rest.PositionReturnData;
-
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 

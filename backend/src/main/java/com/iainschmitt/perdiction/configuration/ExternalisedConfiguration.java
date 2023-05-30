@@ -4,12 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
-
 import io.jsonwebtoken.security.Keys;
 
-import lombok.Getter;
 
 @Configuration
 public class ExternalisedConfiguration {

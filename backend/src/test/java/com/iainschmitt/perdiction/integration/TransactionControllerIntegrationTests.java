@@ -12,23 +12,23 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import lombok.SneakyThrows;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
 import com.iainschmitt.perdiction.model.rest.AuthData;
-import com.iainschmitt.perdiction.model.rest.MarketData;
+import com.iainschmitt.perdiction.model.rest.MarketCreationData;
 import com.iainschmitt.perdiction.model.PositionDirection;
 import com.iainschmitt.perdiction.model.User;
 import com.iainschmitt.perdiction.service.UserService;
-
-import lombok.SneakyThrows;
-
 import com.iainschmitt.perdiction.service.AuthService;
 import com.iainschmitt.perdiction.service.MarketTransactionService;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.repository.PositionRepository;
 import com.iainschmitt.perdiction.repository.TransactionRepository;
+
+import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigDecimal;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient(timeout = "36000")
@@ -62,7 +62,7 @@ public class TransactionControllerIntegrationTests {
         transactionRepository.deleteAll();
 
         var bank = new User(MarketTransactionService.BANK_EMAIL);
-        bank.setCredits(1_000_000d);
+        bank.setCredits(toBigDecimal(1_000_000d));
         userService.saveUser(bank);
 
         userService.saveUser(new User(MarketTransactionService.ADMIN_EMAIL));
@@ -72,7 +72,7 @@ public class TransactionControllerIntegrationTests {
     void purchase_Success() {
         var user = new User(DEFAULT_USER_EMAIL);
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
-        user.setCredits(100d);
+        user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
         var token = authService.createToken(user);
 
@@ -86,7 +86,7 @@ public class TransactionControllerIntegrationTests {
     void purchase_InsufficientFundsFailure() {
         var user = new User(DEFAULT_USER_EMAIL);
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
-        user.setCredits(0d);
+        user.setCredits(toBigDecimal(0d));
         userService.saveUser(user);
         var token = authService.createToken(user);
 
@@ -104,7 +104,7 @@ public class TransactionControllerIntegrationTests {
         // TODO
         // var user = new User(DEFAULT_USER_EMAIL);
         // user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
-        // user.setCredits(100d);
+        // user.setCredits(toBigDecimal(100d));
         // userService.saveUser(user);
         // var token = authService.createToken(user);
 
@@ -118,7 +118,7 @@ public class TransactionControllerIntegrationTests {
     void sale_InsufficientSharesFailure() {
         var user = new User(DEFAULT_USER_EMAIL);
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
-        user.setCredits(100d);
+        user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
         var token = authService.createToken(user);
 
@@ -136,7 +136,7 @@ public class TransactionControllerIntegrationTests {
     void sale_AuthFailure() {
         var user = new User(DEFAULT_USER_EMAIL);
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
-        user.setCredits(100d);
+        user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
         var token = authService.createToken(user, 0l);
         Thread.sleep(1001L);
@@ -151,8 +151,8 @@ public class TransactionControllerIntegrationTests {
                 .isEqualTo("{\"status\":401,\"message\":\"Failed authentication: invalid token\"}");
     }
 
-    private MarketData defaultSingleOutcomeMarket(String creatorId) {
-        return MarketData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
+    private MarketCreationData defaultSingleOutcomeMarket(String creatorId) {
+        return MarketCreationData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
                 .creatorId(creatorId).marketMakerK(100)
                 .closeDate(Instant.now().plus(Duration.ofHours(1L)).toEpochMilli()).isPublic(true)
                 .outcomeClaims(new ArrayList<String>() {
@@ -162,8 +162,8 @@ public class TransactionControllerIntegrationTests {
                 }).build();
     }
 
-    private MarketData defaultMultiOutcomeMarket(String creatorId) {
-        return MarketData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
+    private MarketCreationData defaultMultiOutcomeMarket(String creatorId) {
+        return MarketCreationData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
                 .creatorId(creatorId).marketMakerK(100)
                 .closeDate(Instant.now().plus(Duration.ofHours(1L)).toEpochMilli()).isPublic(true)
                 .outcomeClaims(new ArrayList<String>() {

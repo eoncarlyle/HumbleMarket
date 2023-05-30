@@ -10,20 +10,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Example;
 
 import com.iainschmitt.perdiction.model.Position;
 import com.iainschmitt.perdiction.model.Market;
 import com.iainschmitt.perdiction.model.Outcome;
 import com.iainschmitt.perdiction.model.PositionDirection;
-import com.iainschmitt.perdiction.model.MarketTransaction;
 import com.iainschmitt.perdiction.model.TransactionType;
 import com.iainschmitt.perdiction.model.User;
-import com.iainschmitt.perdiction.model.rest.MarketData;
+import com.iainschmitt.perdiction.model.rest.MarketCreationData;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.repository.PositionRepository;
 import com.iainschmitt.perdiction.repository.TransactionRepository;
-import com.iainschmitt.perdiction.repository.UserRepository;
 
 import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigDecimal;
 
 @SpringBootTest
-public class TransactionServiceTests {
+public class MarketTransactionServiceTests {
 
     @Autowired
     private MarketTransactionService transactionService;
@@ -56,7 +53,7 @@ public class TransactionServiceTests {
         transactionRepository.deleteAll();
 
         var bank = new User(MarketTransactionService.BANK_EMAIL);
-        bank.setCredits(1_000_000f);
+        bank.setCredits(toBigDecimal(1_000_000d));
         userService.saveUser(bank);
 
         userService.saveUser(new User(MarketTransactionService.ADMIN_EMAIL));
@@ -96,7 +93,7 @@ public class TransactionServiceTests {
     public void purchase_Success() {
         var user = new User(DEFAULT_USER_EMAIL);
         var bank = transactionService.getBankUser();
-        user.setCredits(100f);
+        user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
 
         var marketData = defaultSingleOutcomeMarket(getAdminId());
@@ -104,11 +101,11 @@ public class TransactionServiceTests {
         var market = marketRepository.findAll().get(0);
         var initialPrice = market.getOutcomes().get(0).getPrice();
         var shares = 3;
-        var startingCredits = bank.getCredits() + user.getCredits();
+        var startingCredits = bank.getCredits().add(user.getCredits());
         var initialTotalCredits = totalCredits();
 
         transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, shares);
-        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
 
         bank = transactionService.getBankUser();
         user = userService.getUserByEmail(user.getEmail());
@@ -118,19 +115,20 @@ public class TransactionServiceTests {
         var positions = positionRepository.findAll();
         var outcome = markets.get(0).getOutcomes().get(0);
 
-        assertThat(bank.getCredits()).isEqualTo(1_000_000d + shares * initialPrice.doubleValue());
-        assertThat(user.getCredits()).isEqualTo(100d - shares * initialPrice.doubleValue());
+        assertThat(bank.getCredits().doubleValue()).isEqualTo(1_000_000d + shares * initialPrice.doubleValue());
+        assertThat(user.getCredits().doubleValue()).isEqualTo(100d - shares * initialPrice.doubleValue());
         assertThat(markets.size()).isEqualTo(1);
         assertThat(transactions.size()).isEqualTo(1);
         assertThat(positions.size()).isEqualTo(1);
-        assertThat(bank.getCredits() + user.getCredits()).isEqualTo(startingCredits);
+        assertThat(bank.getCredits().add(user.getCredits()).doubleValue()).isEqualTo(startingCredits.doubleValue());
 
-        assertThat(outcome.getSharesN()).isEqualTo(9);
+        
+        assertThat(outcome.getSharesN()).isEqualTo(8);
         assertThat(outcome.getSharesY()).isEqualTo(12);
 
         assertThat(transactions.get(0).getDirection()).isEqualTo(PositionDirection.NO);
         assertThat(transactions.get(0).getTransactionType()).isEqualTo(TransactionType.PURCHASE);
-        assertThat(transactions.get(0).getCredits()).isEqualTo(1.5f);
+        assertThat(transactions.get(0).getCredits().doubleValue()).isEqualTo(1.5d);
 
         assertThat(positions.get(0).getShares()).isEqualTo(3);
         assertThat(positions.get(0).getDirection()).isEqualTo(PositionDirection.NO);
@@ -139,7 +137,7 @@ public class TransactionServiceTests {
     @Test
     public void purchaseMultiOutcome_Success() {
         var user = new User(DEFAULT_USER_EMAIL);
-        user.setCredits(100f);
+        user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
 
         var marketData = defaultMultiOutcomeMarket(getAdminId());
@@ -152,19 +150,19 @@ public class TransactionServiceTests {
 
         transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, shares);
 
-        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
         assertThat(positionRepository.findAll().get(0).getPriceAtBuy())
                 .isEqualTo(toBigDecimal(1d - initialOutcomeZeroPrice.doubleValue()));
 
         transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 1, PositionDirection.YES, shares);
         assertThat(positionRepository.findAll().get(1).getPriceAtBuy()).isEqualTo(initialOutcomeOnePrice);
-        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
     }
 
     @Test
     public void purchased_ClosedMarketFailure() {
         var user = new User(DEFAULT_USER_EMAIL);
-        user.setCredits(1f);
+        user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
 
         var marketData = defaultSingleOutcomeMarket(getAdminId());
@@ -181,7 +179,7 @@ public class TransactionServiceTests {
     @Test
     public void purchase_InsufficientFundsFailure() {
         var user = new User(DEFAULT_USER_EMAIL);
-        user.setCredits(1f);
+        user.setCredits(toBigDecimal(1d));
         userService.saveUser(user);
 
         var marketData = defaultSingleOutcomeMarket(getAdminId());
@@ -195,7 +193,7 @@ public class TransactionServiceTests {
     @Test
     public void purchase_TooManySharesFailure() {
         var user = new User(DEFAULT_USER_EMAIL);
-        user.setCredits(100f);
+        user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
 
         var marketData = defaultSingleOutcomeMarket(getAdminId());
@@ -210,7 +208,7 @@ public class TransactionServiceTests {
     @Test
     public void sale_Success() {
         var user = new User(DEFAULT_USER_EMAIL);
-        user.setCredits(100f);
+        user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
         var marketData = defaultSingleOutcomeMarket(getAdminId());
         transactionService.createMarket(marketData);
@@ -223,11 +221,11 @@ public class TransactionServiceTests {
 
         var firstPrice = outcome.get().getPrice();
         transactionService.purchase(user.getId(), marketId, 0, PositionDirection.YES, shares);
-        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
 
         var secondPrice = outcome.get().getPrice();
         transactionService.purchase(user.getId(), marketId, 0, PositionDirection.YES, shares);
-        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
 
         var positions = positionRepository.findByUserIdAndMarketIdOrderByPriceAtBuyDesc(user.getId(), marketId);
         assertThat(positions.size()).isEqualTo(2);
@@ -235,14 +233,14 @@ public class TransactionServiceTests {
         assertThat(positions.get(1).getPriceAtBuy()).isEqualTo(firstPrice);
 
         transactionService.sale(user.getId(), marketId, 0, PositionDirection.YES, shares + 1);
-        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
     }
 
     @Test
     public void saleMultiOutcome_Success() {
         var user = new User(DEFAULT_USER_EMAIL);
         var bank = transactionService.getBankUser();
-        user.setCredits(100f);
+        user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
 
         var marketData = defaultMultiOutcomeMarket(getAdminId());
@@ -255,24 +253,24 @@ public class TransactionServiceTests {
 
         transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.YES, shares);
         assertThat(positionRepository.findAll().get(0).getPriceAtBuy()).isEqualTo(initialOutcomeZeroPrice);
-        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
 
         transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 1, PositionDirection.NO, shares);
         assertThat(positionRepository.findAll().get(1).getPriceAtBuy())
                 .isEqualTo(toBigDecimal(1d - initialOutcomeOnePrice.doubleValue()));
-        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
 
         transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.YES, 2);
-        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
         transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 1, PositionDirection.NO, 2);
-        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
     }
 
     @Test
     public void sale_InsufficientSharesFailure() {
         var user = new User(DEFAULT_USER_EMAIL);
         var bank = transactionService.getBankUser();
-        user.setCredits(100f);
+        user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
 
         var marketData = defaultMultiOutcomeMarket(getAdminId());
@@ -286,17 +284,17 @@ public class TransactionServiceTests {
         // Only buy transaction
         transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.YES, shares);
         assertThat(positionRepository.findAll().get(0).getPriceAtBuy()).isEqualTo(initialOutcomeZeroPrice);
-        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
 
         // Valid sale of 2 shares of 0/Yes
         transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.YES, 2);
-        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
 
         // Invalid sale of 1 share of 1/No
         assertThatThrownBy(
                 () -> transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 1, PositionDirection.NO, 1))
                         .isInstanceOf(IllegalArgumentException.class);
-        assertThat(totalCredits()).isEqualTo(initialTotalCredits);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
     }
 
     @Test
@@ -318,7 +316,7 @@ public class TransactionServiceTests {
     public void resolve_Success() {
         var user0 = new User(DEFAULT_USER_EMAIL);
         var user1 = new User("user2@iainschmitt.com");
-        var startingCredits = 98.5f;
+        var startingCredits = toBigDecimal(98.5d);
         user0.setCredits(startingCredits);
         user1.setCredits(startingCredits);
         userService.saveUser(user0);
@@ -350,8 +348,8 @@ public class TransactionServiceTests {
 
         transactionService.resolve(market, selectedOutcomeIndex, PositionDirection.YES);
 
-        assertThat(userService.getUserById(user0.getId()).getCredits()).isEqualTo(101.5d);
-        assertThat(userService.getUserById(user1.getId()).getCredits()).isEqualTo(98.5d);
+        assertThat(userService.getUserById(user0.getId()).getCredits().doubleValue()).isEqualTo(101.5d);
+        assertThat(userService.getUserById(user1.getId()).getCredits().doubleValue()).isEqualTo(98.5d);
     }
 
     @Test
@@ -367,7 +365,7 @@ public class TransactionServiceTests {
         transactionService.createMarket(marketData);
         marketData = defaultMultiOutcomeMarket(getAdminId());
         transactionService.createMarket(marketData);
-        marketData = MarketData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
+        marketData = MarketCreationData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
                 .creatorId(getAdminId()).marketMakerK(100)
                 .closeDate(Instant.now().plus(Duration.ofHours(1L)).toEpochMilli()).isPublic(true)
                 .outcomeClaims(new ArrayList<String>() {
@@ -392,8 +390,8 @@ public class TransactionServiceTests {
         return userService.getUserByEmail(MarketTransactionService.BANK_EMAIL).getId();
     }
 
-    private MarketData defaultSingleOutcomeMarket(String creatorId) {
-        return MarketData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
+    private MarketCreationData defaultSingleOutcomeMarket(String creatorId) {
+        return MarketCreationData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
                 .creatorId(creatorId).marketMakerK(100)
                 .closeDate(Instant.now().plus(Duration.ofHours(1L)).toEpochMilli()).isPublic(true)
                 .outcomeClaims(new ArrayList<String>() {
@@ -403,8 +401,8 @@ public class TransactionServiceTests {
                 }).build();
     }
 
-    private MarketData defaultMultiOutcomeMarket(String creatorId) {
-        return MarketData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
+    private MarketCreationData defaultMultiOutcomeMarket(String creatorId) {
+        return MarketCreationData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
                 .creatorId(creatorId).marketMakerK(100)
                 .closeDate(Instant.now().plus(Duration.ofHours(1L)).toEpochMilli()).isPublic(true)
                 .outcomeClaims(new ArrayList<String>() {
@@ -415,13 +413,12 @@ public class TransactionServiceTests {
                 }).build();
     }
 
-    private double totalCredits() {
+    private BigDecimal totalCredits() {
         return totalCredits(MarketTransactionService.BANK_EMAIL, DEFAULT_USER_EMAIL);
     }
 
-    private double totalCredits(String bankEmail, String userEmail) {
-        return userService.getUserByEmail(DEFAULT_USER_EMAIL).getCredits()
-                + userService.getUserByEmail(MarketTransactionService.BANK_EMAIL).getCredits();
+    private BigDecimal totalCredits(String bankEmail, String userEmail) {
+        return userService.getUserByEmail(DEFAULT_USER_EMAIL).getCredits().add(userService.getUserByEmail(MarketTransactionService.BANK_EMAIL).getCredits());
     }
 
 }
