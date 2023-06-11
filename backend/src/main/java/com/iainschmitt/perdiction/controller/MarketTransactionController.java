@@ -13,14 +13,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.yaml.snakeyaml.error.Mark;
+
 import lombok.extern.slf4j.Slf4j;
 
+import com.iainschmitt.perdiction.model.rest.MarketReturnData;
 import com.iainschmitt.perdiction.model.rest.TransactionReturnData;
 import com.iainschmitt.perdiction.model.Market;
 import com.iainschmitt.perdiction.model.PositionDirection;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.service.AuthService;
 import com.iainschmitt.perdiction.service.MarketTransactionService;
+import com.iainschmitt.perdiction.service.UserService;
 
 @RestController
 @RequestMapping("/market")
@@ -35,6 +39,9 @@ public class MarketTransactionController {
 
     @Autowired
     private MarketRepository marketRepository;
+    
+    @Autowired
+    private UserService userService;
 
     @GetMapping
     public ResponseEntity<List<Market>> getMarkets(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
@@ -47,7 +54,9 @@ public class MarketTransactionController {
     public ResponseEntity<Market> getMarket(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @PathVariable int seqId) {
         authService.authenticateTokenThrows(token);
-        return new ResponseEntity<>(marketRepository.findBySeqId(seqId), HttpStatus.OK);
+        var market = marketRepository.findBySeqId(seqId); 
+        var salesPriceList = transactionService.getSalePriceList(market, userService.getUserByEmail(authService.getClaim(token, "email"))); 
+        return new ResponseEntity<>(MarketReturnData.of(market, salesPriceList), HttpStatus.OK);
     }
 
     @PostMapping(value = "/{seqId}/outcome/{outcomeIndex}/{positionDirection}/purchase/{shares}")

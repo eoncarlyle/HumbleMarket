@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
@@ -122,7 +123,6 @@ public class MarketTransactionServiceTests {
         assertThat(positions.size()).isEqualTo(1);
         assertThat(bank.getCredits().add(user.getCredits()).doubleValue()).isEqualTo(startingCredits.doubleValue());
 
-        
         assertThat(outcome.getSharesN()).isEqualTo(8);
         assertThat(outcome.getSharesY()).isEqualTo(12);
 
@@ -201,12 +201,12 @@ public class MarketTransactionServiceTests {
         var market = marketRepository.findAll().get(0);
         assertThatThrownBy(
                 () -> transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, 9))
-                        .isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
-                                "Too many shares requested");
+                        .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Too many shares requested");
     }
 
+    // TODO: Deprecate test
     @Test
-    public void sale_Success() {
+    public void old_sale_Success() {
         var user = new User(DEFAULT_USER_EMAIL);
         user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
@@ -237,7 +237,104 @@ public class MarketTransactionServiceTests {
     }
 
     @Test
-    public void saleMultiOutcome_Success() {
+    public void sale_Success() {
+        var user = new User(DEFAULT_USER_EMAIL);
+        user.setCredits(toBigDecimal(100d));
+        userService.saveUser(user);
+        var marketData = defaultSingleOutcomeMarket(getAdminId());
+        transactionService.createMarket(marketData);
+
+        Supplier<Market> market = () -> marketRepository.findAll().get(0);
+        Supplier<Outcome> outcome = () -> market.get().getOutcomes().get(0);
+        var shares = 3;
+        var initialTotalCredits = totalCredits();
+
+        var firstPrice = outcome.get().getPrice();
+        transactionService.purchase(user, market.get(), 0, PositionDirection.YES, shares);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+
+        var secondPrice = outcome.get().getPrice();
+        transactionService.purchase(user, market.get(), 0, PositionDirection.YES, shares);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+
+        var positions = positionRepository.findByUserIdAndMarketIdOrderByPriceAtBuyDesc(user.getId(),
+                market.get().getId());
+        assertThat(positions.size()).isEqualTo(2);
+        assertThat(positions.get(0).getPriceAtBuy()).isEqualTo(secondPrice);
+        assertThat(positions.get(0).getDirection()).isEqualTo(PositionDirection.YES);
+        assertThat(positions.get(1).getPriceAtBuy()).isEqualTo(firstPrice);
+        assertThat(positions.get(1).getDirection()).isEqualTo(PositionDirection.YES);
+
+        // Currently held YES shares by user: 2 * `shares`, will sell one more than
+        // `shares` resulting one less than `shares`
+        // at the end of the transaction
+        var newSharesY = outcome.get().getSharesY() + shares + 1;
+        var newSharesN = outcome.get().getSharesN();
+        var proposedPrice = MarketTransactionService.price(newSharesY, newSharesN);
+        transactionService.sale(user, market.get(), 0, PositionDirection.YES, shares + 1, proposedPrice);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+    }
+
+    @Test
+    public void sale_InvalidSalePrice() {
+        var user = new User(DEFAULT_USER_EMAIL);
+        user.setCredits(toBigDecimal(100d));
+        userService.saveUser(user);
+        var marketData = defaultSingleOutcomeMarket(getAdminId());
+        transactionService.createMarket(marketData);
+
+        Supplier<Market> market = () -> marketRepository.findAll().get(0);
+        Supplier<Outcome> outcome = () -> market.get().getOutcomes().get(0);
+        var shares = 3;
+        var initialTotalCredits = totalCredits();
+
+        transactionService.purchase(user, market.get(), 0, PositionDirection.YES, shares);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+
+        var newSharesY = outcome.get().getSharesY() + shares + 1;
+        var newSharesN = outcome.get().getSharesN();
+        var incorrectProposedPrice = MarketTransactionService.price(newSharesY + 1, newSharesN);
+        assertThatThrownBy(
+                () -> transactionService.sale(user, market.get(), 0, PositionDirection.YES, 1, incorrectProposedPrice))
+                        .isInstanceOf(IllegalArgumentException.class);
+        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+    }
+
+    @Test
+    public void salesPriceList() {
+        var user0 = new User(DEFAULT_USER_EMAIL);
+        var startingCredits = toBigDecimal(100d);
+        user0.setCredits(startingCredits);
+        userService.saveUser(user0);
+
+        var marketData = defaultSingleOutcomeMarket(getAdminId());
+        transactionService.createMarket(marketData);
+        var market = marketRepository.findAll().get(0);
+        var selectedOutcomeIndex = 0;
+        var tradedShares = 3;
+        var shareCost = toBigDecimal(0.5d);
+
+        var position0 = new Position(user0.getId(), market.getId(), selectedOutcomeIndex, PositionDirection.YES,
+                tradedShares, shareCost);
+        var position1 = new Position(user0.getId(), market.getId(), selectedOutcomeIndex, PositionDirection.NO,
+                tradedShares, shareCost);
+
+        positionRepository.saveAll(List.of(position0, position1));
+
+        List<BigDecimal> yesSalePriceList = new ArrayList<>();
+        List<BigDecimal> noSalePriceList = new ArrayList<>();
+        var startingYesShares = market.getOutcomes().get(selectedOutcomeIndex).getSharesY();
+        var startingNoShares = market.getOutcomes().get(selectedOutcomeIndex).getSharesN();
+        for (int sharesToSell = 1; sharesToSell <= tradedShares; sharesToSell++) {
+            yesSalePriceList.add(MarketTransactionService.price(startingYesShares + sharesToSell, startingNoShares));
+            noSalePriceList.add(MarketTransactionService.price(startingYesShares, startingNoShares + sharesToSell));
+        }
+
+        assertThat(transactionService.getSalePriceList(market, user0)).isEqualTo(List.of(List.of(yesSalePriceList, noSalePriceList)));
+    }
+
+    @Test
+    public void old_saleMultiOutcome_Success() {
         var user = new User(DEFAULT_USER_EMAIL);
         var bank = transactionService.getBankUser();
         user.setCredits(toBigDecimal(100d));
@@ -266,8 +363,9 @@ public class MarketTransactionServiceTests {
         assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
     }
 
+    // TODO: Deprecate test
     @Test
-    public void sale_InsufficientSharesFailure() {
+    public void old_sale_InsufficientSharesFailure() {
         var user = new User(DEFAULT_USER_EMAIL);
         var bank = transactionService.getBankUser();
         user.setCredits(toBigDecimal(100d));
@@ -297,8 +395,9 @@ public class MarketTransactionServiceTests {
         assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
     }
 
+    // TODO: Deprecate test
     @Test
-    public void sale_ClosedMarketFailure() {
+    public void old_sale_ClosedMarketFailure() {
         // TODO: Test with multiple positions so that all validUserShares code paths are
     }
 
@@ -385,7 +484,7 @@ public class MarketTransactionServiceTests {
     private String getAdminId() {
         return userService.getUserByEmail(MarketTransactionService.ADMIN_EMAIL).getId();
     }
-    
+
     private String getBankId() {
         return userService.getUserByEmail(MarketTransactionService.BANK_EMAIL).getId();
     }
@@ -418,7 +517,8 @@ public class MarketTransactionServiceTests {
     }
 
     private BigDecimal totalCredits(String bankEmail, String userEmail) {
-        return userService.getUserByEmail(DEFAULT_USER_EMAIL).getCredits().add(userService.getUserByEmail(MarketTransactionService.BANK_EMAIL).getCredits());
+        return userService.getUserByEmail(DEFAULT_USER_EMAIL).getCredits()
+                .add(userService.getUserByEmail(MarketTransactionService.BANK_EMAIL).getCredits());
     }
 
 }

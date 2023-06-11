@@ -1,9 +1,9 @@
 package com.iainschmitt.perdiction.service;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -174,6 +174,7 @@ public class MarketTransactionService {
         return sale(user, market, outcomeIndex, direction, shares);
     }
 
+    // TODO: Use aspects for string id/market id/object conversion
     public TransactionReturnData sale(String userEmail, int marketSeqId, int outcomeIndex, PositionDirection direction,
             int shares) {
         var user = userService.getUserByEmail(userEmail);
@@ -184,7 +185,7 @@ public class MarketTransactionService {
     // TODO: Depreciate method
     public TransactionReturnData sale(User user, Market market, int outcomeIndex, PositionDirection direction,
             int shares) {
-
+        // TODO: Create aspects for conversion here
         log.info("Sale transaction attempted for:");
         log.info(String.format("User: %s", user.getEmail()));
         log.info(String.format("Market: %s", market.getId()));
@@ -289,17 +290,96 @@ public class MarketTransactionService {
 
     public TransactionReturnData sale(User user, Market market, int outcomeIndex, PositionDirection direction,
             int shares, BigDecimal sharePrice) {
+        if (market.isClosed()) {
+            throw new IllegalArgumentException("Cannot transact on closed market");
+        }
 
-        log.info("Sale transaction attempted for:");
-        log.info(String.format("User: %s", user.getEmail()));
-        log.info(String.format("Market: %s", market.getId()));
-        log.info(String.format("Outcome index: %d", outcomeIndex));
-        log.info(String.format("Direction: %s", direction.toString()));
-        log.info(String.format("Shares: %d", shares));
-        log.info(String.format("Share Price: %d", sharePrice));
+        var outcome = market.getOutcomes().get(outcomeIndex);
+        var validPositions = positionRepository.findByUserIdAndMarketIdAndOutcomeIndexAndDirectionOrderByPriceAtBuyDesc(
+                user.getId(), market.getId(), outcomeIndex, direction);
+        var validUserShares = validPositions.stream().map(position -> position.getShares()).reduce(0,
+                (acc, element) -> acc + element);
+        var newSharesY = direction.equals(PositionDirection.YES) ? outcome.getSharesY() + shares : outcome.getSharesY();
+        var newSharesN = direction.equals(PositionDirection.NO) ? outcome.getSharesN() + shares : outcome.getSharesN();
 
+        if (shares > validUserShares) {
+            throw new IllegalArgumentException("Insufficient Shares");
+        }
+        if (!sharePrice.equals(price(newSharesY, newSharesN))) {
+            throw new IllegalArgumentException("Invalid or out-of-date share sale price");
+        }
+
+        log.info("Sale validation checks passed");
+        var bank = getBankUser();
+        var tradeValue = sharePrice.multiply(toBigDecimal(shares));
+
+        log.info(String.format("Starting bank credits:", bank.getCredits()));
+        log.info(String.format("Starting user credits:", user.getCredits()));
+
+        // Transaction, Position Handling
+        var transaction = new MarketTransaction(user.getId(), getBankUserId(), market.getId(), outcomeIndex, direction,
+                TransactionType.SALE, tradeValue);
+        bank.withdrawCredits(transaction.getCredits());
+        user.depositCredits(transaction.getCredits());
+
+        var shareCount = 0;
+        var deletedPositions = new ArrayList<Position>();
+        Optional<Position> modifiedPosition = Optional.empty();
+
+        for (Position position : validPositions) {
+            if (position.getShares() > (shares - shareCount)) {
+                // Current position has more shares than needed to fill sale
+                var sharesRemaining = position.getShares() - (shares - shareCount);
+                // Any shares not taken by the transaction are left over
+                modifiedPosition = Optional.ofNullable(new Position(user.getId(), market.getId(), outcomeIndex,
+                        direction, sharesRemaining, position.getPriceAtBuy()));
+                break;
+            } else if (position.getShares() == (shares - shareCount)) {
+                // Current position has exactly enough shares to fill sale
+                deletedPositions.add(position);
+                break;
+            } else {
+                // Current position doesn't have enough shares to fill sale
+                deletedPositions.add(position);
+                shareCount = shareCount + position.getShares();
+            }
+        }
+
+        log.info(String.format("Starting shares for outcome:"));
+        log.info(String.format("\tYES: %f CR, %d shares", outcome.getPrice(), outcome.getSharesY()));
+        log.info(String.format("\tNO: %d shares", outcome.getSharesN()));
+
+        // Outcome pricing changes
+        if (direction.equals(PositionDirection.YES)) {
+            log.info(String.format("Sale: Moved YES shares from %d to %d", outcome.getSharesY(), newSharesY));
+            outcome.setSharesY(newSharesY);
+        } else {
+            log.info(String.format("Sale: Moved NO shares from %d to %d", outcome.getSharesN(), newSharesN));
+            outcome.setSharesN(newSharesN);
+        }
+
+        outcome.setPrice(sharePrice);
+        outcome.setSharesY(newSharesY);
+        outcome.setSharesN(newSharesN);
+
+        log.info("Saving changes to database");
+        marketRepository.save(market);
+        userService.saveUser(user);
+        userService.saveUser(bank);
+        deletedPositions.forEach(position -> positionRepository.delete(position));
+        if (modifiedPosition.isPresent()) {
+            positionRepository.save(modifiedPosition.get());
+        }
+        transactionRepository.save(transaction);
+        log.info("Sale transaction succesful");
         // TODO: Fill out
         return new TransactionReturnData("");
+    }
+
+    public static boolean priceValidSale(Market market, int outcomeIndex, PositionDirection direction, int shares,
+            BigDecimal sharePrice) {
+        var outcome = market.getOutcomes().get(outcomeIndex);
+        return sharePrice.equals(price(outcome.getSharesY(), outcome.getSharesN()));
     }
 
     public TransactionReturnData close(Market market, int correctOutcomeIndex) {
@@ -334,7 +414,8 @@ public class MarketTransactionService {
             if (correct) {
                 // Each share redeems at a credit value of 1
                 transactions.add(new MarketTransaction(getBankUserId(), position.getUserId(), market.getId(),
-                        outcomeIndex, position.getDirection(), TransactionType.RESOLUTION, toBigDecimal(1d * position.getShares())));
+                        outcomeIndex, position.getDirection(), TransactionType.RESOLUTION,
+                        toBigDecimal(1d * position.getShares())));
             } else {
                 transactions.add(new MarketTransaction(getBankUserId(), position.getUserId(), market.getId(),
                         outcomeIndex, position.getDirection(), TransactionType.RESOLUTION, toBigDecimal(0d)));
@@ -363,10 +444,48 @@ public class MarketTransactionService {
         return toBigDecimal((double) val);
     }
 
+    public static BigDecimal subtractBigDecimal(BigDecimal minuend, BigDecimal subtrahend) {
+        return minuend.subtract(subtrahend);
+    }
+
     public static BigDecimal priceRecalc(int sharesY, int sharesN) {
         var Y = (double) sharesY;
         var N = (double) sharesN;
         return toBigDecimal(N / (N + Y));
+    }
+
+    public static BigDecimal price(int sharesY, int sharesN) {
+        var Y = (double) sharesY;
+        var N = (double) sharesN;
+        return toBigDecimal(N / (N + Y));
+    }
+
+    public List<List<List<BigDecimal>>> getSalePriceList(Market market, User user) {
+        List<List<List<BigDecimal>>> returnList = new ArrayList<>();
+
+        for (int outcomeIndex = 0; outcomeIndex < market.getOutcomes().size(); outcomeIndex++) {
+            var yesPositions = positionRepository
+                .findByUserIdAndMarketIdAndOutcomeIndexAndDirectionOrderByPriceAtBuyDesc(user.getId(), market.getId(), outcomeIndex, PositionDirection.YES);
+            var noPositions = positionRepository
+                .findByUserIdAndMarketIdAndOutcomeIndexAndDirectionOrderByPriceAtBuyDesc(user.getId(), market.getId(), outcomeIndex, PositionDirection.NO);
+
+            var outcome = market.getOutcomes().get(outcomeIndex);
+            var yesShares = yesPositions.stream().map(position -> position.getShares()).reduce(0, (a, b) -> a + b);
+            List<BigDecimal> yesSalePriceList = new ArrayList<>();
+            for (int sharesToSell = 1; sharesToSell <= yesShares; sharesToSell++) {
+                yesSalePriceList.add(price(outcome.getSharesY() + sharesToSell, outcome.getSharesN()));
+            }
+         
+            var noShares = noPositions.stream().map(position -> position.getShares()).reduce(0, (a, b) -> a + b); 
+            List<BigDecimal> noSalePriceList = new ArrayList<>();
+            for (int sharesToSell = 1; sharesToSell <= noShares; sharesToSell++) {
+                noSalePriceList.add(price(outcome.getSharesY(), outcome.getSharesN() + sharesToSell ));
+            }
+
+            returnList.add(List.of(yesSalePriceList, noSalePriceList));
+        }
+
+        return returnList;
     }
 
     public static double unroundedSharesN(BigDecimal price, int marketMakerK) {
