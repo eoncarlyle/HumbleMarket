@@ -22,6 +22,8 @@ import com.iainschmitt.perdiction.model.MarketTransaction;
 import com.iainschmitt.perdiction.model.TransactionType;
 import com.iainschmitt.perdiction.model.PositionDirection;
 import com.iainschmitt.perdiction.model.rest.MarketCreationData;
+import com.iainschmitt.perdiction.model.rest.PurchaseRequestData;
+import com.iainschmitt.perdiction.model.rest.SaleRequestData;
 import com.iainschmitt.perdiction.model.rest.TransactionReturnData;
 
 @Service
@@ -66,34 +68,26 @@ public class MarketTransactionService {
                 String.format("Succesful market creation for question '%s'", marketData.getQuestion()));
     }
 
-    @SneakyThrows
-    public TransactionReturnData purchase(String userId, String marketId, int outcomeIndex, PositionDirection direction,
-            int shares) {
-        var user = userService.getUserById(userId);
-        var market = marketRepository.findById(marketId).orElseThrow();
-        return purchase(user, market, outcomeIndex, direction, shares);
-    }
+    // TODO: Logging aspects for purchase, sale methods
 
-    @SneakyThrows
-    public TransactionReturnData purchase(String userEmail, int marketSeqId, int outcomeIndex,
-            PositionDirection direction, int shares) {
+    public TransactionReturnData purchase(String userEmail, PurchaseRequestData purchaseRequestData) {
         var user = userService.getUserByEmail(userEmail);
-        var market = marketRepository.findBySeqId(marketSeqId);
+        var market = marketRepository.findBySeqId(purchaseRequestData.getSeqId());
+        var outcomeIndex = purchaseRequestData.getOutcomeIndex();
+        var direction = purchaseRequestData.getPositionDirection();
+        var shares = purchaseRequestData.getShares();
+
         return purchase(user, market, outcomeIndex, direction, shares);
     }
 
     public TransactionReturnData purchase(User user, Market market, int outcomeIndex, PositionDirection direction,
             int shares) {
-        log.info("Purchase transaction attempted for:");
-        log.info(String.format("User: %s", user.getEmail()));
-        log.info(String.format("Market: %s", market.getId()));
-        log.info(String.format("Outcome index: %d", outcomeIndex));
-        log.info(String.format("Direction: %s", direction.toString()));
-
         // TODO: Package up the logic that is oft-repeated between the other transaction
         // types into methods
         if (market.isClosed()) {
             throw new IllegalArgumentException("Cannot transact on closed market");
+        } else if (shares < 1) {
+            throw new IllegalArgumentException(String.format("Shares to be transacted '%d' must be positive", shares));
         }
         var outcome = market.getOutcomes().get(outcomeIndex);
         var positionPrice = direction.equals(PositionDirection.YES) ? outcome.getPrice()
@@ -109,34 +103,18 @@ public class MarketTransactionService {
             throw new IllegalArgumentException("Too many shares requested");
         }
 
-        log.info("Purchase validation checks passed");
         // Transaction, Position Handling
         var bank = getBankUser();
-
-        log.info(String.format("Starting bank credits: %f", bank.getCredits()));
-        log.info(String.format("Starting user credits: %f", user.getCredits()));
-
         var transaction = new MarketTransaction(user.getId(), getBankUserId(), market.getId(), outcomeIndex, direction,
                 TransactionType.PURCHASE, tradeValue);
         var position = new Position(user.getId(), market.getId(), outcomeIndex, direction, shares, positionPrice);
         bank.depositCredits(transaction.getCredits());
         user.withdrawCredits(transaction.getCredits());
 
-        log.info(String.format("Post-transaction bank credits: %f", bank.getCredits()));
-        log.info(String.format("Post-transaction user credits: %f", user.getCredits()));
-
-        log.info(String.format("Starting shares for outcome:"));
-        log.info(String.format("\tYES: %f CR, %d shares", outcome.getPrice(), outcome.getSharesY()));
-        log.info(String.format("\tNO: %d shares", outcome.getSharesN()));
-
         // Outcome pricing changes
         if (direction.equals(PositionDirection.YES)) {
-            log.info(String.format("Purchase: Moved YES shares from %d to %d", outcome.getSharesY(),
-                    outcome.getSharesY() - shares));
             outcome.setSharesY(outcome.getSharesY() - shares);
         } else {
-            log.info(String.format("Purchase: Moved NO shares from %d to %d", outcome.getSharesN(),
-                    outcome.getSharesN() - shares));
             outcome.setSharesN(outcome.getSharesN() - shares);
         }
         var newPrice = priceRecalc(outcome.getSharesY(), outcome.getSharesN());
@@ -144,154 +122,35 @@ public class MarketTransactionService {
 
         var newSharesY = Math.max((int) Math.round(unroundedSharesY(newPrice, market.getMarketMakerK())), 1);
         var newSharesN = Math.max((int) Math.round(unroundedSharesN(newPrice, market.getMarketMakerK())), 1);
-
-        log.info(String.format("Post-recalc shares for outcome:"));
-        log.info(String.format("\tYES: %f CR, %d shares", outcome.getPrice(), outcome.getSharesY()));
-        log.info(String.format("\tNO: %d shares", outcome.getSharesN()));
-
         outcome.setSharesY(newSharesY);
         outcome.setSharesN(newSharesN);
 
-        log.info("Saving changes to database");
         marketRepository.save(market);
         userService.saveUser(user);
         userService.saveUser(bank);
         positionRepository.save(position);
         transactionRepository.save(transaction);
 
-        log.info("Sale transaction succesful");
         return new TransactionReturnData("");
     }
 
-    public TransactionReturnData sale(String userId, String marketId, int outcomeIndex, PositionDirection direction,
-            int shares) {
-        // Check that user has sufficient shares (shares*price)
-        // Create a position in the position table representing the sale
-        // Create a sale transaction 'Bank -> User, shares*price'
-        // Append the sale transaction ID to the user object
-        var user = userService.getUserById(userId);
-        var market = marketRepository.findById(marketId).orElseThrow();
-        return sale(user, market, outcomeIndex, direction, shares);
-    }
-
-    // TODO: Use aspects for string id/market id/object conversion
-    public TransactionReturnData sale(String userEmail, int marketSeqId, int outcomeIndex, PositionDirection direction,
-            int shares) {
+    public TransactionReturnData sale(String userEmail, SaleRequestData saleRequestData) {
         var user = userService.getUserByEmail(userEmail);
-        var market = marketRepository.findBySeqId(marketSeqId);
-        return sale(user, market, outcomeIndex, direction, shares);
-    }
+        var market = marketRepository.findBySeqId(saleRequestData.getSeqId());
+        var outcomeIndex = saleRequestData.getOutcomeIndex();
+        var direction = saleRequestData.getPositionDirection();
+        var shares = saleRequestData.getShares();
+        var sharePrice = saleRequestData.getSharePrice();
 
-    // TODO: Depreciate method
-    public TransactionReturnData sale(User user, Market market, int outcomeIndex, PositionDirection direction,
-            int shares) {
-        // TODO: Create aspects for conversion here
-        log.info("Sale transaction attempted for:");
-        log.info(String.format("User: %s", user.getEmail()));
-        log.info(String.format("Market: %s", market.getId()));
-        log.info(String.format("Outcome index: %d", outcomeIndex));
-        log.info(String.format("Direction: %s", direction.toString()));
-        log.info(String.format("Shares: %d", shares));
-
-        // Validation Checks
-        if (market.isClosed()) {
-            throw new IllegalArgumentException("Cannot transact on closed market");
-        }
-
-        var validPositions = positionRepository.findByUserIdAndMarketIdAndOutcomeIndexAndDirectionOrderByPriceAtBuyDesc(
-                user.getId(), market.getId(), outcomeIndex, direction);
-        var validUserShares = validPositions.stream().map(position -> position.getShares()).reduce(0,
-                (acc, element) -> acc + element);
-        if (shares > validUserShares) {
-            throw new IllegalArgumentException("Insufficient Shares");
-        }
-
-        log.info("Sale validation checks passed");
-
-        var bank = getBankUser();
-        var outcome = market.getOutcomes().get(outcomeIndex);
-        var tradeValue = outcome.getPrice().multiply(toBigDecimal(shares));
-
-        log.info(String.format("Starting bank credits:", bank.getCredits()));
-        log.info(String.format("Starting user credits:", user.getCredits()));
-
-        // Transaction, Position Handling
-        var transaction = new MarketTransaction(user.getId(), getBankUserId(), market.getId(), outcomeIndex, direction,
-                TransactionType.SALE, tradeValue);
-        bank.withdrawCredits(transaction.getCredits());
-        user.depositCredits(transaction.getCredits());
-
-        log.info(String.format("Post-transaction bank credits:", bank.getCredits()));
-        log.info(String.format("Post-transaction user credits:", user.getCredits()));
-
-        var shareCount = 0;
-        var deletedPositions = new ArrayList<Position>();
-        Optional<Position> modifiedPosition = Optional.empty();
-
-        for (Position position : validPositions) {
-            if (position.getShares() > (shares - shareCount)) {
-                // Current position has more shares than needed to fill sale
-                var sharesRemaining = position.getShares() - (shares - shareCount);
-                // Any shares not taken by the transaction are left over
-                modifiedPosition = Optional.ofNullable(new Position(user.getId(), market.getId(), outcomeIndex,
-                        direction, sharesRemaining, position.getPriceAtBuy()));
-                break;
-            } else if (position.getShares() == (shares - shareCount)) {
-                // Current position has exactly enough shares to fill sale
-                deletedPositions.add(position);
-                break;
-            } else {
-                // Current position doesn't have enough shares to fill sale
-                deletedPositions.add(position);
-                shareCount = shareCount + position.getShares();
-            }
-        }
-
-        log.info(String.format("Starting shares for outcome:"));
-        log.info(String.format("\tYES: %f CR, %d shares", outcome.getPrice(), outcome.getSharesY()));
-        log.info(String.format("\tNO: %d shares", outcome.getSharesN()));
-
-        // Outcome pricing changes
-        if (direction.equals(PositionDirection.YES)) {
-            log.info(String.format("Sale: Moved YES shares from %d to %d", outcome.getSharesY(),
-                    outcome.getSharesY() + shares));
-            outcome.setSharesY(outcome.getSharesY() + shares);
-        } else {
-            log.info(String.format("Sale: Moved NO shares from %d to %d", outcome.getSharesN(),
-                    outcome.getSharesN() + shares));
-            outcome.setSharesN(outcome.getSharesN() + shares);
-        }
-
-        var price = priceRecalc(outcome.getSharesY(), outcome.getSharesN());
-        outcome.setPrice(price);
-
-        var newSharesY = Math.max((int) Math.round(unroundedSharesY(price, market.getMarketMakerK())), 1);
-        var newSharesN = Math.max((int) Math.round(unroundedSharesN(price, market.getMarketMakerK())), 1);
-        outcome.setSharesY(newSharesY);
-        outcome.setSharesN(newSharesN);
-
-        log.info(String.format("Post-recalc shares for outcome:"));
-        log.info(String.format("\tYES: %f CR, %d shares", outcome.getPrice(), outcome.getSharesY()));
-        log.info(String.format("\tNO: %d shares", outcome.getSharesN()));
-
-        log.info("Saving changes to database");
-        marketRepository.save(market);
-        userService.saveUser(user);
-        userService.saveUser(bank);
-        deletedPositions.forEach(position -> positionRepository.delete(position));
-        if (modifiedPosition.isPresent()) {
-            positionRepository.save(modifiedPosition.get());
-        }
-        transactionRepository.save(transaction);
-        log.info("Sale transaction succesful");
-        // TODO: Fill out
-        return new TransactionReturnData("");
+        return sale(user, market, outcomeIndex, direction, shares, sharePrice);
     }
 
     public TransactionReturnData sale(User user, Market market, int outcomeIndex, PositionDirection direction,
             int shares, BigDecimal sharePrice) {
         if (market.isClosed()) {
             throw new IllegalArgumentException("Cannot transact on closed market");
+        } else if (shares < 1) {
+            throw new IllegalArgumentException(String.format("Shares to be transacted '%d' must be positive", shares));
         }
 
         var outcome = market.getOutcomes().get(outcomeIndex);
@@ -309,12 +168,8 @@ public class MarketTransactionService {
             throw new IllegalArgumentException("Invalid or out-of-date share sale price");
         }
 
-        log.info("Sale validation checks passed");
         var bank = getBankUser();
         var tradeValue = sharePrice.multiply(toBigDecimal(shares));
-
-        log.info(String.format("Starting bank credits:", bank.getCredits()));
-        log.info(String.format("Starting user credits:", user.getCredits()));
 
         // Transaction, Position Handling
         var transaction = new MarketTransaction(user.getId(), getBankUserId(), market.getId(), outcomeIndex, direction,
@@ -345,16 +200,12 @@ public class MarketTransactionService {
             }
         }
 
-        log.info(String.format("Starting shares for outcome:"));
-        log.info(String.format("\tYES: %f CR, %d shares", outcome.getPrice(), outcome.getSharesY()));
-        log.info(String.format("\tNO: %d shares", outcome.getSharesN()));
-
         // Outcome pricing changes
         if (direction.equals(PositionDirection.YES)) {
-            log.info(String.format("Sale: Moved YES shares from %d to %d", outcome.getSharesY(), newSharesY));
+
             outcome.setSharesY(newSharesY);
         } else {
-            log.info(String.format("Sale: Moved NO shares from %d to %d", outcome.getSharesN(), newSharesN));
+
             outcome.setSharesN(newSharesN);
         }
 
@@ -362,7 +213,6 @@ public class MarketTransactionService {
         outcome.setSharesY(newSharesY);
         outcome.setSharesN(newSharesN);
 
-        log.info("Saving changes to database");
         marketRepository.save(market);
         userService.saveUser(user);
         userService.saveUser(bank);
@@ -371,7 +221,7 @@ public class MarketTransactionService {
             positionRepository.save(modifiedPosition.get());
         }
         transactionRepository.save(transaction);
-        log.info("Sale transaction succesful");
+
         // TODO: Fill out
         return new TransactionReturnData("");
     }
@@ -465,9 +315,11 @@ public class MarketTransactionService {
 
         for (int outcomeIndex = 0; outcomeIndex < market.getOutcomes().size(); outcomeIndex++) {
             var yesPositions = positionRepository
-                .findByUserIdAndMarketIdAndOutcomeIndexAndDirectionOrderByPriceAtBuyDesc(user.getId(), market.getId(), outcomeIndex, PositionDirection.YES);
+                    .findByUserIdAndMarketIdAndOutcomeIndexAndDirectionOrderByPriceAtBuyDesc(user.getId(),
+                            market.getId(), outcomeIndex, PositionDirection.YES);
             var noPositions = positionRepository
-                .findByUserIdAndMarketIdAndOutcomeIndexAndDirectionOrderByPriceAtBuyDesc(user.getId(), market.getId(), outcomeIndex, PositionDirection.NO);
+                    .findByUserIdAndMarketIdAndOutcomeIndexAndDirectionOrderByPriceAtBuyDesc(user.getId(),
+                            market.getId(), outcomeIndex, PositionDirection.NO);
 
             var outcome = market.getOutcomes().get(outcomeIndex);
             var yesShares = yesPositions.stream().map(position -> position.getShares()).reduce(0, (a, b) -> a + b);
@@ -475,11 +327,11 @@ public class MarketTransactionService {
             for (int sharesToSell = 1; sharesToSell <= yesShares; sharesToSell++) {
                 yesSalePriceList.add(price(outcome.getSharesY() + sharesToSell, outcome.getSharesN()));
             }
-         
-            var noShares = noPositions.stream().map(position -> position.getShares()).reduce(0, (a, b) -> a + b); 
+
+            var noShares = noPositions.stream().map(position -> position.getShares()).reduce(0, (a, b) -> a + b);
             List<BigDecimal> noSalePriceList = new ArrayList<>();
             for (int sharesToSell = 1; sharesToSell <= noShares; sharesToSell++) {
-                noSalePriceList.add(price(outcome.getSharesY(), outcome.getSharesN() + sharesToSell ));
+                noSalePriceList.add(price(outcome.getSharesY(), outcome.getSharesN() + sharesToSell));
             }
 
             returnList.add(List.of(yesSalePriceList, noSalePriceList));

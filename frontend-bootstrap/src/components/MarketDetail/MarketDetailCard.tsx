@@ -12,11 +12,12 @@ import styles from "../../style/MarketCard.module.css";
 
 interface MarketDetailCardProps {
   market: Market;
+  salePriceList: number[][][];
   order: Order;
   setOrder: Dispatch<SetStateAction<Order>>;
 }
 
-function MarketDetailCard({ market, order, setOrder }: MarketDetailCardProps) {
+function MarketDetailCard({ market, salePriceList, order, setOrder }: MarketDetailCardProps) {
   var closeDate = new Date(market.closeDate);
   var outcomeIndex = 0;
   var outcomesList: JSX.Element[] = [];
@@ -25,7 +26,6 @@ function MarketDetailCard({ market, order, setOrder }: MarketDetailCardProps) {
     outcomesList.push(<MarketDetailOutcomeBox outcome={outcome} setOrder={setOrder} outcomeIndex={outcomeIndex} />);
     outcomeIndex++;
   });
-
   return (
     <Card border="dark" className={styles.marketCard}>
       <Card.Body>
@@ -49,7 +49,7 @@ function MarketDetailCard({ market, order, setOrder }: MarketDetailCardProps) {
           </Tab>
           <Tab eventKey="sale" title="Sale">
             <Container className={styles.marketTabContent}>
-              <SellForm market={market} order={order} setOrder={setOrder} />
+              <SellForm market={market} salePriceList={salePriceList} order={order} setOrder={setOrder} />
             </Container>
           </Tab>
         </Tabs>

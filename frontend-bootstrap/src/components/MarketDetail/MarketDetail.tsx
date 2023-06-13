@@ -6,13 +6,13 @@ import Market from "../../model/Market";
 import TransactionType from "../../model/TransactionType";
 import PositionDirection from "../../model/PositionDirection";
 import MarketDetailCard from "./MarketDetailCard";
-//import TransactionForm from "./SingleMarket/TransactionForm";
-//import SingleMarketDetail from "./SingleMarket/SingleMarketDetail";
-//import classes from "../styles/SingleMarketBody.module.css";
+import MarketReturnData from "../../model/MarketReturnData";
 
 function MarketDetail() {
-  const market = useLoaderData() as Market;
+  const marketReturnData = useLoaderData() as MarketReturnData;
+  const [market, salePriceList] = [marketReturnData.market, marketReturnData.salePriceList];
   const startingSelection = useLocation().state;
+  
   const [order, setOrder] = useState<Order>(
     startingSelection
       ? startingSelection
@@ -25,7 +25,7 @@ function MarketDetail() {
   );
 
   return (
-    <MarketDetailCard market={market} order={order} setOrder={setOrder} />
+    <MarketDetailCard market={market} salePriceList={salePriceList} order={order} setOrder={setOrder} />
   ) 
 }
 

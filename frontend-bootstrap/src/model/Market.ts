@@ -10,5 +10,6 @@ interface Market {
   isPublic: boolean;
   isClosed: boolean;
   isResolved: boolean;
+  salesPriceList: number[][][];
 }
 export default Market;

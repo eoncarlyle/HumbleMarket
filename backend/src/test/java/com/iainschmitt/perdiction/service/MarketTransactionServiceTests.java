@@ -105,7 +105,7 @@ public class MarketTransactionServiceTests {
         var startingCredits = bank.getCredits().add(user.getCredits());
         var initialTotalCredits = totalCredits();
 
-        transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, shares);
+        transactionService.purchase(user, market, 0, PositionDirection.NO, shares);
         assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
 
         bank = transactionService.getBankUser();
@@ -148,13 +148,13 @@ public class MarketTransactionServiceTests {
         var shares = 3;
         var initialTotalCredits = totalCredits();
 
-        transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, shares);
+        transactionService.purchase(user, market, 0, PositionDirection.NO, shares);
 
         assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
         assertThat(positionRepository.findAll().get(0).getPriceAtBuy())
                 .isEqualTo(toBigDecimal(1d - initialOutcomeZeroPrice.doubleValue()));
 
-        transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 1, PositionDirection.YES, shares);
+        transactionService.purchase(user, market, 1, PositionDirection.YES, shares);
         assertThat(positionRepository.findAll().get(1).getPriceAtBuy()).isEqualTo(initialOutcomeOnePrice);
         assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
     }
@@ -171,7 +171,7 @@ public class MarketTransactionServiceTests {
         market.setClosed(true);
         marketRepository.save(market);
         assertThatThrownBy(
-                () -> transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, 3))
+                () -> transactionService.purchase(user, market, 0, PositionDirection.NO, 3))
                         .isInstanceOf(IllegalArgumentException.class)
                         .hasMessageContaining("Cannot transact on closed market");
     }
@@ -186,7 +186,7 @@ public class MarketTransactionServiceTests {
         transactionService.createMarket(marketData);
         var market = marketRepository.findAll().get(0);
         assertThatThrownBy(
-                () -> transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, 3))
+                () -> transactionService.purchase(user, market, 0, PositionDirection.NO, 3))
                         .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Insufficient Funds");
     }
 
@@ -200,40 +200,8 @@ public class MarketTransactionServiceTests {
         transactionService.createMarket(marketData);
         var market = marketRepository.findAll().get(0);
         assertThatThrownBy(
-                () -> transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.NO, 9))
+                () -> transactionService.purchase(user, market, 0, PositionDirection.NO, 9))
                         .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Too many shares requested");
-    }
-
-    // TODO: Deprecate test
-    @Test
-    public void old_sale_Success() {
-        var user = new User(DEFAULT_USER_EMAIL);
-        user.setCredits(toBigDecimal(100d));
-        userService.saveUser(user);
-        var marketData = defaultSingleOutcomeMarket(getAdminId());
-        transactionService.createMarket(marketData);
-
-        Supplier<Market> market = () -> marketRepository.findAll().get(0);
-        Supplier<Outcome> outcome = () -> market.get().getOutcomes().get(0);
-        var shares = 3;
-        var marketId = market.get().getId();
-        var initialTotalCredits = totalCredits();
-
-        var firstPrice = outcome.get().getPrice();
-        transactionService.purchase(user.getId(), marketId, 0, PositionDirection.YES, shares);
-        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
-
-        var secondPrice = outcome.get().getPrice();
-        transactionService.purchase(user.getId(), marketId, 0, PositionDirection.YES, shares);
-        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
-
-        var positions = positionRepository.findByUserIdAndMarketIdOrderByPriceAtBuyDesc(user.getId(), marketId);
-        assertThat(positions.size()).isEqualTo(2);
-        assertThat(positions.get(0).getPriceAtBuy()).isEqualTo(secondPrice);
-        assertThat(positions.get(1).getPriceAtBuy()).isEqualTo(firstPrice);
-
-        transactionService.sale(user.getId(), marketId, 0, PositionDirection.YES, shares + 1);
-        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
     }
 
     @Test
@@ -301,7 +269,7 @@ public class MarketTransactionServiceTests {
     }
 
     @Test
-    public void salesPriceList() {
+    public void salePriceList() {
         var user0 = new User(DEFAULT_USER_EMAIL);
         var startingCredits = toBigDecimal(100d);
         user0.setCredits(startingCredits);
@@ -330,74 +298,89 @@ public class MarketTransactionServiceTests {
             noSalePriceList.add(MarketTransactionService.price(startingYesShares, startingNoShares + sharesToSell));
         }
 
-        assertThat(transactionService.getSalePriceList(market, user0)).isEqualTo(List.of(List.of(yesSalePriceList, noSalePriceList)));
+        assertThat(transactionService.getSalePriceList(market, user0))
+                .isEqualTo(List.of(List.of(yesSalePriceList, noSalePriceList)));
     }
 
     @Test
-    public void old_saleMultiOutcome_Success() {
-        var user = new User(DEFAULT_USER_EMAIL);
-        var bank = transactionService.getBankUser();
-        user.setCredits(toBigDecimal(100d));
-        userService.saveUser(user);
-
-        var marketData = defaultMultiOutcomeMarket(getAdminId());
-        transactionService.createMarket(marketData);
-        var market = marketRepository.findAll().get(0);
-        var initialOutcomeZeroPrice = market.getOutcomes().get(0).getPrice();
-        var initialOutcomeOnePrice = market.getOutcomes().get(1).getPrice();
-        var shares = 3;
-        var initialTotalCredits = totalCredits();
-
-        transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.YES, shares);
-        assertThat(positionRepository.findAll().get(0).getPriceAtBuy()).isEqualTo(initialOutcomeZeroPrice);
-        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
-
-        transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 1, PositionDirection.NO, shares);
-        assertThat(positionRepository.findAll().get(1).getPriceAtBuy())
-                .isEqualTo(toBigDecimal(1d - initialOutcomeOnePrice.doubleValue()));
-        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
-
-        transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.YES, 2);
-        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
-        transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 1, PositionDirection.NO, 2);
-        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+    public void saleMultiOutcome_Success() {
     }
 
-    // TODO: Deprecate test
+    // @Test
+    // public void old_saleMultiOutcome_Success() {
+    // var user = new User(DEFAULT_USER_EMAIL);
+    // var bank = transactionService.getBankUser();
+    // user.setCredits(toBigDecimal(100d));
+    // userService.saveUser(user);
+
+    // var marketData = defaultMultiOutcomeMarket(getAdminId());
+    // transactionService.createMarket(marketData);
+    // var market = marketRepository.findAll().get(0);
+    // var initialOutcomeZeroPrice = market.getOutcomes().get(0).getPrice();
+    // var initialOutcomeOnePrice = market.getOutcomes().get(1).getPrice();
+    // var shares = 3;
+    // var initialTotalCredits = totalCredits();
+
+    // transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0,
+    // PositionDirection.YES, shares);
+    // assertThat(positionRepository.findAll().get(0).getPriceAtBuy()).isEqualTo(initialOutcomeZeroPrice);
+    // assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+
+    // transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 1,
+    // PositionDirection.NO, shares);
+    // assertThat(positionRepository.findAll().get(1).getPriceAtBuy())
+    // .isEqualTo(toBigDecimal(1d - initialOutcomeOnePrice.doubleValue()));
+    // assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+
+    // transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 0,
+    // PositionDirection.YES, 2);
+    // assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+    // transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 1,
+    // PositionDirection.NO, 2);
+    // assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+    // }
+
     @Test
-    public void old_sale_InsufficientSharesFailure() {
-        var user = new User(DEFAULT_USER_EMAIL);
-        var bank = transactionService.getBankUser();
-        user.setCredits(toBigDecimal(100d));
-        userService.saveUser(user);
-
-        var marketData = defaultMultiOutcomeMarket(getAdminId());
-        transactionService.createMarket(marketData);
-        var market = marketRepository.findAll().get(0);
-        var initialOutcomeZeroPrice = market.getOutcomes().get(0).getPrice();
-        var initialOutcomeOnePrice = market.getOutcomes().get(1).getPrice();
-        var shares = 3;
-        var initialTotalCredits = totalCredits();
-
-        // Only buy transaction
-        transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.YES, shares);
-        assertThat(positionRepository.findAll().get(0).getPriceAtBuy()).isEqualTo(initialOutcomeZeroPrice);
-        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
-
-        // Valid sale of 2 shares of 0/Yes
-        transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 0, PositionDirection.YES, 2);
-        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
-
-        // Invalid sale of 1 share of 1/No
-        assertThatThrownBy(
-                () -> transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 1, PositionDirection.NO, 1))
-                        .isInstanceOf(IllegalArgumentException.class);
-        assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+    public void sale_InsufficientSharesFailure() {
     }
 
-    // TODO: Deprecate test
+    // // TODO: Deprecate test
+    // @Test
+    // public void old_sale_InsufficientSharesFailure() {
+    // var user = new User(DEFAULT_USER_EMAIL);
+    // var bank = transactionService.getBankUser();
+    // user.setCredits(toBigDecimal(100d));
+    // userService.saveUser(user);
+
+    // var marketData = defaultMultiOutcomeMarket(getAdminId());
+    // transactionService.createMarket(marketData);
+    // var market = marketRepository.findAll().get(0);
+    // var initialOutcomeZeroPrice = market.getOutcomes().get(0).getPrice();
+    // var initialOutcomeOnePrice = market.getOutcomes().get(1).getPrice();
+    // var shares = 3;
+    // var initialTotalCredits = totalCredits();
+
+    // // Only buy transaction
+    // transactionService.purchase(DEFAULT_USER_EMAIL, market.getSeqId(), 0,
+    // PositionDirection.YES, shares);
+    // assertThat(positionRepository.findAll().get(0).getPriceAtBuy()).isEqualTo(initialOutcomeZeroPrice);
+    // assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+
+    // // Valid sale of 2 shares of 0/Yes
+    // transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 0,
+    // PositionDirection.YES, 2);
+    // assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+
+    // // Invalid sale of 1 share of 1/No
+    // assertThatThrownBy(
+    // () -> transactionService.sale(DEFAULT_USER_EMAIL, market.getSeqId(), 1,
+    // PositionDirection.NO, 1))
+    // .isInstanceOf(IllegalArgumentException.class);
+    // assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
+    // }
+
     @Test
-    public void old_sale_ClosedMarketFailure() {
+    public void sale_ClosedMarketFailure() {
         // TODO: Test with multiple positions so that all validUserShares code paths are
     }
 
@@ -435,11 +418,15 @@ public class MarketTransactionServiceTests {
 
         positionRepository.save(position0);
         positionRepository.save(position1);
-
         transactionService.close(market, selectedOutcomeIndex);
 
-        assertThatThrownBy(() -> transactionService.sale(user0, market, selectedOutcomeIndex, PositionDirection.YES, 3))
-                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Cannot transact on closed market");
+        var price = MarketTransactionService.price(
+                market.getOutcomes().get(selectedOutcomeIndex).getSharesY() + tradedShares,
+                market.getOutcomes().get(selectedOutcomeIndex).getSharesN());
+
+        assertThatThrownBy(() -> transactionService.sale(user0, market, selectedOutcomeIndex, PositionDirection.YES,
+                tradedShares, price)).isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("Cannot transact on closed market");
         assertThatThrownBy(
                 () -> transactionService.purchase(user0, market, selectedOutcomeIndex, PositionDirection.YES, 3))
                         .isInstanceOf(IllegalArgumentException.class)

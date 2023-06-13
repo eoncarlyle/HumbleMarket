@@ -4,21 +4,22 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import lombok.SneakyThrows;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
-import com.iainschmitt.perdiction.model.rest.AuthData;
 import com.iainschmitt.perdiction.model.rest.MarketCreationData;
+import com.iainschmitt.perdiction.model.rest.PurchaseRequestData;
+import com.iainschmitt.perdiction.model.rest.SaleRequestData;
 import com.iainschmitt.perdiction.model.PositionDirection;
 import com.iainschmitt.perdiction.model.User;
 import com.iainschmitt.perdiction.service.UserService;
@@ -29,6 +30,7 @@ import com.iainschmitt.perdiction.repository.PositionRepository;
 import com.iainschmitt.perdiction.repository.TransactionRepository;
 
 import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigDecimal;
+import static com.iainschmitt.perdiction.service.MarketTransactionService.price;;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient(timeout = "36000")
@@ -78,8 +80,15 @@ public class TransactionControllerIntegrationTests {
 
         var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
         transactionService.createMarket(market);
-        webTestClient.post().uri(MARKET_URI_PATH + "/1/outcome/1/YES/purchase/1").header("Authorization", token)
-                .exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(202)).expectBody().returnResult();
+        webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON).bodyValue(new PurchaseRequestData() {
+                    {
+                        setSeqId(1);
+                        setOutcomeIndex(1);
+                        setPositionDirection(PositionDirection.YES);
+                        setShares(1);
+                    }
+                }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(202));
     }
 
     @Test
@@ -92,9 +101,16 @@ public class TransactionControllerIntegrationTests {
 
         var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
         transactionService.createMarket(market);
-        var response = webTestClient.post().uri(MARKET_URI_PATH + "/1/outcome/1/YES/purchase/1")
-                .header("Authorization", token).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(422))
-                .expectBody().returnResult();
+        var response = webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON).bodyValue(new PurchaseRequestData() {
+                    {
+                        setSeqId(1);
+                        setOutcomeIndex(1);
+                        setPositionDirection(PositionDirection.YES);
+                        setShares(1);
+                    }
+                }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(422)).expectBody().returnResult();
+
         assertThat(new String(response.getResponseBody()))
                 .isEqualTo("{\"status\":422,\"message\":\"Insufficient Funds\"}");
     }
@@ -120,13 +136,26 @@ public class TransactionControllerIntegrationTests {
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
-        var token = authService.createToken(user);
 
+        var token = authService.createToken(user);
         var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
         transactionService.createMarket(market);
-        var response = webTestClient.post().uri(MARKET_URI_PATH + "/1/outcome/1/YES/sale/1")
-                .header("Authorization", token).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(422))
-                .expectBody().returnResult();
+
+        var sharesY = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesY();
+        var sharesN = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesN();
+        var sharesTraded = 1;
+
+        var response = webTestClient.post().uri(MARKET_URI_PATH + "/sale").header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON).bodyValue(new SaleRequestData() {
+                    {
+                        setSeqId(1);
+                        setOutcomeIndex(1);
+                        setPositionDirection(PositionDirection.YES);
+                        setShares(sharesTraded);
+                        setSharePrice(price(sharesY + sharesTraded, sharesN));
+                    }
+                }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(422)).expectBody().returnResult();
+
         assertThat(new String(response.getResponseBody()))
                 .isEqualTo("{\"status\":422,\"message\":\"Insufficient Shares\"}");
     }
@@ -143,10 +172,21 @@ public class TransactionControllerIntegrationTests {
 
         var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
         transactionService.createMarket(market);
+        var sharesY = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesY();
+        var sharesN = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesN();
+        var sharesTraded = 1;
 
-        var response = webTestClient.post().uri(MARKET_URI_PATH + "/1/outcome/1/YES/sale/1")
-                .header("Authorization", token).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401))
-                .expectBody().returnResult();
+        var response = webTestClient.post().uri(MARKET_URI_PATH + "/sale").header("Authorization", token)
+                .contentType(MediaType.APPLICATION_JSON).bodyValue(new SaleRequestData() {
+                    {
+                        setSeqId(1);
+                        setOutcomeIndex(1);
+                        setPositionDirection(PositionDirection.YES);
+                        setShares(sharesTraded);
+                        setSharePrice(price(sharesY + sharesTraded, sharesN));
+                    }
+                }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401)).expectBody().returnResult();
+
         assertThat(new String(response.getResponseBody()))
                 .isEqualTo("{\"status\":401,\"message\":\"Failed authentication: invalid token\"}");
     }

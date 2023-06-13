@@ -15,14 +15,17 @@ import styles from "../../style/TransactionForm.module.css";
 interface BuyFormProps {
   market: Market;
   order: Order;
+  salePriceList: number[][][];
   setOrder: Dispatch<SetStateAction<Order>>;
 }
 
-function SellForm({ market, order, setOrder }: BuyFormProps) {
+function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
   const outcome = market.outcomes[order.outcomeIndex];
-  const directionShares = order.positionDirection === PositionDirection.YES ? outcome.sharesY : outcome.sharesN;
-  const directionCost = order.positionDirection === PositionDirection.YES ? outcome.price : 1 - outcome.price;
-
+  const outcomeSalePriceList = salePriceList[order.outcomeIndex][order.positionDirection === PositionDirection.YES ? 0 : 1];
+  const price = order.shares > outcomeSalePriceList.length ? outcomeSalePriceList[-1] : outcomeSalePriceList[order.shares + 1];
+  const directionCost = order.positionDirection === PositionDirection.YES ? price : 1 - price;
+  const inputDisabled = outcomeSalePriceList.length === 0;
+  console.log(salePriceList)
   const [transactionValidation, setTransactionValidation] = useState<TransactionValidation>({
     valid: true,
     showModal: false,
@@ -41,8 +44,7 @@ function SellForm({ market, order, setOrder }: BuyFormProps) {
     });
   };
 
-  console.log(transactionValidation)
-
+  
   return (
     <>
       <RRForm className={styles.transactionForm} onSubmit={handleSubmit}>
@@ -63,22 +65,24 @@ function SellForm({ market, order, setOrder }: BuyFormProps) {
                 type="number"
                 step="1"
                 min="1"
+                max={outcomeSalePriceList.length}
                 placeholder={String(order.shares)}
                 onChange={shareChangeHandlerCreator(order, setOrder)}
                 onClick={() => setTransactionValidation({ valid: true, showModal: false, message: "" })}
                 isInvalid={!transactionValidation.valid}
                 isValid={transactionValidation.valid && transactionValidation.message !== ""}
+                disabled={inputDisabled}
               ></Form.Control>
               <Form.Control.Feedback type="invalid">{transactionValidation.message}</Form.Control.Feedback>
               <Form.Control.Feedback type="valid">{transactionValidation.message}</Form.Control.Feedback>
             </Col>
           </Row>
-          <Button variant="primary" type="submit" className={styles.marketButton}>
+          <Button variant="primary" type="submit" className={styles.marketButton} disabled={inputDisabled}>
             Sell
           </Button>
           <Row>
             <Col>Proceeds</Col>
-            <Col>{priceNumberFormat(order.shares * directionCost)}</Col>
+            <Col>{priceNumberFormat(order.shares * directionCost)} CR</Col>
           </Row>
         </Container>
       </RRForm>

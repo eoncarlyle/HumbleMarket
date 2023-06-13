@@ -1,3 +1,7 @@
 export function priceNumberFormat(val: number): string {
-  return Number(val).toFixed(2);
+  if (Number.isNaN(val)) {
+    return "N/A"
+  } else {
+    return Number(val).toFixed(2);
+  }
 }
