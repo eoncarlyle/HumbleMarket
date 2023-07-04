@@ -22,5 +22,4 @@ public interface PositionRepository extends MongoRepository<Position, String> {
     List<Position> findByMarketId(String marketId);
 
     List<Position> deleteByMarketId(String marketId);
-
 }

@@ -1,6 +1,7 @@
-import { Nav, Navbar, NavDropdown, Container } from "react-bootstrap";
+import { Nav, Navbar, NavDropdown } from "react-bootstrap";
 import { Outlet, useRouteLoaderData } from "react-router-dom";
 import { LinkContainer } from "react-router-bootstrap";
+import { PersonCircle } from "react-bootstrap-icons";
 
 import { tokenExpired } from "../util/Auth";
 
@@ -18,7 +19,7 @@ function HomeNavbar() {
           </LinkContainer> */}
           {token && !tokenExpired() ? (
             <>
-              <NavDropdown title="Account">
+              <NavDropdown title={ <PersonCircle/> } active={true}>
                 <LinkContainer to="/account">
                   <NavDropdown.Item>Account Detail</NavDropdown.Item>
                 </LinkContainer>

@@ -24,10 +24,8 @@ import com.iainschmitt.perdiction.service.UserService;
 public class UserController {
     @Autowired
     private UserService userService;
-
     @Autowired
     private AuthService authService;
-
     @Autowired
     private PositionRepository positionRepository;
 

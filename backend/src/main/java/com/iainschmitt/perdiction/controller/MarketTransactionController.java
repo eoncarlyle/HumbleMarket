@@ -17,11 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.iainschmitt.perdiction.model.rest.MarketCreationData;
 import com.iainschmitt.perdiction.model.rest.MarketReturnData;
 import com.iainschmitt.perdiction.model.rest.MarketTransactionReturnData;
 import com.iainschmitt.perdiction.model.rest.PurchaseRequestData;
 import com.iainschmitt.perdiction.model.rest.SaleRequestData;
 import com.iainschmitt.perdiction.model.Market;
+import com.iainschmitt.perdiction.repository.MarketProposalRepository;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.service.AuthService;
 import com.iainschmitt.perdiction.service.MarketTransactionService;
@@ -34,15 +36,14 @@ import com.iainschmitt.perdiction.service.UserService;
 public class MarketTransactionController {
     @Autowired
     private MarketTransactionService marketTransactionService;
-
     @Autowired
     private AuthService authService;
-
     @Autowired
     private MarketRepository marketRepository;
-
     @Autowired
     private UserService userService;
+    @Autowired
+    private MarketProposalRepository marketProposalRepository;
 
     @GetMapping
     public ResponseEntity<List<Market>> getMarkets(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
@@ -74,7 +75,27 @@ public class MarketTransactionController {
     public ResponseEntity<MarketTransactionReturnData> sale(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @RequestBody SaleRequestData saleRequestData) {
         authService.authenticateTokenThrows(token);
-        return new ResponseEntity<MarketTransactionReturnData>(marketTransactionService.sale(authService.getClaim(token, "email"), saleRequestData),
+        return new ResponseEntity<>(
+                marketTransactionService.sale(authService.getClaim(token, "email"), saleRequestData),
                 HttpStatus.ACCEPTED);
     }
+
+    @PostMapping(value = "/market_proposal")
+    public ResponseEntity<MarketCreationData> createMarketProposal(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestBody MarketCreationData marketCreationData) {
+        
+        authService.authenticateToken(token);
+        //TODO: Validation
+        marketProposalRepository.save(marketCreationData); 
+        return new ResponseEntity<>(marketCreationData, HttpStatus.ACCEPTED);
+    }
+
+    //@PostMapping(value = "/accept_market_proposal")
+    //public ResponseEntity<Market> acceptMarketProposal(
+    //        @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+    //        @RequestBody String marketId) {
+    //    authService.authenticateToken(token);
+    //    
+    //}
 }

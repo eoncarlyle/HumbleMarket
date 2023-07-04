@@ -8,11 +8,6 @@ import lombok.Data;
 @Data
 @Builder
 public class MarketCreationData {
-    // @Email
-    // private String email;
-    // @Pattern(regexp = "[a-zA-Z0-9!@#_\\-]{8,64}")
-    // private String password;
-
     private String question;
     private String creatorId;
     private int marketMakerK;

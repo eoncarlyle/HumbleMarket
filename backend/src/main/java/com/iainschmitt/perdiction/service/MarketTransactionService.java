@@ -47,7 +47,7 @@ public class MarketTransactionService {
     @Autowired
     private UserService userService;
     @Autowired
-    private ExternalisedConfiguration externalisedConfiguration;
+    private ExternalisedConfiguration externalConfig;
 
     public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -118,7 +118,7 @@ public class MarketTransactionService {
         }
 
         // Transaction, Position Handling
-        var bank = getBankUser();
+        var bank = externalConfig.getBankUser();
         var transaction = new MarketTransaction(user.getId(), getBankUserId(), market.getId(), outcomeIndex, direction,
                 MarketTransactionType.PURCHASE, tradeValue);
         var position = new Position(user.getId(), market.getId(), outcomeIndex, direction, shares, positionPrice);
@@ -183,7 +183,7 @@ public class MarketTransactionService {
             throw new IllegalArgumentException("Invalid or out-of-date share sale price");
         }
 
-        var bank = getBankUser();
+        var bank = externalConfig.getBankUser();
         var tradeValue = sharePrice.multiply(toBigDecimal(shares));
 
         // Transaction, Position Handling
@@ -251,7 +251,7 @@ public class MarketTransactionService {
     public void findMarketsPendingClose() {
         var pendingCloseIntervalStart = Instant.now();
         var pendingCloseIntervalEnd = pendingCloseIntervalStart
-                .plus(Duration.ofMinutes(Long.valueOf(externalisedConfiguration.getMarketCloseIntervalMinutes())))
+                .plus(Duration.ofMinutes(Long.valueOf(externalConfig.getMarketCloseIntervalMinutes())))
                 .toEpochMilli();
 
         marketRepository.findByIsClosedFalseAndCloseDateLessThan(pendingCloseIntervalEnd).forEach(market -> {
@@ -304,7 +304,7 @@ public class MarketTransactionService {
             }
         }
 
-        var bank = getBankUser();
+        var bank = externalConfig.getBankUser();
         for (var transaction : transactions) {
             var clientUser = userService.getUserById(transaction.getDstUserId());
             clientUser.setCredits(clientUser.getCredits().add(transaction.getCredits()));
@@ -313,7 +313,7 @@ public class MarketTransactionService {
             transactionRepository.save(transaction);
         }
 
-        userService.saveUser(getBankUser());
+        userService.saveUser(externalConfig.getBankUser());
         return new MarketTransactionReturnData("");
     }
 
@@ -379,13 +379,7 @@ public class MarketTransactionService {
         return marketMakerK / unroundedSharesN(price, marketMakerK);
     }
 
-    // TODO: Inject this instead
-    public User getBankUser() {
-        return userService.getUserByEmail(BANK_EMAIL);
-    }
-
     public String getBankUserId() {
-        return getBankUser().getId();
+        return externalConfig.getBankUser().getId();
     }
-
 }

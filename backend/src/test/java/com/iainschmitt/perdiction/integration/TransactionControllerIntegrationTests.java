@@ -35,7 +35,6 @@ import static com.iainschmitt.perdiction.service.MarketTransactionService.price;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient(timeout = "36000")
 public class TransactionControllerIntegrationTests {
-
     private static final String MARKET_URI_PATH = "/market";
 
     @Autowired
@@ -167,7 +166,7 @@ public class TransactionControllerIntegrationTests {
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
-        var token = authService.createToken(user, 0l);
+        var token = authService.createToken(user, Duration.ofSeconds(0));
         Thread.sleep(1001L);
 
         var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);

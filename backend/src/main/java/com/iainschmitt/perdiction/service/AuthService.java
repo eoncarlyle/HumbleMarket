@@ -2,6 +2,7 @@ package com.iainschmitt.perdiction.service;
 
 import java.security.Key;
 import java.time.Instant;
+import java.time.Duration;
 import java.util.Date;
 
 import io.jsonwebtoken.Claims;
@@ -21,32 +22,31 @@ import com.iainschmitt.perdiction.model.rest.AuthData;
 import com.iainschmitt.perdiction.model.rest.LogInReturnData;
 import com.iainschmitt.perdiction.model.rest.SignUpReturnData;
 
+
 @Getter
 @Service
 public class AuthService {
-    // TODO use `plus(Duration.ofSeconds)` both here and in the tests
-   
-    public final long FIVE_DAYS = 432000L;
+    public final Duration TOKEN_LIFESPAN = Duration.ofDays(5);
     
     @Autowired
-    ExternalisedConfiguration externalConfig;
+    private ExternalisedConfiguration externalConfig;
 
     @Autowired
     private UserService userService;
 
     public String createToken(User user) {
         // secondsUntilExpiration is 5 days
-        return createToken(user, FIVE_DAYS);
+        return createToken(user, TOKEN_LIFESPAN);
     }
 
-    public String createToken(User user, Long secondsUntilExpiration) {
-        return Jwts.builder().setExpiration(Date.from(Instant.now().plusSeconds(secondsUntilExpiration)))
-                .claim("email", user.getEmail()).signWith(getKey()).compact();
+    public String createToken(User user, Duration durationUntilExpiration) {
+        return Jwts.builder().setExpiration(Date.from(Instant.now().plus(durationUntilExpiration)))
+                .claim("email", user.getEmail()).signWith(externalConfig.getKey()).compact();
     }
 
     // TODO: Please find a better name for this
     public boolean authenticateToken(String jwsString) {
-        return authenticateToken(jwsString, getKey());
+        return authenticateToken(jwsString, externalConfig.getKey());
     }
 
     public boolean authenticateToken(String jwsString, Key key) {
@@ -67,7 +67,7 @@ public class AuthService {
     }
 
     public Jws<Claims> getClaims(String jwsString) {
-        return Jwts.parserBuilder().setSigningKey(getKey()).build().parseClaimsJws(jwsString);
+        return Jwts.parserBuilder().setSigningKey(externalConfig.getKey()).build().parseClaimsJws(jwsString);
     }
 
     // TODO: Please find a better name for this
@@ -79,7 +79,7 @@ public class AuthService {
 
     public String getClaim(String jwsString, String claim) {
         try {
-            var claims = getClaims(jwsString, getKey());
+            var claims = getClaims(jwsString, externalConfig.getKey());
             return claims.getBody().get(claim, String.class);
         } catch (Exception e) {
             throw new RuntimeException("Exception thrown during JWT authentication", e);
@@ -113,7 +113,4 @@ public class AuthService {
                 .token(createToken(userService.getUserByEmail(email))).build();
     }
 
-    public Key getKey() {
-        return externalConfig.getKey();
-    }
 }

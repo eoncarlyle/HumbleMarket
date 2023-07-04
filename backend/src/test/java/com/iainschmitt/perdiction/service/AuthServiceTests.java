@@ -1,6 +1,7 @@
 package com.iainschmitt.perdiction.service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 import io.jsonwebtoken.security.Keys;
 import jakarta.validation.ValidationException;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
 import com.iainschmitt.perdiction.exceptions.NotAuthorizedException;
 import com.iainschmitt.perdiction.model.rest.AuthData;
 import com.iainschmitt.perdiction.model.User;
@@ -20,6 +22,8 @@ import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
 @SpringBootTest
 public class AuthServiceTests {
+    @Autowired
+    private ExternalisedConfiguration externalConfig;
 
     @Autowired
     private AuthService authService;
@@ -35,14 +39,14 @@ public class AuthServiceTests {
     @Test
     public void decodeJwt_SignatureVerificationSuccess() {
         var user = new User("user1@iainschmitt.com");
-        var jwsString = authService.createToken(user, 60L);
-        assertThat(authService.authenticateToken(jwsString, authService.getKey())).isTrue();
+        var jwsString = authService.createToken(user, Duration.ofSeconds(60));
+        assertThat(authService.authenticateToken(jwsString, externalConfig.getKey())).isTrue();
     }
 
     @Test
     public void decodeJwt_SignatureVerificationFailureBadKey() {
         var user = new User("user1@iainschmitt.com");
-        var jwsString = authService.createToken(user, 60L);
+        var jwsString = authService.createToken(user, Duration.ofSeconds(60));
         var badKey = Keys.hmacShaKeyFor(
                 "___354166fd7ebc50dee83388faf4930f3ec409c16c18c641cfd85a953012370".getBytes(StandardCharsets.UTF_8));
         assertThat(authService.authenticateToken(jwsString, badKey)).isFalse();
@@ -51,7 +55,7 @@ public class AuthServiceTests {
     @Test
     public void decodeJwt_SignatureVerificationFailureExpired() {
         var user = new User("user1@iainschmitt.com");
-        var jwsString = authService.createToken(user, -10L);
+        var jwsString = authService.createToken(user, Duration.ofSeconds(-10));
         var badKey = Keys.hmacShaKeyFor(
                 "___354166fd7ebc50dee83388faf4930f3ec409c16c18c641cfd85a953012370".getBytes(StandardCharsets.UTF_8));
         assertThat(authService.authenticateToken(jwsString, badKey)).isFalse();
@@ -151,8 +155,8 @@ public class AuthServiceTests {
     @Test
     public void getClaims_Success() {
         var user = new User("user3@iainschmitt.com");
-        var jwsString = authService.createToken(user, 60L);
-        assertThat(authService.authenticateToken(jwsString, authService.getKey())).isTrue();
+        var jwsString = authService.createToken(user, Duration.ofSeconds(60));
+        assertThat(authService.authenticateToken(jwsString, externalConfig.getKey())).isTrue();
         assertThat(authService.getClaim(jwsString, "email")).isEqualTo(user.getEmail());
     }
 }

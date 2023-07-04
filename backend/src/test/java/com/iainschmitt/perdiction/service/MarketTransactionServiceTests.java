@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.iainschmitt.perdiction.model.Position;
+import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
 import com.iainschmitt.perdiction.model.Market;
 import com.iainschmitt.perdiction.model.Outcome;
 import com.iainschmitt.perdiction.model.PositionDirection;
@@ -34,7 +35,6 @@ import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigD
 
 @SpringBootTest
 public class MarketTransactionServiceTests {
-
     @Autowired
     private MarketTransactionService marketTransactionService;
     @Autowired
@@ -45,6 +45,9 @@ public class MarketTransactionServiceTests {
     private PositionRepository positionRepository;
     @Autowired
     private TransactionRepository transactionRepository;
+    @Autowired
+    private ExternalisedConfiguration externalConfig;
+
 
     public String DEFAULT_USER_EMAIL = "user1@iainschmitt.com";
 
@@ -95,7 +98,7 @@ public class MarketTransactionServiceTests {
     @Test
     public void purchase_Success() {
         var user = new User(DEFAULT_USER_EMAIL);
-        var bank = marketTransactionService.getBankUser();
+        var bank = externalConfig.getBankUser();
         user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
 
@@ -110,7 +113,7 @@ public class MarketTransactionServiceTests {
         marketTransactionService.purchase(user, market, 0, PositionDirection.NO, shares);
         assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
 
-        bank = marketTransactionService.getBankUser();
+        bank = externalConfig.getBankUser();
         user = userService.getUserByEmail(user.getEmail());
 
         var markets = marketRepository.findAll();

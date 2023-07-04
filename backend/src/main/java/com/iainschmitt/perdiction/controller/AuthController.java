@@ -20,7 +20,6 @@ import com.iainschmitt.perdiction.service.AuthService;
 @RequestMapping("/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
-
     @Autowired
     private AuthService authService;
 
