@@ -13,6 +13,7 @@ import com.iainschmitt.perdiction.model.PositionDirection;
 @Builder
 public class PositionReturnData {
     private String marketQuestion;
+    private int marketSeqId;
     private String outcomeClaim;
     private PositionDirection direction;
     private int shares;

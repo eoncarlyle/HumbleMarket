@@ -1,6 +1,5 @@
 package com.iainschmitt.perdiction.controller;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.extern.slf4j.Slf4j;
 
 import com.iainschmitt.perdiction.model.rest.MarketReturnData;
-import com.iainschmitt.perdiction.model.rest.TransactionReturnData;
+import com.iainschmitt.perdiction.model.rest.MarketTransactionReturnData;
 import com.iainschmitt.perdiction.model.rest.PurchaseRequestData;
 import com.iainschmitt.perdiction.model.rest.SaleRequestData;
 import com.iainschmitt.perdiction.model.Market;
-import com.iainschmitt.perdiction.model.PositionDirection;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.service.AuthService;
 import com.iainschmitt.perdiction.service.MarketTransactionService;
@@ -35,7 +33,7 @@ import com.iainschmitt.perdiction.service.UserService;
 @Slf4j
 public class MarketTransactionController {
     @Autowired
-    private MarketTransactionService transactionService;
+    private MarketTransactionService marketTransactionService;
 
     @Autowired
     private AuthService authService;
@@ -50,7 +48,7 @@ public class MarketTransactionController {
     public ResponseEntity<List<Market>> getMarkets(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         authService.authenticateTokenThrows(token);
         log.info("Requested markets");
-        return new ResponseEntity<>(marketRepository.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(marketRepository.findByIsClosedAndIsResolved(false, false), HttpStatus.OK);
     }
 
     @GetMapping("/{seqId}")
@@ -58,25 +56,25 @@ public class MarketTransactionController {
             @PathVariable int seqId) {
         authService.authenticateTokenThrows(token);
         var market = marketRepository.findBySeqId(seqId);
-        var salePriceList = transactionService.getSalePriceList(market,
+        var salePriceList = marketTransactionService.getSalePriceList(market,
                 userService.getUserByEmail(authService.getClaim(token, "email")));
         return new ResponseEntity<>(MarketReturnData.of(market, salePriceList), HttpStatus.OK);
     }
 
     @PostMapping(value = "/purchase")
-    public ResponseEntity<TransactionReturnData> purchase(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+    public ResponseEntity<MarketTransactionReturnData> purchase(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @RequestBody PurchaseRequestData purchaseRequestData) {
         authService.authenticateTokenThrows(token);
         return new ResponseEntity<>(
-                transactionService.purchase(authService.getClaim(token, "email"), purchaseRequestData),
+                marketTransactionService.purchase(authService.getClaim(token, "email"), purchaseRequestData),
                 HttpStatus.ACCEPTED);
     }
 
     @PostMapping(value = "/sale")
-    public ResponseEntity<TransactionReturnData> sale(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+    public ResponseEntity<MarketTransactionReturnData> sale(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @RequestBody SaleRequestData saleRequestData) {
         authService.authenticateTokenThrows(token);
-        return new ResponseEntity<TransactionReturnData>(transactionService.sale(authService.getClaim(token, "email"), saleRequestData),
+        return new ResponseEntity<MarketTransactionReturnData>(marketTransactionService.sale(authService.getClaim(token, "email"), saleRequestData),
                 HttpStatus.ACCEPTED);
     }
 }

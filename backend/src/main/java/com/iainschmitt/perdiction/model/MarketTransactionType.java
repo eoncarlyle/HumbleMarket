@@ -1,5 +1,5 @@
 package com.iainschmitt.perdiction.model;
 
-public enum TransactionType {
+public enum MarketTransactionType {
     PURCHASE, SALE, RESOLUTION
 }

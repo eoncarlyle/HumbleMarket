@@ -1,10 +1,10 @@
 package com.iainschmitt.perdiction.model.rest;
 
 import com.iainschmitt.perdiction.model.PositionDirection;
-import com.iainschmitt.perdiction.model.TransactionType;
+import com.iainschmitt.perdiction.model.MarketTransactionType;
 
-public class TransactionData {
-    public TransactionType transactionType;
+public class MarketTransactionData {
+    public MarketTransactionType transactionType;
     public int outcomeIndex;
     public PositionDirection positionDirection;
     public int shares;

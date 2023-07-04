@@ -32,11 +32,22 @@ export function getBaseUrl() {
   return "http://" + hostname + ":8080"
 }
 
-export async function getAuthenticatedResponse(requestSubpath: string, method: string) {
-  return fetch(getBaseUrl() + requestSubpath, {
-    method: method,
-    headers: {
-      Authorization: String(getAuthToken()),
-    },
-  });
+export async function getAuthenticatedResponse(requestSubpath: string, method: string, body?: object) {
+  if (body) {
+    return fetch(getBaseUrl() + requestSubpath, {
+      method: method,
+      headers: {
+        Authorization: String(getAuthToken()),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+  } else {
+    return fetch(getBaseUrl() + requestSubpath, {
+      method: method,
+      headers: {
+        Authorization: String(getAuthToken()),
+      },
+    });
+  }
 }

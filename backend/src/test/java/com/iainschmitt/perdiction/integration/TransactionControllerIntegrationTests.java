@@ -44,7 +44,7 @@ public class TransactionControllerIntegrationTests {
     @Autowired
     private AuthService authService;
     @Autowired
-    private MarketTransactionService transactionService;
+    private MarketTransactionService marketTransactionService;
     @Autowired
     private MarketRepository marketRepository;
     @Autowired
@@ -79,7 +79,7 @@ public class TransactionControllerIntegrationTests {
         var token = authService.createToken(user);
 
         var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
-        transactionService.createMarket(market);
+        marketTransactionService.createMarket(market);
         webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(new PurchaseRequestData() {
                     {
@@ -100,7 +100,7 @@ public class TransactionControllerIntegrationTests {
         var token = authService.createToken(user);
 
         var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
-        transactionService.createMarket(market);
+        marketTransactionService.createMarket(market);
         var response = webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(new PurchaseRequestData() {
                     {
@@ -139,7 +139,7 @@ public class TransactionControllerIntegrationTests {
 
         var token = authService.createToken(user);
         var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
-        transactionService.createMarket(market);
+        marketTransactionService.createMarket(market);
 
         var sharesY = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesY();
         var sharesN = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesN();
@@ -171,7 +171,7 @@ public class TransactionControllerIntegrationTests {
         Thread.sleep(1001L);
 
         var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
-        transactionService.createMarket(market);
+        marketTransactionService.createMarket(market);
         var sharesY = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesY();
         var sharesN = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesN();
         var sharesTraded = 1;

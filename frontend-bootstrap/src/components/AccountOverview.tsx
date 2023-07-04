@@ -6,6 +6,7 @@ import AccountData from "../model/AccountData";
 
 function AccountOverview() {
   const returnData = useLoaderData() as AccountData;
+
   return (
     <Card>
       <p>Email: {returnData.email}</p>
@@ -16,6 +17,7 @@ function AccountOverview() {
           <th>Direction</th>
           <th>Outcome</th>
           <th>Number of Shares</th>
+          <th>Price at Buy</th>
         </thead>
         <tbody>
           {returnData.positionsReturnData.map((position) => (
@@ -23,6 +25,7 @@ function AccountOverview() {
               <th>{position.direction}</th>
               <th>{position.outcomeClaim}</th>
               <th>{position.shares}</th>
+              <th>{position.priceAtBuy}</th>
             </tr>
           ))}
         </tbody>

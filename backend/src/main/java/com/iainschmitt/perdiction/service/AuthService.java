@@ -39,10 +39,6 @@ public class AuthService {
         return createToken(user, FIVE_DAYS);
     }
 
-    public void check() {
-       System.out.println(); 
-    }
-
     public String createToken(User user, Long secondsUntilExpiration) {
         return Jwts.builder().setExpiration(Date.from(Instant.now().plusSeconds(secondsUntilExpiration)))
                 .claim("email", user.getEmail()).signWith(getKey()).compact();

@@ -14,8 +14,12 @@ export default function processBuyForm(market: Market, order: Order, setValid: D
       order.shares,
     ];
 
-    const requestSubpath = `/market/${market.seqId}/outcome/${outcomeIndex}/${positionDirection}/purchase/${shares}`;
-    const response = await getAuthenticatedResponse(requestSubpath, "POST")
+    const response = await getAuthenticatedResponse("/market/purchase", "POST", {
+      seqId: market.seqId,
+      outcomeIndex: outcomeIndex,
+      positionDirection: positionDirection,
+      shares: shares
+    })
     
     if (!response.ok) {
       const responseBody = await response.json() as { message: string };

@@ -14,11 +14,11 @@ public class MarketTransaction {
     private final String marketId;
     private final int outcomeIndex;
     private final PositionDirection direction;
-    private final TransactionType transactionType;
+    private final MarketTransactionType transactionType;
     private final BigDecimal credits;
 
     public MarketTransaction(String srcUserId, String dstUserId, String marketId, int outcomeIndex,
-            PositionDirection direction, TransactionType transactionType, BigDecimal credits) {
+            PositionDirection direction, MarketTransactionType transactionType, BigDecimal credits) {
         this.srcUserId = srcUserId;
         this.dstUserId = dstUserId;
         this.marketId = marketId;

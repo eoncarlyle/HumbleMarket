@@ -34,7 +34,6 @@ public class AuthServiceTests {
 
     @Test
     public void decodeJwt_SignatureVerificationSuccess() {
-        authService.check();
         var user = new User("user1@iainschmitt.com");
         var jwsString = authService.createToken(user, 60L);
         assertThat(authService.authenticateToken(jwsString, authService.getKey())).isTrue();

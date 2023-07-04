@@ -4,7 +4,7 @@ import Order from "../model/Order";
 import TransactionValidation from "../model/TransactionValidation";
 import { getAuthenticatedResponse } from "./Auth";
 
-export default function processSellForm(market: Market, order: Order, setValid: Dispatch<SetStateAction<TransactionValidation>>) {
+export default function processSellForm(market: Market, order: Order, sharePrice: Number, setValid: Dispatch<SetStateAction<TransactionValidation>>) {
   return async () => {
     const [outcomeIndex, positionDirection, shares] = [
       order.outcomeIndex,
@@ -12,8 +12,13 @@ export default function processSellForm(market: Market, order: Order, setValid: 
       order.shares,
     ];
 
-    const requestSubpath = `/market/${market.seqId}/outcome/${outcomeIndex}/${positionDirection}/sale/${shares}`;
-    const response = await getAuthenticatedResponse(requestSubpath, "POST")
+    const response = await getAuthenticatedResponse("/market/sale", "POST", {
+      seqId: market.seqId,
+      outcomeIndex: outcomeIndex,
+      positionDirection: positionDirection,
+      shares: shares,
+      sharePrice: sharePrice
+    })
 
     if (!response.ok) {
       const responseBody = await response.json() as { message: string };

@@ -22,10 +22,9 @@ interface BuyFormProps {
 function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
   const outcome = market.outcomes[order.outcomeIndex];
   const outcomeSalePriceList = salePriceList[order.outcomeIndex][order.positionDirection === PositionDirection.YES ? 0 : 1];
-  const price = order.shares > outcomeSalePriceList.length ? outcomeSalePriceList[-1] : outcomeSalePriceList[order.shares + 1];
-  const directionCost = order.positionDirection === PositionDirection.YES ? price : 1 - price;
+  const sharePrice = order.shares > outcomeSalePriceList.length ? outcomeSalePriceList[-1] : outcomeSalePriceList[order.shares - 1];
+  const directionCost = order.positionDirection === PositionDirection.YES ? sharePrice : 1 - sharePrice;
   const inputDisabled = outcomeSalePriceList.length === 0;
-  console.log(salePriceList)
   const [transactionValidation, setTransactionValidation] = useState<TransactionValidation>({
     valid: true,
     showModal: false,
@@ -99,7 +98,7 @@ function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
           <Button variant="danger" onClick={handleClose}>
             Cancel
           </Button>
-          <Button variant="success" onClick={processSellForm(market, order, setTransactionValidation)}>
+          <Button variant="success" onClick={processSellForm(market, order, sharePrice, setTransactionValidation)}>
             Submit Sale
           </Button>
         </Modal.Footer>
