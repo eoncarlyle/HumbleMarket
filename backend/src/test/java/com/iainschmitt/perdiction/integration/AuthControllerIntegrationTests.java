@@ -34,7 +34,7 @@ public class AuthControllerIntegrationTests {
 
     @Test
     void signUpUser_Success() {
-        var user = new User("user1@iainschmitt.com");
+        var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
             {
@@ -48,7 +48,7 @@ public class AuthControllerIntegrationTests {
 
     @Test
     void singUpUser_AuthValidationFailure() {
-        var user = new User("user1@iainschmitt.com");
+        var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash(" ");
         userService.saveUser(user);
         webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
@@ -61,7 +61,7 @@ public class AuthControllerIntegrationTests {
 
     @Test
     void singUpUser_AuthFailureDuplicate() {
-        var user = new User("user1@iainschmitt.com");
+        var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         userService.saveUser(user);
         webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
@@ -80,7 +80,7 @@ public class AuthControllerIntegrationTests {
 
     @Test
     void logInUser_Success() {
-        var user = new User("user1@iainschmitt.com");
+        var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         userService.saveUser(user);
 
@@ -94,7 +94,7 @@ public class AuthControllerIntegrationTests {
 
     @Test
     void logInUser_UserDoesntExist() {
-        var user = new User("user1@iainschmitt.com");
+        var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
 
         var response = webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(new AuthData() {
@@ -110,7 +110,7 @@ public class AuthControllerIntegrationTests {
 
     @Test
     void singUpUser_WrongPassword() {
-        var user = new User("user1@iainschmitt.com");
+        var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
 
         webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(new AuthData() {
@@ -123,7 +123,7 @@ public class AuthControllerIntegrationTests {
 
     @Test
     void logInUser_BadJson() {
-        var user = new User("user1@iainschmitt.com");
+        var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash("!A_Minimal_Password_Really");
 
         webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue("{\"email\":\"user1@iainschmitt.com\"}").exchange()

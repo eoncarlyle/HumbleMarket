@@ -20,6 +20,7 @@ import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 import com.iainschmitt.perdiction.model.rest.MarketCreationData;
 import com.iainschmitt.perdiction.model.rest.PurchaseRequestData;
 import com.iainschmitt.perdiction.model.rest.SaleRequestData;
+import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
 import com.iainschmitt.perdiction.model.PositionDirection;
 import com.iainschmitt.perdiction.model.User;
 import com.iainschmitt.perdiction.service.UserService;
@@ -36,10 +37,8 @@ import static com.iainschmitt.perdiction.service.MarketTransactionService.price;
 @AutoConfigureWebTestClient(timeout = "36000")
 public class TransactionControllerIntegrationTests {
     private static final String MARKET_URI_PATH = "/market";
-
     @Autowired
     private WebTestClient webTestClient;
-
     @Autowired
     private AuthService authService;
     @Autowired
@@ -52,6 +51,8 @@ public class TransactionControllerIntegrationTests {
     private PositionRepository positionRepository;
     @Autowired
     private TransactionRepository transactionRepository;
+    @Autowired
+    private ExternalisedConfiguration externalisedConfiguration;
 
     public String DEFAULT_USER_EMAIL = "user1@iainschmitt.com";
 
@@ -62,22 +63,22 @@ public class TransactionControllerIntegrationTests {
         positionRepository.deleteAll();
         transactionRepository.deleteAll();
 
-        var bank = new User(MarketTransactionService.BANK_EMAIL);
+        var bank = User.of(externalisedConfiguration.getBankEmail());
         bank.setCredits(toBigDecimal(1_000_000d));
         userService.saveUser(bank);
 
-        userService.saveUser(new User(MarketTransactionService.ADMIN_EMAIL));
+        userService.saveUser(User.of(externalisedConfiguration.getAdminEmail()));
     }
 
     @Test
     void purchase_Success() {
-        var user = new User(DEFAULT_USER_EMAIL);
+        var user = User.of(DEFAULT_USER_EMAIL);
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
         var token = authService.createToken(user);
 
-        var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
+        var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
         webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(new PurchaseRequestData() {
@@ -92,13 +93,13 @@ public class TransactionControllerIntegrationTests {
 
     @Test
     void purchase_InsufficientFundsFailure() {
-        var user = new User(DEFAULT_USER_EMAIL);
+        var user = User.of(DEFAULT_USER_EMAIL);
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         user.setCredits(toBigDecimal(0d));
         userService.saveUser(user);
         var token = authService.createToken(user);
 
-        var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
+        var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
         var response = webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(new PurchaseRequestData() {
@@ -117,7 +118,7 @@ public class TransactionControllerIntegrationTests {
     @Test
     void sale_Success() {
         // TODO
-        // var user = new User(DEFAULT_USER_EMAIL);
+        // var user = User.of(DEFAULT_USER_EMAIL);
         // user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         // user.setCredits(toBigDecimal(100d));
         // userService.saveUser(user);
@@ -131,13 +132,13 @@ public class TransactionControllerIntegrationTests {
 
     @Test
     void sale_InsufficientSharesFailure() {
-        var user = new User(DEFAULT_USER_EMAIL);
+        var user = User.of(DEFAULT_USER_EMAIL);
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
 
         var token = authService.createToken(user);
-        var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
+        var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
 
         var sharesY = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesY();
@@ -162,14 +163,14 @@ public class TransactionControllerIntegrationTests {
     @Test
     @SneakyThrows
     void sale_AuthFailure() {
-        var user = new User(DEFAULT_USER_EMAIL);
+        var user = User.of(DEFAULT_USER_EMAIL);
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
         var token = authService.createToken(user, Duration.ofSeconds(0));
         Thread.sleep(1001L);
 
-        var market = defaultMultiOutcomeMarket(MarketTransactionService.ADMIN_EMAIL);
+        var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
         var sharesY = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesY();
         var sharesN = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesN();

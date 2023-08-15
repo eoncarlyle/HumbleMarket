@@ -1,10 +1,9 @@
 import { decodeJwt } from "jose";
 
-type ValidationField = { valid: boolean; message: string}
+//TODO Move this to model directory, change to interface:
 
-export type ValidationData = {
-  email: ValidationField; password: ValidationField; passwordConf: ValidationField;
-};
+const adminEmail = "admin@market.iainschmitt.com"
+
 
 export function setAuthToken(token: string): void {
   localStorage.setItem("token", token);
@@ -25,6 +24,10 @@ export function tokenExpired() {
 
 export function tokenDuration() {
   return Number(getExpiration()) * 1000 - new Date().getTime();
+}
+
+export function isAdmin() {
+  return String(decodeJwt(getAuthToken()).email) === adminEmail;
 }
 
 export function getBaseUrl() {

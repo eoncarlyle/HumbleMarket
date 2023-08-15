@@ -4,6 +4,7 @@ import Order from "../model/Order";
 import TransactionValidation from "../model/TransactionValidation";
 import { getAuthenticatedResponse } from "./Auth";
 
+//TODO: Rename TransactionValidation to TransactionValidationData
 export default function processSellForm(market: Market, order: Order, sharePrice: Number, setValid: Dispatch<SetStateAction<TransactionValidation>>) {
   return async () => {
     const [outcomeIndex, positionDirection, shares] = [

@@ -7,6 +7,7 @@ import LogInContent from "./components/LogInContent";
 import SignUpContent from "./components/SignUpContent";
 import MarketDetail from "./components/MarketDetail/MarketDetail"
 import AccountOverview from "./components/AccountOverview";
+import AdminPanel from "./components/AdminPanel/AdminPanel";
 
 import { getAuthToken } from "./util/Auth";
 import { action as logInAction } from "./util/LogInAction.ts";
@@ -30,13 +31,14 @@ const router = createBrowserRouter([{
       children: [
         { path: "/", id: "home", element: <HomeContent/>, loader: homeLoader },
         { path: "/market/:seqId", element: <MarketDetail/>, loader: marketLoader},
-        { path: "/account", element: <AccountOverview/>, loader: accountLoader},
+        { path: "/account", element: <AccountOverview />, loader: accountLoader },
+        { path: "/admin", element: <AdminPanel />},
         {
           path: "/auth",
           children: [
-            {path: "login", element: <LogInContent/>, action: logInAction},
-            {path: "signup", element: <SignUpContent/>, action: signUpAction},
-            {path: "logout", loader: logOutAction},
+            { path: "login", element: <LogInContent/>, action: logInAction },
+            { path: "signup", element: <SignUpContent/>, action: signUpAction },
+            { path: "logout", loader: logOutAction },
           ]
         }
       ]

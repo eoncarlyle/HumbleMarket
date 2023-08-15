@@ -4,8 +4,11 @@ import java.util.List;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Builder
 public class MarketCreationData {
     private String question;
@@ -14,9 +17,4 @@ public class MarketCreationData {
     private long closeDate;
     private List<String> outcomeClaims;
     private boolean isPublic;
-
-    public void validate() {
-        // TODO: Implement this
-    }
-
 }

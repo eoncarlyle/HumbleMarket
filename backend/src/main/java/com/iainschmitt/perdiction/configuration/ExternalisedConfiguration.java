@@ -18,8 +18,7 @@ import com.iainschmitt.perdiction.service.UserService;
 @Configuration
 @EnableScheduling
 public class ExternalisedConfiguration {
-    @Autowired
-    private UserRepository userRepository;
+    //! This assumes that the admin, bank user documents have already created at runtime
     @Value("${adminEmail}")
     private String adminEmail;
     @Value("${bankEmail}")
@@ -29,12 +28,12 @@ public class ExternalisedConfiguration {
     @Value("${marketCloseIntervalMinutes}")
     private String marketCloseIntervalMinutes;
 
-    public User getAdminUser() {
-        return userRepository.findByEmail(adminEmail);
+    public String getAdminEmail() {
+        return adminEmail;
     }
     
-    public User getBankUser() {
-        return userRepository.findByEmail(bankEmail);
+    public String getBankEmail() {
+        return bankEmail;
     }
 
     public Key getKey() {

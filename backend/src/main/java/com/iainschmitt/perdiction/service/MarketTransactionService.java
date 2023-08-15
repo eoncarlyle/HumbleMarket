@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executors;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import com.iainschmitt.perdiction.repository.MarketProposalRepository;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.repository.PositionRepository;
 import com.iainschmitt.perdiction.repository.TransactionRepository;
@@ -48,23 +50,27 @@ public class MarketTransactionService {
     private UserService userService;
     @Autowired
     private ExternalisedConfiguration externalConfig;
+    @Autowired
+    private MarketProposalRepository marketProposalRepository;
 
     public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    public final static String ADMIN_EMAIL = "admin@iainschmitt.com";
-    public final static String BANK_EMAIL = "bank@iainschmitt.com";
     public final static RoundingMode ROUNDING_RULE = RoundingMode.HALF_UP;
 
-    @Transactional
+    // This is not @Transactional, as the only time this is used by itself is for
+    // tests
     public MarketTransactionReturnData createMarket(MarketCreationData marketData) {
-        // TODO: Implement validation: unique question names and outputs
-        marketData.validate();
+        //if (!validMarketCreationData(marketData)) {
+
+        //}
         // TODO: Consider a better way of doing this
         var seqId = (int) marketRepository.count() + 1;
 
         // TODO: consider how we want to accomodate different market making styles in
         // the future: a lot of this math should be moved to the market class
-        var startingPrice = toBigDecimal(1d / (marketData.getOutcomeClaims().size() + 1d));
+        
+        // For 1 or 2 outcomes, the starting price should be 0.5 for YES outcomes. For 3 or more outcomes, \sum P = 1 =  P_1 + P_2 + ... + P_3 
+        var startingPrice = marketData.getOutcomeClaims().size() > 2 ? toBigDecimal(1d / (marketData.getOutcomeClaims().size())) : toBigDecimal(0.5d);
         var startingSharesY = (int) Math.round(unroundedSharesY(startingPrice, marketData.getMarketMakerK()));
         var startingSharesN = (int) Math.round(unroundedSharesN(startingPrice, marketData.getMarketMakerK()));
         var outcomes = new ArrayList<Outcome>() {
@@ -80,6 +86,14 @@ public class MarketTransactionService {
         marketRepository.save(market);
         return new MarketTransactionReturnData(
                 String.format("Succesful market creation for question '%s'", marketData.getQuestion()));
+    }
+
+    // TODO: Test
+    @Transactional
+    public MarketTransactionReturnData acceptMarketProposal(String marketProposalId) {
+        var createMarketResponse = createMarket(marketProposalRepository.findById(marketProposalId).get());
+        transactionRepository.deleteById(marketProposalId);
+        return createMarketResponse;
     }
 
     // TODO: Logging aspects for purchase, sale methods
@@ -118,7 +132,7 @@ public class MarketTransactionService {
         }
 
         // Transaction, Position Handling
-        var bank = externalConfig.getBankUser();
+        var bank = getBankUser();
         var transaction = new MarketTransaction(user.getId(), getBankUserId(), market.getId(), outcomeIndex, direction,
                 MarketTransactionType.PURCHASE, tradeValue);
         var position = new Position(user.getId(), market.getId(), outcomeIndex, direction, shares, positionPrice);
@@ -183,7 +197,7 @@ public class MarketTransactionService {
             throw new IllegalArgumentException("Invalid or out-of-date share sale price");
         }
 
-        var bank = externalConfig.getBankUser();
+        var bank = getBankUser();
         var tradeValue = sharePrice.multiply(toBigDecimal(shares));
 
         // Transaction, Position Handling
@@ -251,8 +265,7 @@ public class MarketTransactionService {
     public void findMarketsPendingClose() {
         var pendingCloseIntervalStart = Instant.now();
         var pendingCloseIntervalEnd = pendingCloseIntervalStart
-                .plus(Duration.ofMinutes(Long.valueOf(externalConfig.getMarketCloseIntervalMinutes())))
-                .toEpochMilli();
+                .plus(Duration.ofMinutes(Long.valueOf(externalConfig.getMarketCloseIntervalMinutes()))).toEpochMilli();
 
         marketRepository.findByIsClosedFalseAndCloseDateLessThan(pendingCloseIntervalEnd).forEach(market -> {
             scheduler.schedule(() -> close(market), market.getCloseDate() - pendingCloseIntervalStart.toEpochMilli(),
@@ -304,7 +317,7 @@ public class MarketTransactionService {
             }
         }
 
-        var bank = externalConfig.getBankUser();
+        var bank = getBankUser();
         for (var transaction : transactions) {
             var clientUser = userService.getUserById(transaction.getDstUserId());
             clientUser.setCredits(clientUser.getCredits().add(transaction.getCredits()));
@@ -313,9 +326,22 @@ public class MarketTransactionService {
             transactionRepository.save(transaction);
         }
 
-        userService.saveUser(externalConfig.getBankUser());
+        userService.saveUser(getBankUser());
         return new MarketTransactionReturnData("");
     }
+
+    // TODO: think about a more permanent home for this, like a new MarketService class
+    public boolean validMarketCreationData(MarketCreationData marketCreationData) {
+        if (marketRepository.findByQuestion(marketCreationData.getQuestion()) != null) {
+            return false;
+        }
+        var outcomesSet = new HashSet<String>();
+        for (String claim : marketCreationData.getOutcomeClaims()) {
+            if (outcomesSet.contains(claim)) return false;
+            outcomesSet.add(claim);
+        }
+        return true;
+    } 
 
     public static BigDecimal toBigDecimal(double val) {
         return new BigDecimal(val).setScale(2, ROUNDING_RULE);
@@ -379,7 +405,15 @@ public class MarketTransactionService {
         return marketMakerK / unroundedSharesN(price, marketMakerK);
     }
 
+    public User getAdminUser() {
+        return userService.getUserByEmail(externalConfig.getAdminEmail());
+    }
+
+    public User getBankUser() {
+        return userService.getUserByEmail(externalConfig.getBankEmail());
+    }
+
     public String getBankUserId() {
-        return externalConfig.getBankUser().getId();
+        return getBankUser().getId();
     }
 }

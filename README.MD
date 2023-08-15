@@ -9,15 +9,11 @@
   - No user-created markets, all resolution done by administrator
 
 - Backend
-  - mTLS
-    - Followed this tutorial https://www.golinuxcloud.com/mutual-tls-authentication-mtls/#74_Create_server_certificate
-    - Check out /var/db/mongodb/mongd.log: presenting cert while I need to actually present a public key, I think https://stackoverflow.com/questions/63195304/difference-between-pem-crt-key-files 
-  - Time-dependant market logic
+ - Integration testing 
 - Frontend
-  - 
+  - Finish admin-only panel
+  - Do browser size breakpoints to change inbetween the accoutns icon and something in text
 
-- Both
-  - Transaction-like transactions
 
 __Post-launch To Do__
 

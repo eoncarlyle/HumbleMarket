@@ -27,10 +27,8 @@ import com.iainschmitt.perdiction.model.rest.SignUpReturnData;
 @Service
 public class AuthService {
     public final Duration TOKEN_LIFESPAN = Duration.ofDays(5);
-    
     @Autowired
     private ExternalisedConfiguration externalConfig;
-
     @Autowired
     private UserService userService;
 
@@ -44,7 +42,6 @@ public class AuthService {
                 .claim("email", user.getEmail()).signWith(externalConfig.getKey()).compact();
     }
 
-    // TODO: Please find a better name for this
     public boolean authenticateToken(String jwsString) {
         return authenticateToken(jwsString, externalConfig.getKey());
     }
@@ -86,13 +83,20 @@ public class AuthService {
         }
     }
 
+    // TODO: Please find a better name for this
+    public void authenticateAdminThrows(String token) {
+        if  (!getClaim(token, "email").equals(externalConfig.getAdminEmail())) {
+            throw new NotAuthorizedException("Failed authentication: invalid token for admin-only operation");
+        }
+    }
+
     public SignUpReturnData createUserAccount(AuthData authData) {
         authData.validate();
 
         if (userService.exists(authData.getEmail())) {
             throw new NotAuthorizedException(String.format("User with email '%s' already exists", authData.getEmail()));
         }
-        var newUser = new User(authData.getEmail());
+        var newUser = User.of(authData.getEmail());
         newUser.setPasswordHash(authData.getPasswordHash());
         userService.saveUser(newUser);
 

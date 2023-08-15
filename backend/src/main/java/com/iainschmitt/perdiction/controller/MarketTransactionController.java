@@ -22,7 +22,9 @@ import com.iainschmitt.perdiction.model.rest.MarketReturnData;
 import com.iainschmitt.perdiction.model.rest.MarketTransactionReturnData;
 import com.iainschmitt.perdiction.model.rest.PurchaseRequestData;
 import com.iainschmitt.perdiction.model.rest.SaleRequestData;
+import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
 import com.iainschmitt.perdiction.model.Market;
+import com.iainschmitt.perdiction.model.MarketProposal;
 import com.iainschmitt.perdiction.repository.MarketProposalRepository;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.service.AuthService;
@@ -44,6 +46,9 @@ public class MarketTransactionController {
     private UserService userService;
     @Autowired
     private MarketProposalRepository marketProposalRepository;
+    @Autowired
+    private ExternalisedConfiguration externalConfig;
+
 
     @GetMapping
     public ResponseEntity<List<Market>> getMarkets(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
@@ -85,17 +90,21 @@ public class MarketTransactionController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @RequestBody MarketCreationData marketCreationData) {
         
-        authService.authenticateToken(token);
+        authService.authenticateTokenThrows(token);
+        //TODO: Remove admin-only once validation (and rate limiting?) in place
+        authService.authenticateAdminThrows(token);
         //TODO: Validation
-        marketProposalRepository.save(marketCreationData); 
-        return new ResponseEntity<>(marketCreationData, HttpStatus.ACCEPTED);
+        
+        marketProposalRepository.save(MarketProposal.of(marketCreationData)); 
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
-    //@PostMapping(value = "/accept_market_proposal")
-    //public ResponseEntity<Market> acceptMarketProposal(
-    //        @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-    //        @RequestBody String marketId) {
-    //    authService.authenticateToken(token);
-    //    
-    //}
+    @PostMapping(value = "/accept_market_proposal")
+    public ResponseEntity<MarketTransactionReturnData> acceptMarketProposal(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestBody String marketProposalId) {
+        authService.authenticateTokenThrows(token);
+        authService.authenticateAdminThrows(token);
+        return new ResponseEntity<>(marketTransactionService.acceptMarketProposal(marketProposalId), HttpStatus.ACCEPTED);
+    }
 }

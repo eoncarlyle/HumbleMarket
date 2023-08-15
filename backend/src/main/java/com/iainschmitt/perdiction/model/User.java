@@ -49,4 +49,8 @@ public class User {
     public void removeNotification(String marketId) {
         notifications.remove(marketId);
     }
+
+    public static User of(String email) {
+        return new User(email);
+    }
 }

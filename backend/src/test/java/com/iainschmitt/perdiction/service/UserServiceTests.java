@@ -24,7 +24,7 @@ public class UserServiceTests {
 
     @Test
     void createUserDocument_Success() {
-        var users = new User[] { new User("user1@iainschmitt.com"), new User("user2@iainschmitt.com"), };
+        var users = new User[] { User.of("user1@iainschmitt.com"), User.of("user2@iainschmitt.com"), };
         User storedUser;
 
         for (final User user : users) {

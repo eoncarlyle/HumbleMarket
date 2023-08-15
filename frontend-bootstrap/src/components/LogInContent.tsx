@@ -1,11 +1,11 @@
 import { Link, Form as RRForm, useActionData } from "react-router-dom";
 import { Button, Form } from "react-bootstrap";
 
-import { type ValidationData } from "../util/Auth";
+import AuthValidationData from "../util/AuthValidationData";
 import "../style/AuthForm.module.css";
 
 function LogInContent() {
-  const validationData = useActionData() as ValidationData;
+  const validationData = useActionData() as AuthValidationData;
   const emaiIsInvalid = validationData && !validationData.email.valid;
   const passwordIsInvalid = validationData && !validationData.password.valid;
 
