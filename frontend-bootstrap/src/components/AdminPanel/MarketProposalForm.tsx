@@ -5,6 +5,8 @@ import MarketProposal from "../../model/MarketProposal";
 import MarketProposalValidationData from "../../model/MarketProposalValidationData";
 import processMarketProposalForm from "../../util/ProcessMarketProposalForm";
 
+import styles from "../../style/MarketProposalForm.module.css";
+
 function MarketProposalForm() {
   const [marketProposal, setMarketProposal] = useState<MarketProposal>({
     question: "",
@@ -62,7 +64,8 @@ function MarketProposalForm() {
   };
 
   return (
-    <>
+    <Col className={styles.marketProposalForm}>
+      <h3> Market Proposal Form </h3>
       <Form.Group className="mb-3">
         <Form.Label>Market Question</Form.Label>
         <Form.Control
@@ -125,7 +128,7 @@ function MarketProposalForm() {
           Create Market Proposal
         </Button>
       </Row>
-    </>
+    </Col>
   );
 }
 

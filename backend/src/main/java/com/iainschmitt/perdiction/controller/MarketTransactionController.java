@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
 
-import com.iainschmitt.perdiction.model.rest.MarketCreationData;
+import com.iainschmitt.perdiction.model.rest.MarketProposalData;
 import com.iainschmitt.perdiction.model.rest.MarketReturnData;
 import com.iainschmitt.perdiction.model.rest.MarketTransactionReturnData;
 import com.iainschmitt.perdiction.model.rest.PurchaseRequestData;
@@ -86,9 +86,9 @@ public class MarketTransactionController {
     }
 
     @PostMapping(value = "/market_proposal")
-    public ResponseEntity<MarketCreationData> createMarketProposal(
+    public ResponseEntity<MarketProposalData> createMarketProposal(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-            @RequestBody MarketCreationData marketCreationData) {
+            @RequestBody MarketProposalData marketCreationData) {
         
         authService.authenticateTokenThrows(token);
         //TODO: Remove admin-only once validation (and rate limiting?) in place

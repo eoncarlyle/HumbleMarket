@@ -15,11 +15,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.iainschmitt.perdiction.model.Position;
 import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
 import com.iainschmitt.perdiction.model.Market;
+import com.iainschmitt.perdiction.model.MarketProposalBasis;
 import com.iainschmitt.perdiction.model.Outcome;
 import com.iainschmitt.perdiction.model.PositionDirection;
 import com.iainschmitt.perdiction.model.MarketTransactionType;
 import com.iainschmitt.perdiction.model.User;
-import com.iainschmitt.perdiction.model.rest.MarketCreationData;
+import com.iainschmitt.perdiction.model.rest.MarketProposalData;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.repository.PositionRepository;
 import com.iainschmitt.perdiction.repository.TransactionRepository;
@@ -99,16 +100,7 @@ public class MarketTransactionServiceTests {
         var user = User.of(DEFAULT_USER_EMAIL);
         userService.saveUser(user);
 
-        var marketData = MarketCreationData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
-                .creatorId(externalConfig.getAdminEmail()).marketMakerK(100)
-                .closeDate(Instant.now().plus(Duration.ofHours(1L)).toEpochMilli()).isPublic(true)
-                .outcomeClaims(new ArrayList<String>() {
-                    {
-                        add("Less than 40 °F");
-                        add("Between 40 °F and 50 °F");
-                        add("Greater than 50 °F");
-                    }
-                }).build();
+        final MarketProposalData marketData = threeOutcomeMarket(getAdminId());
 
         assertThatNoException().isThrownBy(() -> marketTransactionService.createMarket(marketData));
         assertThat(marketRepository.existsByQuestion(marketData.getQuestion())).isTrue();
@@ -478,31 +470,6 @@ public class MarketTransactionServiceTests {
         // TODO
     }
 
-    // Creates documents for doing frontend UI testing
-    @Test
-    public void frontendMarketTest() {
-        var marketData = defaultSingleOutcomeMarket(getAdminId());
-        marketTransactionService.createMarket(marketData);
-        marketTransactionService.createMarket(marketData);
-        marketData = defaultMultiOutcomeMarket(getAdminId());
-        marketTransactionService.createMarket(marketData);
-        marketData = MarketCreationData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
-                .creatorId(getAdminId()).marketMakerK(100)
-                .closeDate(Instant.now().plus(Duration.ofHours(1L)).toEpochMilli()).isPublic(true)
-                .outcomeClaims(new ArrayList<String>() {
-                    {
-                        add("Less than 40 °F");
-                        add("Between 40 °F and 50 °F");
-                        add("Greather than 50 °F");
-                    }
-                }).build();
-        marketTransactionService.createMarket(marketData);
-
-        var user = User.of("user1@mail.com");
-        user.setPasswordHash(sha256Hex("password"));
-        userService.saveUser(user);
-    }
-
     @Test
     public void validMarketCreationData_Valid() {
         marketTransactionService.validMarketCreationData(defaultMultiOutcomeMarket(externalConfig.getAdminEmail()));
@@ -517,15 +484,13 @@ public class MarketTransactionServiceTests {
 
     @Test
     public void validMarketCreationData_DuplicateClaims() {
-        var invalidSingleOutcomeMarket = MarketCreationData.builder()
-                .question("What will the temperature in Minneapolis be in 1 hour?").creatorId(DEFAULT_USER_EMAIL)
-                .marketMakerK(100).closeDate(Instant.now().plus(Duration.ofHours(1L)).toEpochMilli()).isPublic(true)
-                .outcomeClaims(new ArrayList<String>() {
-                    {
-                        add("Greater than 40 °F");
-                        add("Greater than 40 °F");
-                    }
-                }).build();
+        var invalidSingleOutcomeMarket = MarketProposalData.of("What will the temperature in Minneapolis be in 1 hour?", getAdminId(), 100,
+        Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(), (new ArrayList<String>() {
+            {
+                add("Between 40 °F and 50 °F");
+                add("Between 40 °F and 50 °F");
+            }
+        }), true); 
 
         assertThat(marketTransactionService.validMarketCreationData(invalidSingleOutcomeMarket)).isEqualTo(false);
     }
@@ -538,37 +503,43 @@ public class MarketTransactionServiceTests {
         return userService.getUserByEmail(externalConfig.getBankEmail()).getId();
     }
 
-    private MarketCreationData defaultSingleOutcomeMarket(String creatorId) {
-        return MarketCreationData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
-                .creatorId(creatorId).marketMakerK(100)
-                .closeDate(Instant.now().plus(Duration.ofHours(1L)).toEpochMilli()).isPublic(true)
-                .outcomeClaims(new ArrayList<String>() {
+    private static MarketProposalData defaultSingleOutcomeMarket(String creatorId) {
+        return MarketProposalData.of("What will the temperature in Minneapolis be in 1 hour?", creatorId, 100,
+                Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(), (new ArrayList<String>() {
                     {
                         add("Greater than 40 °F");
                     }
-                }).build();
+                }), true);
     }
 
-    private MarketCreationData defaultMultiOutcomeMarket(String creatorId) {
-        return MarketCreationData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
-                .creatorId(creatorId).marketMakerK(100)
-                .closeDate(Instant.now().plus(Duration.ofHours(1L)).toEpochMilli()).isPublic(true)
-                .outcomeClaims(new ArrayList<String>() {
+    private MarketProposalData defaultMultiOutcomeMarket(String creatorId) {
+        return MarketProposalData.of("What will the temperature in Minneapolis be in 1 hour?", creatorId, 100,
+                Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(), (new ArrayList<String>() {
                     {
                         add("Between 40 °F and 50 °F");
                         add("Outside this range");
                     }
-                }).build();
+                }), true);
     }
 
-    private MarketCreationData shortTermSingleOutcomeMarket(String question, String creatorId, long secondDuration) {
-        return MarketCreationData.builder().question(question).creatorId(creatorId).marketMakerK(100)
-                .closeDate(Instant.now().plus(Duration.ofSeconds(secondDuration)).toEpochMilli()).isPublic(true)
-                .outcomeClaims(new ArrayList<String>() {
+    private MarketProposalData shortTermSingleOutcomeMarket(String question, String creatorId, long secondDuration) {
+        return MarketProposalData.of(question, creatorId, 100,
+                Instant.now().plus(Duration.ofSeconds(secondDuration)).toEpochMilli(), (new ArrayList<String>() {
                     {
                         add("Greater than 40 °F");
                     }
-                }).build();
+                }), true);
+    }
+
+    private MarketProposalData threeOutcomeMarket(String creatorId) {
+        return MarketProposalData.of("What will the temperature in Minneapolis be in 1 hour?", creatorId, 100,
+                Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(), (new ArrayList<String>() {
+                    {
+                        add("Less than 40 °F");
+                        add("Between 40 °F and 50 °F");
+                        add("Greater than 50 °F");
+                    }
+                }), true);
     }
 
     private BigDecimal totalCredits() {

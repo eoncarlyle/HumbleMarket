@@ -17,7 +17,7 @@ import lombok.SneakyThrows;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
-import com.iainschmitt.perdiction.model.rest.MarketCreationData;
+import com.iainschmitt.perdiction.model.rest.MarketProposalData;
 import com.iainschmitt.perdiction.model.rest.PurchaseRequestData;
 import com.iainschmitt.perdiction.model.rest.SaleRequestData;
 import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
@@ -31,7 +31,7 @@ import com.iainschmitt.perdiction.repository.PositionRepository;
 import com.iainschmitt.perdiction.repository.TransactionRepository;
 
 import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigDecimal;
-import static com.iainschmitt.perdiction.service.MarketTransactionService.price;;
+import static com.iainschmitt.perdiction.service.MarketTransactionService.price;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient(timeout = "36000")
@@ -191,26 +191,14 @@ public class TransactionControllerIntegrationTests {
                 .isEqualTo("{\"status\":401,\"message\":\"Failed authentication: invalid token\"}");
     }
 
-    private MarketCreationData defaultSingleOutcomeMarket(String creatorId) {
-        return MarketCreationData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
-                .creatorId(creatorId).marketMakerK(100)
-                .closeDate(Instant.now().plus(Duration.ofHours(1L)).toEpochMilli()).isPublic(true)
-                .outcomeClaims(new ArrayList<String>() {
-                    {
-                        add("Greater than 40 °F");
-                    }
-                }).build();
-    }
+    private MarketProposalData defaultMultiOutcomeMarket(String creatorId) {
 
-    private MarketCreationData defaultMultiOutcomeMarket(String creatorId) {
-        return MarketCreationData.builder().question("What will the temperature in Minneapolis be in 1 hour?")
-                .creatorId(creatorId).marketMakerK(100)
-                .closeDate(Instant.now().plus(Duration.ofHours(1L)).toEpochMilli()).isPublic(true)
-                .outcomeClaims(new ArrayList<String>() {
+        return MarketProposalData.of("What will the temperature in Minneapolis be in 1 hour?", creatorId, 100,
+                Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(), (new ArrayList<String>() {
                     {
                         add("Between 40 °F and 50 °F");
                         add("Outside this range");
                     }
-                }).build();
+                }), true);
     }
 }

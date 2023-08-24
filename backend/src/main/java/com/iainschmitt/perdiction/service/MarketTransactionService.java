@@ -26,16 +26,18 @@ import com.iainschmitt.perdiction.repository.PositionRepository;
 import com.iainschmitt.perdiction.repository.TransactionRepository;
 import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
 import com.iainschmitt.perdiction.model.Market;
+import com.iainschmitt.perdiction.model.MarketProposal;
 import com.iainschmitt.perdiction.model.User;
 import com.iainschmitt.perdiction.model.Outcome;
 import com.iainschmitt.perdiction.model.Position;
 import com.iainschmitt.perdiction.model.MarketTransaction;
 import com.iainschmitt.perdiction.model.MarketTransactionType;
 import com.iainschmitt.perdiction.model.PositionDirection;
-import com.iainschmitt.perdiction.model.rest.MarketCreationData;
+import com.iainschmitt.perdiction.model.rest.MarketProposalData;
 import com.iainschmitt.perdiction.model.rest.PurchaseRequestData;
 import com.iainschmitt.perdiction.model.rest.SaleRequestData;
 import com.iainschmitt.perdiction.model.rest.MarketTransactionReturnData;
+import com.iainschmitt.perdiction.model.MarketProposalBasis;
 
 @Service
 @Slf4j
@@ -59,7 +61,7 @@ public class MarketTransactionService {
 
     // This is not @Transactional, as the only time this is used by itself is for
     // tests
-    public MarketTransactionReturnData createMarket(MarketCreationData marketData) {
+    public MarketTransactionReturnData createMarket(MarketProposalBasis marketData) {
         //if (!validMarketCreationData(marketData)) {
 
         //}
@@ -331,7 +333,7 @@ public class MarketTransactionService {
     }
 
     // TODO: think about a more permanent home for this, like a new MarketService class
-    public boolean validMarketCreationData(MarketCreationData marketCreationData) {
+    public boolean validMarketCreationData(MarketProposalData marketCreationData) {
         if (marketRepository.findByQuestion(marketCreationData.getQuestion()) != null) {
             return false;
         }

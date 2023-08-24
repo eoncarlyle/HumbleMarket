@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import com.iainschmitt.perdiction.model.MarketProposal;
-import com.iainschmitt.perdiction.model.rest.MarketCreationData;
+import com.iainschmitt.perdiction.model.rest.MarketProposalData;
 
 @Component
 @Repository
