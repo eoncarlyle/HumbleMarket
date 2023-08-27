@@ -10,8 +10,8 @@ interface SingleMarketProps {
 }
 
 function SingleMarket({ market }: SingleMarketProps) {
-  var closeDate = new Date(market.closeDate);
-  var singleMarketURI = "/market/" + market.seqId;
+  const closeDate = new Date(market.closeDate);
+  const singleMarketURI = "/market/" + market.seqId;
   return (
     <Card border="dark" className={styles.marketCard}>
       <Card.Body>

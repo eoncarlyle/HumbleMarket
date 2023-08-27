@@ -1,7 +1,8 @@
 interface MarketProposal {
-  question: String;
+  question: string;
+  createRoutesFromChildren: string;
+  marketMakerK: number;
   closeDate: number;
-  outcomeClaims: String[];
+  outcomeClaims: string[];
+  isPublic: boolean;
 }
-
-export default MarketProposal;

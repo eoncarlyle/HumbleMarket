@@ -32,7 +32,7 @@ export function isAdmin() {
 
 export function getBaseUrl() {
   const hostname = new URL(window.location.href).hostname;
-  return "http://" + hostname + ":8080"
+  return "http://" + hostname + ":8090"
 }
 
 export async function getAuthenticatedResponse(requestSubpath: string, method: string, body?: object) {

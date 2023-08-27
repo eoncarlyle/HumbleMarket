@@ -14,6 +14,7 @@ import { action as logInAction } from "./util/LogInAction.ts";
 import { action as signUpAction } from "./util/SignUpAction.ts";
 import { action as logOutAction } from "./util/LogOutAction.ts"
 import { loader as homeLoader } from "./util/MarketsLoader.ts"
+import { loader as marketProposalsLoader } from "./util/MarketProposalsLoader.ts"
 import { loader as marketLoader} from "./util/MarketLoader.ts"
 import { loader as accountLoader } from "./util/AccountLoader.ts"
 
@@ -30,9 +31,9 @@ const router = createBrowserRouter([{
       element: <HomeNavbar />,
       children: [
         { path: "/", id: "home", element: <HomeContent/>, loader: homeLoader },
-        { path: "/market/:seqId", element: <MarketDetail/>, loader: marketLoader},
+        { path: "/market/:seqId", element: <MarketDetail/>, loader: marketLoader },
         { path: "/account", element: <AccountOverview />, loader: accountLoader },
-        { path: "/admin", element: <AdminPanel />},
+        { path: "/admin", element: <AdminPanel />, loader: marketProposalsLoader },
         {
           path: "/auth",
           children: [

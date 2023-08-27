@@ -1,14 +1,14 @@
 import { useState, Dispatch, SetStateAction } from "react";
 import { Button, Form, Row, Col } from "react-bootstrap";
 
-import MarketProposal from "../../model/MarketProposal";
+import MarketProposalInputs from "../../model/MarketProposalInputs";
 import MarketProposalValidationData from "../../model/MarketProposalValidationData";
 import processMarketProposalForm from "../../util/ProcessMarketProposalForm";
 
 import styles from "../../style/MarketProposalForm.module.css";
 
 function MarketProposalForm() {
-  const [marketProposal, setMarketProposal] = useState<MarketProposal>({
+  const [marketProposal, setMarketProposal] = useState<MarketProposalInputs>({
     question: "",
     closeDate: null,
     outcomeClaims: [""],
@@ -25,8 +25,9 @@ function MarketProposalForm() {
     neutralMarketProposalValidationData
   );
 
-  const outcomeChangeHandler = (index: number, value: String) => {
-    const newOutcomes = marketProposal.outcomeClaims.toSpliced(index, 1, value);
+  const outcomeChangeHandler = (index: number, value: string) => {
+    const newOutcomes = marketProposal.outcomeClaims
+    newOutcomes.splice(index, 1, value)
     setMarketProposal({
       ...marketProposal,
       outcomeClaims: newOutcomes,
@@ -34,14 +35,16 @@ function MarketProposalForm() {
     setMarketProposalValidationData(neutralMarketProposalValidationData);
   };
 
-  var outcomesList: JSX.Element[] = [];
-  var outcomeIndex = 0;
+  let outcomesList: JSX.Element[] = [];
+  let outcomeIndex = 0;
   marketProposal.outcomeClaims.forEach(() => {
     outcomesList.push(
       <Form.Control
         type="text"
         isInvalid={!marketProposalValidationData.outcomeClaims.valid}
-        onChange={(event) => outcomeChangeHandler(outcomeIndex, event.target.value)}
+        onChange={(event) => {
+          console.log(event)
+          outcomeChangeHandler(outcomeIndex, event.target.value)}}
       />
     );
   });

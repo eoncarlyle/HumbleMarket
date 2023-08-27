@@ -31,7 +31,7 @@ export async function action({ request }: { request: Request }) {
     return validationData;
   }
 
-  var passwordHash = sha256(password).toString();
+  let passwordHash = sha256(password).toString();
 
   //Request and post-request authentication
   const authData = {
@@ -39,7 +39,7 @@ export async function action({ request }: { request: Request }) {
     passwordHash: passwordHash,
   };
 
-  const response = await fetch( getBaseUrl() + "/auth/login", {
+  const response = await fetch(getBaseUrl() + "/auth/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

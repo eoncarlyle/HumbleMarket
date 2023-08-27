@@ -24,20 +24,20 @@ export default function processSellForm(market: Market, order: Order, sharePrice
     if (!response.ok) {
       const responseBody = await response.json() as { message: string };
       if (response.status === 422) {
-        var feedbackMessage = responseBody.message;
+        let feedbackMessage = responseBody.message;
       } else {
-        var feedbackMessage = "Sale unsuccesful, likely due to problems on our end!"
+        let feedbackMessage = "Sale unsuccesful, likely due to problems on our end!"
       }
       setValid({
-        valid: false, 
+        valid: false,
         showModal: false,
         message: feedbackMessage
       })
     } else {
       setValid({
-        valid: true, 
+        valid: true,
         showModal: false,
-        message: "Sale succesful!" 
+        message: "Sale succesful!"
       })
     }
   }

@@ -49,7 +49,6 @@ public class MarketTransactionController {
     @Autowired
     private ExternalisedConfiguration externalConfig;
 
-
     @GetMapping
     public ResponseEntity<List<Market>> getMarkets(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         authService.authenticateTokenThrows(token);
@@ -89,14 +88,22 @@ public class MarketTransactionController {
     public ResponseEntity<MarketProposalData> createMarketProposal(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @RequestBody MarketProposalData marketCreationData) {
-        
+
         authService.authenticateTokenThrows(token);
-        //TODO: Remove admin-only once validation (and rate limiting?) in place
+        // TODO: Remove admin-only once validation (and rate limiting?) in place
         authService.authenticateAdminThrows(token);
-        //TODO: Validation
-        
-        marketProposalRepository.save(MarketProposal.of(marketCreationData)); 
+        // TODO: Validation
+
+        marketProposalRepository.save(MarketProposal.of(marketCreationData));
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
+    }
+
+    @GetMapping(value = "/market_proposal")
+    public ResponseEntity<List<MarketProposal>> getMarketProposals(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        authService.authenticateTokenThrows(token);
+        log.info("Requested markets");
+        return new ResponseEntity<>(marketProposalRepository.findAll(), HttpStatus.OK);
     }
 
     @PostMapping(value = "/accept_market_proposal")
@@ -105,6 +112,10 @@ public class MarketTransactionController {
             @RequestBody String marketProposalId) {
         authService.authenticateTokenThrows(token);
         authService.authenticateAdminThrows(token);
-        return new ResponseEntity<>(marketTransactionService.acceptMarketProposal(marketProposalId), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(marketTransactionService.acceptMarketProposal(marketProposalId),
+                HttpStatus.ACCEPTED);
     }
+
+    // TODO: write market rejection controller method
+
 }

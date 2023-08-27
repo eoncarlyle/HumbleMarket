@@ -18,9 +18,9 @@ interface MarketDetailCardProps {
 }
 
 function MarketDetailCard({ market, salePriceList, order, setOrder }: MarketDetailCardProps) {
-  var closeDate = new Date(market.closeDate);
-  var outcomeIndex = 0;
-  var outcomesList: JSX.Element[] = [];
+  let closeDate = new Date(market.closeDate);
+  let outcomeIndex = 0;
+  let outcomesList: JSX.Element[] = [];
 
   market.outcomes.forEach((outcome) => {
     outcomesList.push(<MarketDetailOutcomeBox outcome={outcome} setOrder={setOrder} outcomeIndex={outcomeIndex} />);
