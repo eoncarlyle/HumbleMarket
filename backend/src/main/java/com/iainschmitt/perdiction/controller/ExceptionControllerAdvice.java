@@ -1,5 +1,7 @@
 package com.iainschmitt.perdiction.controller;
 
+import java.util.NoSuchElementException;
+
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -27,6 +29,11 @@ public class ExceptionControllerAdvice {
         return createErrorReturnEntity(e, 404);
     }
 
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<ErrorReturnData> noSuchElementExceptionHandler(Exception e) {
+        return createErrorReturnEntity(e, 404);
+    }
+    
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorReturnData> illegalArgumentExceptionHandler(Exception e) {
         return createErrorReturnEntity(e, 422);

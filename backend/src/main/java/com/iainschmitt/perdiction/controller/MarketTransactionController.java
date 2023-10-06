@@ -56,11 +56,11 @@ public class MarketTransactionController {
         return new ResponseEntity<>(marketRepository.findByIsClosedAndIsResolved(false, false), HttpStatus.OK);
     }
 
-    @GetMapping("/{seqId}")
+    @GetMapping("/{id}")
     public ResponseEntity<MarketReturnData> getMarket(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-            @PathVariable int seqId) {
+            @PathVariable String id) {
         authService.authenticateTokenThrows(token);
-        var market = marketRepository.findBySeqId(seqId);
+        var market = marketRepository.findById(id).get();
         var salePriceList = marketTransactionService.getSalePriceList(market,
                 userService.getUserByEmail(authService.getClaim(token, "email")));
         return new ResponseEntity<>(MarketReturnData.of(market, salePriceList), HttpStatus.OK);

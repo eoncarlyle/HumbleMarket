@@ -65,8 +65,6 @@ public class MarketTransactionService {
         //if (!validMarketCreationData(marketData)) {
 
         //}
-        // TODO: Consider a better way of doing this
-        var seqId = (int) marketRepository.count() + 1;
 
         // TODO: consider how we want to accomodate different market making styles in
         // the future: a lot of this math should be moved to the market class
@@ -81,7 +79,7 @@ public class MarketTransactionService {
                         new Outcome(outcomeClaim, startingPrice, startingSharesY, startingSharesN)));
             }
         };
-        var market = new Market(seqId, marketData.getQuestion(), marketData.getCreatorId(),
+        var market = new Market(marketData.getQuestion(), marketData.getCreatorId(),
                 marketData.getMarketMakerK(), marketData.getCloseDate(), outcomes, marketData.isPublic(), false, false);
 
         // TODO: Include non-happy path expcetion handling
@@ -101,7 +99,7 @@ public class MarketTransactionService {
     // TODO: Logging aspects for purchase, sale methods
     public MarketTransactionReturnData purchase(String userEmail, PurchaseRequestData purchaseRequestData) {
         var user = userService.getUserByEmail(userEmail);
-        var market = marketRepository.findBySeqId(purchaseRequestData.getSeqId());
+        var market = marketRepository.findById(purchaseRequestData.getId()).get();
         var outcomeIndex = purchaseRequestData.getOutcomeIndex();
         var direction = purchaseRequestData.getPositionDirection();
         var shares = purchaseRequestData.getShares();
@@ -166,7 +164,7 @@ public class MarketTransactionService {
 
     public MarketTransactionReturnData sale(String userEmail, SaleRequestData saleRequestData) {
         var user = userService.getUserByEmail(userEmail);
-        var market = marketRepository.findBySeqId(saleRequestData.getSeqId());
+        var market = marketRepository.findById(saleRequestData.getId()).get();
         var outcomeIndex = saleRequestData.getOutcomeIndex();
         var direction = saleRequestData.getPositionDirection();
         var shares = saleRequestData.getShares();

@@ -77,13 +77,15 @@ public class TransactionControllerIntegrationTests {
         user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
         var token = authService.createToken(user);
-
+        
         var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
+        var marketId = marketRepository.findAll().get(0).getId();
+        
         webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(new PurchaseRequestData() {
                     {
-                        setSeqId(1);
+                        setId(marketId);
                         setOutcomeIndex(1);
                         setPositionDirection(PositionDirection.YES);
                         setShares(1);
@@ -101,10 +103,11 @@ public class TransactionControllerIntegrationTests {
 
         var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
+        var marketId = marketRepository.findAll().get(0).getId();
         var response = webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(new PurchaseRequestData() {
                     {
-                        setSeqId(1);
+                        setId(marketId);
                         setOutcomeIndex(1);
                         setPositionDirection(PositionDirection.YES);
                         setShares(1);
@@ -140,15 +143,16 @@ public class TransactionControllerIntegrationTests {
         var token = authService.createToken(user);
         var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
-
-        var sharesY = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesY();
-        var sharesN = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesN();
+        
+        var marketId = marketRepository.findAll().get(0).getId();
+        var sharesY = marketRepository.findById(marketId).get().getOutcomes().get(1).getSharesY();
+        var sharesN = marketRepository.findById(marketId).get().getOutcomes().get(1).getSharesN();
         var sharesTraded = 1;
 
         var response = webTestClient.post().uri(MARKET_URI_PATH + "/sale").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(new SaleRequestData() {
                     {
-                        setSeqId(1);
+                        setId(marketId);
                         setOutcomeIndex(1);
                         setPositionDirection(PositionDirection.YES);
                         setShares(sharesTraded);
@@ -172,14 +176,16 @@ public class TransactionControllerIntegrationTests {
 
         var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
-        var sharesY = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesY();
-        var sharesN = marketRepository.findBySeqId(1).getOutcomes().get(1).getSharesN();
+        var marketId = marketRepository.findAll().get(0).getId();
+        
+        var sharesY = marketRepository.findById(marketId).get().getOutcomes().get(1).getSharesY();
+        var sharesN = marketRepository.findById(marketId).get().getOutcomes().get(1).getSharesN();
         var sharesTraded = 1;
 
         var response = webTestClient.post().uri(MARKET_URI_PATH + "/sale").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(new SaleRequestData() {
                     {
-                        setSeqId(1);
+                        setId(marketId);
                         setOutcomeIndex(1);
                         setPositionDirection(PositionDirection.YES);
                         setShares(sharesTraded);

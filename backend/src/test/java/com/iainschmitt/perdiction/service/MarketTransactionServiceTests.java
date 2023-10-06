@@ -56,17 +56,18 @@ public class MarketTransactionServiceTests {
     public String DEFAULT_USER_EMAIL = "user1@iainschmitt.com";
 
     @BeforeEach
+    @SneakyThrows
     void clearAndSetupTestDB() {
         marketRepository.deleteAll();
         userService.deleteAll();
         positionRepository.deleteAll();
         transactionRepository.deleteAll();
 
+        userService.saveUser(User.of(externalConfig.getAdminEmail()));
+        
         var bank = User.of(externalConfig.getBankEmail());
         bank.setCredits(toBigDecimal(1_000_000d));
         userService.saveUser(bank);
-
-        userService.saveUser(User.of(externalConfig.getAdminEmail()));
     }
 
     @Test

@@ -10,7 +10,7 @@ import com.iainschmitt.perdiction.model.PositionDirection;
 @Getter
 @Setter
 public class SaleRequestData {
-    public int seqId;
+    public String id; 
     public int outcomeIndex;
     public PositionDirection positionDirection;
     public int shares;

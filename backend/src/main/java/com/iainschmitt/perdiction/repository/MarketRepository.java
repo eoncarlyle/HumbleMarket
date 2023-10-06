@@ -16,8 +16,6 @@ public interface MarketRepository extends MongoRepository<Market, String> {
     //! This relies on unique questions for each market, so this needs to be enforced and tested 
     Market findByQuestion(String question);
 
-    Market findBySeqId(int seqId);
-
     List<Market> findByIsClosedAndIsResolved(boolean isClosed, boolean isResolved);
 
     List<Market> findByIsClosedFalseAndCloseDateLessThan(long closeDate);

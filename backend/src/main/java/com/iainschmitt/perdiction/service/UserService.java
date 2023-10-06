@@ -55,7 +55,6 @@ public class UserService {
         for (final Position position : positions) {
             var market = marketRepository.findById(position.getMarketId()).get();
             positionsReturnData.add(PositionReturnData.builder().marketQuestion(market.getQuestion())
-                    .marketSeqId(market.getSeqId())
                     .outcomeClaim(market.getOutcomes().get(position.getOutcomeIndex()).getClaim())
                     .direction(position.getDirection()).shares(position.getShares())
                     .priceAtBuy(position.getPriceAtBuy()).build());
