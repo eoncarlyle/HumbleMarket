@@ -33,7 +33,6 @@ public class AuthService {
     private UserService userService;
 
     public String createToken(User user) {
-        // secondsUntilExpiration is 5 days
         return createToken(user, TOKEN_LIFESPAN);
     }
 

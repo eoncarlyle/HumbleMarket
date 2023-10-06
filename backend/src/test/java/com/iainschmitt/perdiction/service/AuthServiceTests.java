@@ -4,11 +4,14 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 import io.jsonwebtoken.security.Keys;
-import jakarta.validation.ValidationException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import jakarta.validation.ValidationException;
 
 import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
 import com.iainschmitt.perdiction.exceptions.NotAuthorizedException;
@@ -19,22 +22,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@ExtendWith(MockitoExtension.class)
 public class AuthServiceTests {
     @Autowired
     private ExternalisedConfiguration externalConfig;
-
+    @Mock
+    private UserService userService;
+    @InjectMocks
     @Autowired
     private AuthService authService;
-
-    @Autowired
-    private UserService userService;
-
-    @BeforeEach
-    void clearTestUserDB() {
-        userService.deleteAll();
-    }
 
     @Test
     public void decodeJwt_SignatureVerificationSuccess() {
@@ -65,37 +64,33 @@ public class AuthServiceTests {
     public void userAccountCreation_Success() {
         var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
+        when(userService.exists(user.getEmail()))
+            .thenReturn(false);
 
         // Anoynmous class done here because @Builder conflicts with @ResponseBody
         // parsing
         assertThat(userService.exists(user.getEmail())).isFalse();
-        assertThatNoException().isThrownBy(() -> authService.createUserAccount(new AuthData() {
-            {
-                setEmail(user.getEmail());
-                setPasswordHash(user.getPasswordHash());
-            }
-        }));
-        assertThat(userService.exists(user.getEmail())).isTrue();
+        assertThatNoException().isThrownBy(() -> authService.createUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash())));
     }
 
     @Test
     public void userAccountCreation_DuplicationFailure() {
-        var user1 = User.of("user1@iainschmitt.com");
-        user1.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
-        assertThat(userService.exists(user1.getEmail())).isFalse();
-        assertThatNoException().isThrownBy(() -> authService.createUserAccount(new AuthData() {
-            {
-                setEmail(user1.getEmail());
-                setPasswordHash(user1.getPasswordHash());
-            }
-        }));
+        var user = User.of("user1@iainschmitt.com");
+        user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
+        
+        when(userService.exists(user.getEmail()))
+            .thenReturn(false);
+        
+        assertThatNoException().isThrownBy(() -> authService.createUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash())));
+        
+        when(userService.exists(user.getEmail()))
+            .thenReturn(true);
         assertThatThrownBy(() -> authService.createUserAccount(new AuthData() {
             {
-                setEmail(user1.getEmail());
+                setEmail(user.getEmail());
                 setPasswordHash(sha256Hex("!A_Different_Minimal_Password_Really"));
             }
         })).isInstanceOf(NotAuthorizedException.class);
-        assertThat(userService.exists(user1.getEmail())).isTrue();
     }
 
     @Test
@@ -116,40 +111,26 @@ public class AuthServiceTests {
         var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash("!pass");
 
-        assertThatThrownBy(() -> authService.createUserAccount(new AuthData() {
-            {
-                setEmail(user.getEmail());
-                setPasswordHash(user.getPasswordHash());
-            }
-        })).isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() -> authService.createUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash()))).isInstanceOf(ValidationException.class);
     }
 
     @Test
     public void logInUserAccount_Success() {
         var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
-        userService.saveUser(user);
+        
+        when(userService.exists(user.getEmail())).thenReturn(true);
+        when(userService.getUserByEmail(user.getEmail())).thenReturn(user);
 
-        assertThatNoException().isThrownBy(() -> authService.logInUserAccount(new AuthData() {
-            {
-                setEmail(user.getEmail());
-                setPasswordHash(user.getPasswordHash());
-            }
-        }));
-        assertThat(userService.exists(user.getEmail())).isTrue();
+        assertThatNoException().isThrownBy(() -> authService.logInUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash())));
     }
 
     @Test
-    public void logInUserAccount_UserDoesntExist() {
+    public void logInUserAccount_UserDoesNotExist() {
         var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
-
-        assertThatThrownBy(() -> authService.logInUserAccount(new AuthData() {
-            {
-                setEmail(user.getEmail());
-                setPasswordHash(user.getPasswordHash());
-            }
-        })).isInstanceOf(NotAuthorizedException.class);
+        when(userService.exists(user.getEmail())).thenReturn(false);
+        assertThatThrownBy(() -> authService.logInUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash()))).isInstanceOf(NotAuthorizedException.class);
     }
 
     @Test

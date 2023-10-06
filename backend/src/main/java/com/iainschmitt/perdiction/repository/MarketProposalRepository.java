@@ -11,5 +11,5 @@ import com.iainschmitt.perdiction.model.rest.MarketProposalData;
 @Component
 @Repository
 public interface MarketProposalRepository extends MongoRepository<MarketProposal, String> {
-    
+    Boolean existsByQuestion(String question);
 }

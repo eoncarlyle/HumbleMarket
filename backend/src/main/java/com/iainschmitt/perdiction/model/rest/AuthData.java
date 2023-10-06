@@ -21,4 +21,11 @@ public class AuthData {
                     String.format("AuthData object '%s' did not meet AuthData validation requirements", this));
         }
     }
+
+    public static AuthData of(String email, String passwordHash) {
+        return new AuthData() {{
+                setEmail(email);
+                setPasswordHash(passwordHash);
+            }};
+    }
 }

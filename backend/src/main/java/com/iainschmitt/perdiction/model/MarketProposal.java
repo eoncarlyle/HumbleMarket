@@ -6,7 +6,10 @@ import org.springframework.data.annotation.Id;
 
 import com.iainschmitt.perdiction.model.rest.MarketProposalData;
 
+import lombok.Getter;
+
 public class MarketProposal extends MarketProposalBasis {
+    @Getter
     @Id
     private String id;
 

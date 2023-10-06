@@ -94,7 +94,7 @@ public class MarketTransactionController {
         authService.authenticateAdminThrows(token);
         // TODO: Validation
 
-        marketProposalRepository.save(MarketProposal.of(marketCreationData));
+        marketTransactionService.processMarketProposal(marketCreationData);
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
@@ -115,7 +115,5 @@ public class MarketTransactionController {
         return new ResponseEntity<>(marketTransactionService.acceptMarketProposal(marketProposalId),
                 HttpStatus.ACCEPTED);
     }
-
-    // TODO: write market rejection controller method
 
 }

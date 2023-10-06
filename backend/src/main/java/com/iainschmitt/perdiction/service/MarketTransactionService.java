@@ -309,7 +309,7 @@ public class MarketTransactionService {
                 correct = position.getDirection() != direction;
             }
             if (correct) {
-                // Each share redeems at a credit value of 1
+                // Each share redeems at a  value of 1
                 transactions.add(new MarketTransaction(getBankUserId(), position.getUserId(), market.getId(),
                         outcomeIndex, position.getDirection(), MarketTransactionType.RESOLUTION,
                         toBigDecimal(1d * position.getShares())));
@@ -395,8 +395,14 @@ public class MarketTransactionService {
 
             returnList.add(List.of(yesSalePriceList, noSalePriceList));
         }
-
         return returnList;
+    }
+
+    public void processMarketProposal(MarketProposalData marketProposalData) {
+        if (marketProposalRepository.existsByQuestion(marketProposalData.getQuestion())) {
+            throw new IllegalArgumentException(String.format("Duplicate market question '%s'", marketProposalData.getQuestion()));
+        }
+        marketProposalRepository.save(MarketProposal.of(marketProposalData));
     }
 
     public static double unroundedSharesN(BigDecimal price, int marketMakerK) {

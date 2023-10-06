@@ -18,7 +18,7 @@ import com.iainschmitt.perdiction.service.UserService;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient(timeout = "36000")
 public class AuthControllerIntegrationTests {
-    // TODO: Return the `returnResult` invocation on this and other test classes
+    // TODO: Remove the `returnResult` invocation on this and other test classes
     private static final String AUTH_URI_PATH = "/auth";
 
     @Autowired
@@ -104,8 +104,6 @@ public class AuthControllerIntegrationTests {
             }
         }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401)).expectBody().returnResult();
 
-        var myVar = new String(response.getResponseBody()); 
-        System.out.println(myVar);
     }
 
     @Test

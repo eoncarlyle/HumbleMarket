@@ -4,4 +4,10 @@ interface MarketProposalInputs {
   outcomeClaims: string[];
 }
 
+export const neutralMarketProposalInputs: MarketProposalInputs = {
+  question: "",
+  closeDate: null,
+  outcomeClaims: []
+}
+
 export default MarketProposalInputs;

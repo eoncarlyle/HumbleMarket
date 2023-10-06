@@ -4,10 +4,13 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.apache.el.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,6 +39,7 @@ import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigD
 
 @SpringBootTest
 public class MarketTransactionServiceTests {
+    @InjectMocks
     @Autowired
     private MarketTransactionService marketTransactionService;
     @Autowired
@@ -72,7 +76,7 @@ public class MarketTransactionServiceTests {
 
         var marketData = defaultSingleOutcomeMarket(user.getId());
 
-        assertThatNoException().isThrownBy(() -> marketTransactionService.createMarket(marketData));
+        marketTransactionService.createMarket(marketData);
         assertThat(marketRepository.existsByQuestion(marketData.getQuestion())).isTrue();
         var outcome = marketRepository.findByQuestion(marketData.getQuestion()).getOutcomes().get(0);
         assertThat(outcome.getPrice()).isEqualTo(toBigDecimal(0.5d));
@@ -87,7 +91,7 @@ public class MarketTransactionServiceTests {
 
         var marketData = defaultMultiOutcomeMarket(externalConfig.getAdminEmail());
 
-        assertThatNoException().isThrownBy(() -> marketTransactionService.createMarket(marketData));
+        marketTransactionService.createMarket(marketData);
         assertThat(marketRepository.existsByQuestion(marketData.getQuestion())).isTrue();
         var firstOutcome = marketRepository.findByQuestion(marketData.getQuestion()).getOutcomes().get(0);
         assertThat(firstOutcome.getPrice()).isEqualTo(toBigDecimal(1d / 2d));
@@ -102,7 +106,7 @@ public class MarketTransactionServiceTests {
 
         final MarketProposalData marketData = threeOutcomeMarket(getAdminId());
 
-        assertThatNoException().isThrownBy(() -> marketTransactionService.createMarket(marketData));
+        marketTransactionService.createMarket(marketData);
         assertThat(marketRepository.existsByQuestion(marketData.getQuestion())).isTrue();
         var firstOutcome = marketRepository.findByQuestion(marketData.getQuestion()).getOutcomes().get(0);
         assertThat(firstOutcome.getPrice()).isEqualTo(toBigDecimal(1d / 3d));
@@ -485,13 +489,7 @@ public class MarketTransactionServiceTests {
     @Test
     public void validMarketCreationData_DuplicateClaims() {
         var invalidSingleOutcomeMarket = MarketProposalData.of("What will the temperature in Minneapolis be in 1 hour?", getAdminId(), 100,
-        Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(), (new ArrayList<String>() {
-            {
-                add("Between 40 °F and 50 °F");
-                add("Between 40 °F and 50 °F");
-            }
-        }), true); 
-
+        Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(), outcomeClaimsList("Between 40 °F and 50 °F", "Between 40 °F and 50 °F"), true); 
         assertThat(marketTransactionService.validMarketCreationData(invalidSingleOutcomeMarket)).isEqualTo(false);
     }
 
@@ -505,41 +503,22 @@ public class MarketTransactionServiceTests {
 
     private static MarketProposalData defaultSingleOutcomeMarket(String creatorId) {
         return MarketProposalData.of("What will the temperature in Minneapolis be in 1 hour?", creatorId, 100,
-                Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(), (new ArrayList<String>() {
-                    {
-                        add("Greater than 40 °F");
-                    }
-                }), true);
+                Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(), outcomeClaimsList("Greater than 40 °F"), true);
     }
 
     private MarketProposalData defaultMultiOutcomeMarket(String creatorId) {
         return MarketProposalData.of("What will the temperature in Minneapolis be in 1 hour?", creatorId, 100,
-                Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(), (new ArrayList<String>() {
-                    {
-                        add("Between 40 °F and 50 °F");
-                        add("Outside this range");
-                    }
-                }), true);
+                Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(), outcomeClaimsList("Between 40 °F and 50 °F", "Outside this range"), true); 
     }
 
     private MarketProposalData shortTermSingleOutcomeMarket(String question, String creatorId, long secondDuration) {
         return MarketProposalData.of(question, creatorId, 100,
-                Instant.now().plus(Duration.ofSeconds(secondDuration)).toEpochMilli(), (new ArrayList<String>() {
-                    {
-                        add("Greater than 40 °F");
-                    }
-                }), true);
+                Instant.now().plus(Duration.ofSeconds(secondDuration)).toEpochMilli(), outcomeClaimsList("Greater than 40 °F"), true);
     }
 
     private MarketProposalData threeOutcomeMarket(String creatorId) {
         return MarketProposalData.of("What will the temperature in Minneapolis be in 1 hour?", creatorId, 100,
-                Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(), (new ArrayList<String>() {
-                    {
-                        add("Less than 40 °F");
-                        add("Between 40 °F and 50 °F");
-                        add("Greater than 50 °F");
-                    }
-                }), true);
+                Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(), outcomeClaimsList("Less than 40 °F", "Between 40 °F and 50 °F", "Greater than 50 °F"), true);
     }
 
     private BigDecimal totalCredits() {
@@ -551,4 +530,9 @@ public class MarketTransactionServiceTests {
                 .add(userService.getUserByEmail(externalConfig.getBankEmail()).getCredits());
     }
 
+    private static ArrayList<String> outcomeClaimsList(String... args) {
+        var outcomeClaimsList = new ArrayList<String>();
+        for (String arg: args) outcomeClaimsList.add(arg);
+        return outcomeClaimsList;
+    }
 }

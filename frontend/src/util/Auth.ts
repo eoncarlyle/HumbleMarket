@@ -32,7 +32,9 @@ export function isAdmin() {
 
 export function getBaseUrl() {
   const hostname = new URL(window.location.href).hostname;
-  return "http://" + hostname + ":8090"
+  //TODO: figure out why backend args aren't working
+  //return "http://" + hostname + ":8090"
+  return "http://" + hostname + ":8080"
 }
 
 export async function getAuthenticatedResponse(requestSubpath: string, method: string, body?: object) {
@@ -46,11 +48,16 @@ export async function getAuthenticatedResponse(requestSubpath: string, method: s
       body: JSON.stringify(body),
     });
   } else {
-    return fetch(getBaseUrl() + requestSubpath, {
-      method: method,
-      headers: {
-        Authorization: String(getAuthToken()),
-      },
-    });
+    try {
+      return fetch(getBaseUrl() + requestSubpath, {
+        method: method,
+        headers: {
+          Authorization: String(getAuthToken()),
+        },
+      });
+    }
+    catch (e: any) {
+      throw e
+    }
   }
 }

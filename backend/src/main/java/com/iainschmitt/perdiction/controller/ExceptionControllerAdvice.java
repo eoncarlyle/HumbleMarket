@@ -1,10 +1,10 @@
 package com.iainschmitt.perdiction.controller;
 
-import jakarta.validation.ValidationException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import jakarta.validation.ValidationException;
 
 import com.iainschmitt.perdiction.exceptions.NotAuthorizedException;
 import com.iainschmitt.perdiction.exceptions.NotFoundException;
