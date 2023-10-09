@@ -15,7 +15,7 @@ export default function processBuyForm(market: Market, order: Order, setValid: D
     ];
 
     const response = await getAuthenticatedResponse("/market/purchase", "POST", {
-      seqId: market.seqId,
+      id: market.id,
       outcomeIndex: outcomeIndex,
       positionDirection: positionDirection,
       shares: shares

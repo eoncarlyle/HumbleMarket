@@ -14,7 +14,7 @@ export default function processSellForm(market: Market, order: Order, sharePrice
     ];
 
     const response = await getAuthenticatedResponse("/market/sale", "POST", {
-      seqId: market.seqId,
+      id: market.id,
       outcomeIndex: outcomeIndex,
       positionDirection: positionDirection,
       shares: shares,

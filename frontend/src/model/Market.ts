@@ -1,7 +1,7 @@
 import Outcome from "../model/Outcome";
 
 interface Market {
-  seqId: string;
+  id: string;
   question: string;
   creatorId: string;
   marketMakerK: number;
