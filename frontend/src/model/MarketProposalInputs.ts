@@ -7,7 +7,7 @@ interface MarketProposalInputs {
 export const neutralMarketProposalInputs: MarketProposalInputs = {
   question: "",
   closeDate: null,
-  outcomeClaims: []
+  outcomeClaims: [null,]
 }
 
 export default MarketProposalInputs;

@@ -2,7 +2,6 @@
 - Create a (fake money) prediction market that allows for public and private prediction markets
 
 
-
 **Pre-private Launch To Do**
 - Description
   - Markets page, single market page, and account details tested on 4-5 users

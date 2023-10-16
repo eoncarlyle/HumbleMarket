@@ -1,4 +1,5 @@
 interface MarketProposal {
+  id: string;
   question: string;
   marketMakerK: number;
   closeDate: number;

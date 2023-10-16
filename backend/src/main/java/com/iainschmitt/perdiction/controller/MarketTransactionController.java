@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -106,14 +107,27 @@ public class MarketTransactionController {
         return new ResponseEntity<>(marketProposalRepository.findAll(), HttpStatus.OK);
     }
 
-    @PostMapping(value = "/accept_market_proposal")
+    // TODO: Make this return the id or some other manifestation of the recently
+    // accepted market
+    @PostMapping(value = "/accept_market_proposal/{marketProposalId}")
     public ResponseEntity<MarketTransactionReturnData> acceptMarketProposal(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-            @RequestBody String marketProposalId) {
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token, @PathVariable String marketProposalId) {
         authService.authenticateTokenThrows(token);
         authService.authenticateAdminThrows(token);
         return new ResponseEntity<>(marketTransactionService.acceptMarketProposal(marketProposalId),
                 HttpStatus.ACCEPTED);
+    }
+
+    // TODO: Make this return the id or some other manifestation of the recently
+    // accepted market
+    @PostMapping(value = "/reject_market_proposal/{marketProposalId}")
+    public ResponseEntity<MarketTransactionReturnData> rejectMarketProposal(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token, @PathVariable String marketProposalId) {
+
+        authService.authenticateTokenThrows(token);
+        authService.authenticateAdminThrows(token);
+        return new ResponseEntity<MarketTransactionReturnData>(
+                marketTransactionService.rejectMarketProposal(marketProposalId), null, HttpStatus.ACCEPTED);
     }
 
 }

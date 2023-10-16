@@ -30,8 +30,9 @@ const router = createBrowserRouter([{
       path: "/",
       element: <HomeNavbar />,
       children: [
-        { path: "/", id: "home", element: <HomeContent/>, loader: homeLoader },
-        { path: "/market/:seqId", element: <MarketDetail/>, loader: marketLoader },
+        { path: "/", id: "home", element: <HomeContent/>, loader: homeLoader }, //TODO: Include error element
+        { path: "/market/:seqId", element: <MarketDetail />, loader: marketLoader }, //TODO: Check to see places where handler function
+        // TODO can be run on state changes
         { path: "/account", element: <AccountOverview />, loader: accountLoader },
         { path: "/admin", element: <AdminPanel />, loader: marketProposalsLoader },
         {

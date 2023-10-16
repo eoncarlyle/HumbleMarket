@@ -23,11 +23,14 @@ export default function processBuyForm(market: Market, order: Order, setValid: D
 
     if (!response.ok) {
       const responseBody = await response.json() as { message: string };
+      let feedbackMessage: string;
+      
       if (response.status === 422) {
-        let feedbackMessage = responseBody.message;
+        feedbackMessage = responseBody.message;
       } else {
-        let feedbackMessage = "Purchase unsuccesful, likely due to problems on our end!"
+        feedbackMessage = "Purchase unsuccesful, likely due to problems on our end!"
       }
+      
       setValid({
         valid: false,
         showModal: false,

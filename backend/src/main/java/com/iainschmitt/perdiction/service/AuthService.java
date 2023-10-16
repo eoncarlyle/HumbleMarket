@@ -108,7 +108,6 @@ public class AuthService {
         var email = authData.getEmail();
         var password = authData.getPasswordHash();
         if (!userService.exists(email) || !userService.getUserByEmail(email).getPasswordHash().equals(password)) {
-            // if (!userService.exists(email)) {
             throw new NotAuthorizedException("Failed authentication: username or password is incorrect");
         }
 

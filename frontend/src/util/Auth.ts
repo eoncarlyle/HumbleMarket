@@ -31,10 +31,7 @@ export function isAdmin() {
 }
 
 export function getBaseUrl() {
-  const hostname = new URL(window.location.href).hostname;
-  //TODO: figure out why backend args aren't working
-  //return "http://" + hostname + ":8090"
-  return "http://" + hostname + ":8080"
+  return import.meta.env.VITE_API_DOMAIN;
 }
 
 export async function getAuthenticatedResponse(requestSubpath: string, method: string, body?: object) {
@@ -47,6 +44,7 @@ export async function getAuthenticatedResponse(requestSubpath: string, method: s
       },
       body: JSON.stringify(body),
     });
+  
   } else {
     try {
       return fetch(getBaseUrl() + requestSubpath, {

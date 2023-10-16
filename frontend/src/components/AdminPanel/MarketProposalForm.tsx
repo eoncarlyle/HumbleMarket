@@ -48,7 +48,6 @@ function MarketProposalForm() {
       />
     );
   });
-  
 
   const addOutcome = () => {
     setMarketProposal({

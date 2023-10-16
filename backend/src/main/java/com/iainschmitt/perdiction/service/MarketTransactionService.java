@@ -81,19 +81,27 @@ public class MarketTransactionService {
         };
         var market = new Market(marketData.getQuestion(), marketData.getCreatorId(),
                 marketData.getMarketMakerK(), marketData.getCloseDate(), outcomes, marketData.isPublic(), false, false);
-
+        
+        // TODO: Goodness gracious return an ID here
         // TODO: Include non-happy path expcetion handling
         marketRepository.save(market);
         return new MarketTransactionReturnData(
                 String.format("Succesful market creation for question '%s'", marketData.getQuestion()));
     }
 
+    // TODO: Goodness gracious return an ID here
     // TODO: Test
     @Transactional
     public MarketTransactionReturnData acceptMarketProposal(String marketProposalId) {
         var createMarketResponse = createMarket(marketProposalRepository.findById(marketProposalId).get());
-        transactionRepository.deleteById(marketProposalId);
+        marketProposalRepository.deleteById(marketProposalId);
         return createMarketResponse;
+    }
+
+    @Transactional
+    public MarketTransactionReturnData rejectMarketProposal(String marketProposalId) {
+        marketProposalRepository.deleteById(marketProposalId);
+        return new MarketTransactionReturnData(String.format("Succesfull market proposal deletion for id '%s", marketProposalId));    
     }
 
     // TODO: Logging aspects for purchase, sale methods
