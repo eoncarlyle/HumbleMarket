@@ -2,17 +2,18 @@ import * as EmailValidator from "email-validator";
 import { redirect } from "react-router-dom";
 import sha256 from "crypto-js/sha256";
 
-import { setAuthToken, type ValidationData, getBaseUrl } from "./Auth";
+import { setAuthToken, getBaseUrl } from "./Auth";
+import AuthValidationData from "./AuthValidationData";
 
 export async function action({ request }: any) {
   const formData = await request.formData();
 
-  const validationData: ValidationData = { email: { valid: true, message: "" }, password: { valid: true, message: "" }, passwordConf: { valid: true, message: "" }, };
+  const validationData: AuthValidationData = { email: { valid: true, message: "" }, password: { valid: true, message: "" }, passwordConf: { valid: true, message: "" }, };
   const email: string = formData.get("email");
   const password: string = formData.get("password");
   const passwordConf: string = formData.get("passwordConf");
 
-  const passwordRule: RegExp = /^[a-zA-Z0-9!@#_\\-]*$/;
+  const passwordRule = /^[a-zA-Z0-9!@#_\\-]*$/;
 
   //Pre-request validation
   if (!EmailValidator.validate(email)) {

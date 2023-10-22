@@ -137,6 +137,13 @@
                 <plugin>
                     <artifactId>spring-boot-maven-plugin</artifactId>
                     <groupId>org.springframework.boot</groupId>
+                    <executions>
+                        <execution>
+                            <configuration>
+                                <mainClass>com.iainschmitt.perdiction.App</mainClass>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>

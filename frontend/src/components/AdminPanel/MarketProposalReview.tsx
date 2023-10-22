@@ -1,32 +1,28 @@
 import { useState } from "react";
 import { useLoaderData } from "react-router-dom";
-import { Card, Button, ListGroup, ListGroupItem, Row, Col, Modal } from "react-bootstrap";
+import {
+  Card,
+  Button,
+  ListGroup,
+  ListGroupItem,
+  Row,
+  Col,
+} from "react-bootstrap";
 
-import MarketProposalReviewState, { neturalMarketProposalState } from "../../model/MarketProposalReviewState";
+import MarketProposalReviewState, {
+  neturalMarketProposalState,
+} from "../../model/MarketProposalReviewState";
 import processMarketProposalReview from "../../util/ProcessMarketProposalReview";
-import { loader as marketProposalLoader } from "../../util/MarketProposalsLoader";
 
 import MarketProposalReviewModal from "./MarketProposalReivewModal";
 
 function MarketProposalReview() {
-  
   //TODO: Stop doing this with a handler function and instead find a way to
   //TODO... accomplish this in way where on state changes it can be re-run
   let marketProposalReturnData = useLoaderData() as MarketProposal[];
-  marketProposalLoader().then((secondaryMarketProposalReturnData) => {
-    marketProposalReturnData = secondaryMarketProposalReturnData;
-    setMarketProposalReviewState(neturalMarketProposalState);
-  });
 
-  let secondaryMarketProposalRequest: Promise<MarketProposal[] | null>;
   const [marketProposalReviewState, setMarketProposalReviewState] =
     useState<MarketProposalReviewState>(neturalMarketProposalState);
-
-  if (marketProposalReviewState.completed) {
-    secondaryMarketProposalRequest.then((secondaryMarketProposalReturnData) => {
-      setMarketProposalReviewState(neturalMarketProposalState);
-    });
-  }
 
   return (
     <>
@@ -43,7 +39,9 @@ function MarketProposalReview() {
           <Card.Title>{marketProposal.question}</Card.Title>
           <Card.Body>
             <ListGroup>
-              <ListGroupItem>Close Date: {marketProposal.closeDate}</ListGroupItem>
+              <ListGroupItem>
+                Close Date: {marketProposal.closeDate}
+              </ListGroupItem>
             </ListGroup>
             <ListGroup>
               <ListGroupItem>Outcomes</ListGroupItem>

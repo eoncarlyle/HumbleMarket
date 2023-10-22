@@ -3,6 +3,13 @@
 
 
 **Pre-private Launch To Do**
+- Admin panel
+  - MarketProposalForm: use the id of the created market to then synthetically populate the list of markets to review
+    - This will require a backend code change to return a JSON representation of the market proposal
+  - MarketProposalReview
+    - Change the modal to not _respond_ to the state but instead to be the element that sends the request
+  - Unified state between MarketProposalReview and MarketProposalForm: might need to get creative
+
 - Description
   - Markets page, single market page, and account details tested on 4-5 users
   - No user-created markets, all resolution done by administrator

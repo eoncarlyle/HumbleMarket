@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
 
 import MarketProposalValidationData from "../model/MarketProposalValidationData";
-import MarketProposalInputs, { neutralMarketProposalInputs } from "../model/MarketProposalInputs";
+import MarketProposalInputs from "../model/MarketProposalInputs";
 import { getAuthenticatedResponse } from "./Auth";
 import ValidationField from "../model/ValidationField";
 
@@ -19,9 +19,9 @@ export default function processMarketProposalForm(
     if (marketProposal.closeDate < Date.now()) {
       marketProposalValidationData.closeDate = { valid: false, message: "Market close date must be in the future" };
     }
-    
+
     let totalOutcomeClaims = new Set();
-    
+
     marketProposal.outcomeClaims.forEach((outcome) => {
       if (totalOutcomeClaims.has(outcome)) {
         marketProposalValidationData.outcomeClaims = { valid: false, message: "Must have unique outcome claims" };
