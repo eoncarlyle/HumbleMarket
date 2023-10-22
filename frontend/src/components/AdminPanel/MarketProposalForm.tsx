@@ -1,15 +1,18 @@
-import { useState, Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 import { Button, Form, Row, Col } from "react-bootstrap";
 
-import MarketProposalInputs, { neutralMarketProposalInputs } from "../../model/MarketProposalInputs";
+import MarketProposalInputs, {
+  neutralMarketProposalInputs,
+} from "../../model/MarketProposalInputs";
 import MarketProposalValidationData from "../../model/MarketProposalValidationData";
 import processMarketProposalForm from "../../util/ProcessMarketProposalForm";
 
 import styles from "../../style/MarketProposalForm.module.css";
 
-
 function MarketProposalForm() {
-  const [marketProposal, setMarketProposal] = useState<MarketProposalInputs>(neutralMarketProposalInputs);
+  const [marketProposal, setMarketProposal] = useState<MarketProposalInputs>(
+    neutralMarketProposalInputs
+  );
 
   const neutralMarketProposalValidationData: MarketProposalValidationData = {
     question: { valid: true, message: "" },
@@ -18,15 +21,14 @@ function MarketProposalForm() {
     isCreated: false,
   };
 
-  const [marketProposalValidationData, setMarketProposalValidationData] = useState<MarketProposalValidationData>(
-    neutralMarketProposalValidationData
-  );
+  const [marketProposalValidationData, setMarketProposalValidationData] =
+    useState<MarketProposalValidationData>(neutralMarketProposalValidationData);
 
-  //if (marketProposalValidationData.isCreated) 
+  //if (marketProposalValidationData.isCreated)
 
   const outcomeChangeHandler = (index: number, value: string) => {
-    const newOutcomes = marketProposal.outcomeClaims
-    newOutcomes.splice(index, 1, value)
+    const newOutcomes = marketProposal.outcomeClaims;
+    newOutcomes.splice(index, 1, value);
     setMarketProposal({
       ...marketProposal,
       outcomeClaims: newOutcomes,
@@ -42,7 +44,7 @@ function MarketProposalForm() {
         type="text"
         isInvalid={!marketProposalValidationData.outcomeClaims.valid}
         onChange={(event) => {
-          outcomeChangeHandler(outcomeIndex, event.target.value)
+          outcomeChangeHandler(outcomeIndex, event.target.value);
         }}
         value={item}
       />
@@ -65,8 +67,8 @@ function MarketProposalForm() {
       setMarketProposalValidationData(neutralMarketProposalValidationData);
     }
   };
- 
-  //TODO: Validation with redundant names is broken, fix it 
+
+  //TODO: Validation with redundant names is broken, fix it
 
   return (
     <Col className={styles.marketProposalForm}>
@@ -77,12 +79,19 @@ function MarketProposalForm() {
           type="text"
           isInvalid={!marketProposalValidationData.question.valid}
           onChange={(event) => {
-            setMarketProposal({ ...marketProposal, question: event.target.value });
-            setMarketProposalValidationData(neutralMarketProposalValidationData);
+            setMarketProposal({
+              ...marketProposal,
+              question: event.target.value,
+            });
+            setMarketProposalValidationData(
+              neutralMarketProposalValidationData
+            );
           }}
           value={marketProposal.question}
         />
-        <Form.Control.Feedback type="invalid">{marketProposalValidationData?.question?.message}</Form.Control.Feedback>
+        <Form.Control.Feedback type="invalid">
+          {marketProposalValidationData?.question?.message}
+        </Form.Control.Feedback>
       </Form.Group>
 
       <Form.Group className="mb-3">
@@ -91,13 +100,20 @@ function MarketProposalForm() {
           type="number"
           isInvalid={!marketProposalValidationData.closeDate.valid}
           onChange={(event) => {
-            setMarketProposal({ ...marketProposal, closeDate: Number(event.target.value) });
-            setMarketProposalValidationData(neutralMarketProposalValidationData);
+            setMarketProposal({
+              ...marketProposal,
+              closeDate: Number(event.target.value),
+            });
+            setMarketProposalValidationData(
+              neutralMarketProposalValidationData
+            );
           }}
           //Value is what needs to be updated!
-          value={marketProposal.closeDate ? marketProposal.closeDate : ''}
+          value={marketProposal.closeDate ? marketProposal.closeDate : ""}
         />
-        <Form.Control.Feedback type="invalid">{marketProposalValidationData?.closeDate?.message}</Form.Control.Feedback>
+        <Form.Control.Feedback type="invalid">
+          {marketProposalValidationData?.closeDate?.message}
+        </Form.Control.Feedback>
       </Form.Group>
 
       <Form.Group className="mb-3">
@@ -116,7 +132,11 @@ function MarketProposalForm() {
         </Col>
         <Col>
           <Button
-            variant={marketProposal.outcomeClaims.length <= 1 ? "outline-danger" : "danger"}
+            variant={
+              marketProposal.outcomeClaims.length <= 1
+                ? "outline-danger"
+                : "danger"
+            }
             onClick={removeOutcome}
             disabled={marketProposal.outcomeClaims.length <= 1}
           >

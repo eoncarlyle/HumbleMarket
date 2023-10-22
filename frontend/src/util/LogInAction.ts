@@ -2,7 +2,7 @@ import { redirect } from "react-router-dom";
 import sha256 from "crypto-js/sha256";
 import * as EmailValidator from "email-validator";
 
-import { setAuthToken, getBaseUrl, getAuthenticatedResponse } from "./Auth";
+import { setAuthToken, getBaseUrl } from "./Auth";
 import AuthValidationData from "./AuthValidationData";
 
 //TODO: trim email input on this and SignUp equivalent

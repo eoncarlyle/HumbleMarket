@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
 import MarketProposalReviewState from "../model/MarketProposalReviewState";
 
-import { getBaseUrl, getAuthenticatedResponse } from "./Auth";
+import { getAuthenticatedResponse } from "./Auth";
 
 export default async function processMarketProposalReview(
   marketProposalReviewState: MarketProposalReviewState,
