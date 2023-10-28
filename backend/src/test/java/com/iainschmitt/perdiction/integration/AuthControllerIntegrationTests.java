@@ -13,28 +13,34 @@ import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
 import com.iainschmitt.perdiction.model.rest.AuthData;
 import com.iainschmitt.perdiction.model.User;
+import com.iainschmitt.perdiction.model.WhitelistEmail;
 import com.iainschmitt.perdiction.service.UserService;
+import com.iainschmitt.perdiction.repository.WhitelistEmailRepository;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient(timeout = "36000")
 public class AuthControllerIntegrationTests {
+    @Autowired
+    private WebTestClient webTestClient;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private WhitelistEmailRepository whitelistEmailRepository;
+    
     // TODO: Remove the `returnResult` invocation on this and other test classes
     private static final String AUTH_URI_PATH = "/auth";
 
-    @Autowired
-    private WebTestClient webTestClient;
-
-    @Autowired
-    private UserService userService;
+    private String testUserEmail = "user1@iainschmitt.com";
 
     @BeforeEach
     void clearTestUserDB() {
         userService.deleteAll();
+        whitelistEmailRepository.save(new WhitelistEmail(testUserEmail));
     }
 
     @Test
     void signUpUser_Success() {
-        var user = User.of("user1@iainschmitt.com");
+        var user = User.of(testUserEmail);
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
             {
@@ -48,7 +54,7 @@ public class AuthControllerIntegrationTests {
 
     @Test
     void singUpUser_AuthValidationFailure() {
-        var user = User.of("user1@iainschmitt.com");
+        var user = User.of(testUserEmail);
         user.setPasswordHash(" ");
         userService.saveUser(user);
         webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
@@ -61,7 +67,7 @@ public class AuthControllerIntegrationTests {
 
     @Test
     void singUpUser_AuthFailureDuplicate() {
-        var user = User.of("user1@iainschmitt.com");
+        var user = User.of(testUserEmail);
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         userService.saveUser(user);
         webTestClient.post().uri(AUTH_URI_PATH + "/signup").bodyValue(new AuthData() {
@@ -69,7 +75,7 @@ public class AuthControllerIntegrationTests {
                 setEmail(user.getEmail());
                 setPasswordHash(user.getPasswordHash());
             }
-        }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401)).expectBody().returnResult();
+        }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(403)).expectBody().returnResult();
     }
 
     @Test
@@ -80,7 +86,7 @@ public class AuthControllerIntegrationTests {
 
     @Test
     void logInUser_Success() {
-        var user = User.of("user1@iainschmitt.com");
+        var user = User.of(testUserEmail);
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         userService.saveUser(user);
 
@@ -94,7 +100,7 @@ public class AuthControllerIntegrationTests {
 
     @Test
     void logInUser_UserDoesntExist() {
-        var user = User.of("user1@iainschmitt.com");
+        var user = User.of(testUserEmail);
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
 
         var response = webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(new AuthData() {
@@ -102,13 +108,13 @@ public class AuthControllerIntegrationTests {
                 setEmail(user.getEmail());
                 setPasswordHash(user.getPasswordHash());
             }
-        }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401)).expectBody().returnResult();
+        }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(403)).expectBody().returnResult();
 
     }
 
     @Test
     void singUpUser_WrongPassword() {
-        var user = User.of("user1@iainschmitt.com");
+        var user = User.of(testUserEmail);
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
 
         webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(new AuthData() {
@@ -116,15 +122,15 @@ public class AuthControllerIntegrationTests {
                 setEmail(user.getEmail());
                 setPasswordHash(sha256Hex("!A_Different_Password_Really"));
             }
-        }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401)).expectBody().returnResult();
+        }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(403)).expectBody().returnResult();
     }
 
     @Test
     void logInUser_BadJson() {
-        var user = User.of("user1@iainschmitt.com");
+        var user = User.of(testUserEmail);
         user.setPasswordHash("!A_Minimal_Password_Really");
 
-        webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue("{\"email\":\"user1@iainschmitt.com\"}").exchange()
+        webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(String.format("{\"email\":\"%s\"}", testUserEmail)).exchange()
                 .expectStatus().isEqualTo(HttpStatusCode.valueOf(415)).expectBody().returnResult();
     }
 }
