@@ -19,12 +19,6 @@
 - Frontend
   - Finish admin-only panel
   - Do browser size breakpoints to change inbetween the accoutns icon and something in text
-- Build
-  - Docker containers for running the program locally
-    - Install mongodb
-    - First-time execution script
-    - Run frontend
-    - Run backend
 
 
 __Post-launch To Do__

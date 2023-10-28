@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,8 +46,6 @@ public class MarketTransactionController {
     private UserService userService;
     @Autowired
     private MarketProposalRepository marketProposalRepository;
-    @Autowired
-    private ExternalisedConfiguration externalConfig;
 
     @GetMapping
     public ResponseEntity<List<Market>> getMarkets(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
@@ -86,31 +83,29 @@ public class MarketTransactionController {
     }
 
     @PostMapping(value = "/market_proposal")
-    public ResponseEntity<MarketProposalData> createMarketProposal(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-            @RequestBody MarketProposalData marketCreationData) {
+    public ResponseEntity<MarketProposal> createMarketProposal(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestBody MarketProposalData marketProposalData) {
 
         authService.authenticateTokenThrows(token);
         // TODO: Remove admin-only once validation (and rate limiting?) in place
         authService.authenticateAdminThrows(token);
         // TODO: Validation
 
-        marketTransactionService.processMarketProposal(marketCreationData);
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(marketTransactionService.processMarketProposal(marketProposalData),
+                HttpStatus.ACCEPTED);
     }
 
     @GetMapping(value = "/market_proposal")
     public ResponseEntity<List<MarketProposal>> getMarketProposals(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         authService.authenticateTokenThrows(token);
-        log.info("Requested markets");
+        // log.info("Requested markets");
         return new ResponseEntity<>(marketProposalRepository.findAll(), HttpStatus.OK);
     }
 
-    // TODO: Make this return the id or some other manifestation of the recently
     // accepted market
     @PostMapping(value = "/accept_market_proposal/{marketProposalId}")
-    public ResponseEntity<MarketTransactionReturnData> acceptMarketProposal(
+    public ResponseEntity<MarketProposal> acceptMarketProposal(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String token, @PathVariable String marketProposalId) {
         authService.authenticateTokenThrows(token);
         authService.authenticateAdminThrows(token);
@@ -118,16 +113,13 @@ public class MarketTransactionController {
                 HttpStatus.ACCEPTED);
     }
 
-    // TODO: Make this return the id or some other manifestation of the recently
-    // accepted market
     @PostMapping(value = "/reject_market_proposal/{marketProposalId}")
-    public ResponseEntity<MarketTransactionReturnData> rejectMarketProposal(
+    public ResponseEntity<MarketProposal> rejectMarketProposal(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String token, @PathVariable String marketProposalId) {
 
         authService.authenticateTokenThrows(token);
         authService.authenticateAdminThrows(token);
-        return new ResponseEntity<MarketTransactionReturnData>(
+        return new ResponseEntity<>(
                 marketTransactionService.rejectMarketProposal(marketProposalId), null, HttpStatus.ACCEPTED);
     }
-
 }

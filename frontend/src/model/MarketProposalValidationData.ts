@@ -7,4 +7,11 @@ interface MarketProposalValidationData {
   isCreated: boolean;
 }
 
+export const neutralMarketProposalValidationData: MarketProposalValidationData = {
+  question: { valid: true, message: "" },
+  closeDate: { valid: true, message: "" },
+  outcomeClaims: { valid: true, message: "" },
+  isCreated: false,
+};
+
 export default MarketProposalValidationData

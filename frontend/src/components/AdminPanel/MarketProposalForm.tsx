@@ -1,44 +1,43 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button, Form, Row, Col } from "react-bootstrap";
 
-import MarketProposalInputs, {
-  neutralMarketProposalInputs,
-} from "../../model/MarketProposalInputs";
-import MarketProposalValidationData from "../../model/MarketProposalValidationData";
+import MarketProposalInputs, { neutralMarketProposalInputs } from "../../model/MarketProposalInputs";
+import MarketProposalValidationData, {
+  neutralMarketProposalValidationData,
+} from "../../model/MarketProposalValidationData";
 import processMarketProposalForm from "../../util/ProcessMarketProposalForm";
+import AdminPanelState from "../../model/AdminPanelState";
 
 import styles from "../../style/MarketProposalForm.module.css";
 
-function MarketProposalForm() {
-  const [marketProposal, setMarketProposal] = useState<MarketProposalInputs>(
-    neutralMarketProposalInputs
+interface MarketProposalFormReviewProps {
+  adminPanelState: AdminPanelState;
+  setAdminPanelState: React.Dispatch<React.SetStateAction<AdminPanelState>>;
+}
+
+export default function MarketProposalForm({ adminPanelState, setAdminPanelState }: MarketProposalFormReviewProps) {
+  const [marketProposalInputs, setMarketProposalInputs] = useState<MarketProposalInputs>({
+    question: "",
+    closeDate: null,
+    outcomeClaims: [""],
+  });
+
+  const [marketProposalValidationData, setMarketProposalValidationData] = useState<MarketProposalValidationData>(
+    neutralMarketProposalValidationData
   );
 
-  const neutralMarketProposalValidationData: MarketProposalValidationData = {
-    question: { valid: true, message: "" },
-    closeDate: { valid: true, message: "" },
-    outcomeClaims: { valid: true, message: "" },
-    isCreated: false,
-  };
-
-  const [marketProposalValidationData, setMarketProposalValidationData] =
-    useState<MarketProposalValidationData>(neutralMarketProposalValidationData);
-
-  //if (marketProposalValidationData.isCreated)
-
   const outcomeChangeHandler = (index: number, value: string) => {
-    const newOutcomes = marketProposal.outcomeClaims;
+    const newOutcomes = marketProposalInputs.outcomeClaims;
     newOutcomes.splice(index, 1, value);
-    setMarketProposal({
-      ...marketProposal,
+    setMarketProposalInputs({
+      ...marketProposalInputs,
       outcomeClaims: newOutcomes,
     });
     setMarketProposalValidationData(neutralMarketProposalValidationData);
   };
 
   let outcomesList: JSX.Element[] = [];
-  let outcomeIndex = 0;
-  marketProposal.outcomeClaims.forEach((item) => {
+  for (let outcomeIndex = 0; outcomeIndex < marketProposalInputs.outcomeClaims.length; outcomeIndex++) {
     outcomesList.push(
       <Form.Control
         type="text"
@@ -46,23 +45,23 @@ function MarketProposalForm() {
         onChange={(event) => {
           outcomeChangeHandler(outcomeIndex, event.target.value);
         }}
-        value={item}
+        value={marketProposalInputs.outcomeClaims[outcomeIndex]}
       />
     );
-  });
+  }
 
   const addOutcome = () => {
-    setMarketProposal({
-      ...marketProposal,
-      outcomeClaims: marketProposal.outcomeClaims.concat(""),
+    setMarketProposalInputs({
+      ...marketProposalInputs,
+      outcomeClaims: marketProposalInputs.outcomeClaims.concat(""),
     });
   };
 
   const removeOutcome = () => {
-    if (marketProposal.outcomeClaims.length > 1) {
-      setMarketProposal({
-        ...marketProposal,
-        outcomeClaims: marketProposal.outcomeClaims.slice(0, -1),
+    if (marketProposalInputs.outcomeClaims.length > 1) {
+      setMarketProposalInputs({
+        ...marketProposalInputs,
+        outcomeClaims: marketProposalInputs.outcomeClaims.slice(0, -1),
       });
       setMarketProposalValidationData(neutralMarketProposalValidationData);
     }
@@ -79,19 +78,15 @@ function MarketProposalForm() {
           type="text"
           isInvalid={!marketProposalValidationData.question.valid}
           onChange={(event) => {
-            setMarketProposal({
-              ...marketProposal,
+            setMarketProposalInputs({
+              ...marketProposalInputs,
               question: event.target.value,
             });
-            setMarketProposalValidationData(
-              neutralMarketProposalValidationData
-            );
+            setMarketProposalValidationData(neutralMarketProposalValidationData);
           }}
-          value={marketProposal.question}
+          value={marketProposalInputs.question}
         />
-        <Form.Control.Feedback type="invalid">
-          {marketProposalValidationData?.question?.message}
-        </Form.Control.Feedback>
+        <Form.Control.Feedback type="invalid">{marketProposalValidationData?.question?.message}</Form.Control.Feedback>
       </Form.Group>
 
       <Form.Group className="mb-3">
@@ -100,20 +95,16 @@ function MarketProposalForm() {
           type="number"
           isInvalid={!marketProposalValidationData.closeDate.valid}
           onChange={(event) => {
-            setMarketProposal({
-              ...marketProposal,
+            setMarketProposalInputs({
+              ...marketProposalInputs,
               closeDate: Number(event.target.value),
             });
-            setMarketProposalValidationData(
-              neutralMarketProposalValidationData
-            );
+            setMarketProposalValidationData(neutralMarketProposalValidationData);
           }}
           //Value is what needs to be updated!
-          value={marketProposal.closeDate ? marketProposal.closeDate : ""}
+          value={marketProposalInputs.closeDate ? marketProposalInputs.closeDate : ""}
         />
-        <Form.Control.Feedback type="invalid">
-          {marketProposalValidationData?.closeDate?.message}
-        </Form.Control.Feedback>
+        <Form.Control.Feedback type="invalid">{marketProposalValidationData?.closeDate?.message}</Form.Control.Feedback>
       </Form.Group>
 
       <Form.Group className="mb-3">
@@ -132,13 +123,9 @@ function MarketProposalForm() {
         </Col>
         <Col>
           <Button
-            variant={
-              marketProposal.outcomeClaims.length <= 1
-                ? "outline-danger"
-                : "danger"
-            }
+            variant={marketProposalInputs.outcomeClaims.length <= 1 ? "outline-danger" : "danger"}
             onClick={removeOutcome}
-            disabled={marketProposal.outcomeClaims.length <= 1}
+            disabled={marketProposalInputs.outcomeClaims.length <= 1}
           >
             Delete Outcome
           </Button>
@@ -147,12 +134,16 @@ function MarketProposalForm() {
       <Row>
         <Button
           variant="primary"
-          onClick={processMarketProposalForm(
-            marketProposal,
-            marketProposalValidationData,
-            setMarketProposal,
-            setMarketProposalValidationData
-          )}
+          onClick={() =>
+            processMarketProposalForm(
+              marketProposalInputs,
+              marketProposalValidationData,
+              setMarketProposalInputs,
+              setMarketProposalValidationData,
+              adminPanelState,
+              setAdminPanelState
+            )
+          }
         >
           Create Market Proposal
         </Button>
@@ -160,5 +151,3 @@ function MarketProposalForm() {
     </Col>
   );
 }
-
-export default MarketProposalForm;
