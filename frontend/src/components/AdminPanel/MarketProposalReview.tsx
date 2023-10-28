@@ -45,6 +45,7 @@ function MarketProposalReview({ adminPanelState, setAdminPanelState }: MarketPro
       } 
     }
   });
+  //TODO: Fix minor CSS validation bug
 
   return (
     <>
