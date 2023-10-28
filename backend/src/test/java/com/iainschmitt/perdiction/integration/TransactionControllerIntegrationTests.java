@@ -29,6 +29,8 @@ import com.iainschmitt.perdiction.service.MarketTransactionService;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.repository.PositionRepository;
 import com.iainschmitt.perdiction.repository.TransactionRepository;
+import com.iainschmitt.perdiction.repository.WhitelistEmailRepository;
+import com.iainschmitt.perdiction.model.WhitelistEmail;
 
 import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigDecimal;
 import static com.iainschmitt.perdiction.service.MarketTransactionService.price;
@@ -36,7 +38,6 @@ import static com.iainschmitt.perdiction.service.MarketTransactionService.price;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient(timeout = "36000")
 public class TransactionControllerIntegrationTests {
-    private static final String MARKET_URI_PATH = "/market";
     @Autowired
     private WebTestClient webTestClient;
     @Autowired
@@ -53,8 +54,11 @@ public class TransactionControllerIntegrationTests {
     private TransactionRepository transactionRepository;
     @Autowired
     private ExternalisedConfiguration externalisedConfiguration;
+    @Autowired
+    private WhitelistEmailRepository whitelistEmailRepository;
 
     public String DEFAULT_USER_EMAIL = "user1@iainschmitt.com";
+    private static final String MARKET_URI_PATH = "/market";
 
     @BeforeEach
     void clearTestUserDB() {
@@ -173,6 +177,7 @@ public class TransactionControllerIntegrationTests {
         userService.saveUser(user);
         var token = authService.createToken(user, Duration.ofSeconds(0));
         Thread.sleep(1001L);
+        whitelistEmailRepository.save(new WhitelistEmail(DEFAULT_USER_EMAIL));
 
         var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
@@ -191,12 +196,15 @@ public class TransactionControllerIntegrationTests {
                         setShares(sharesTraded);
                         setSharePrice(price(sharesY + sharesTraded, sharesN));
                     }
-                }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(401)).expectBody().returnResult();
+                }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(403)).expectBody().returnResult();
 
         assertThat(new String(response.getResponseBody()))
-                .isEqualTo("{\"status\":401,\"message\":\"Failed authentication: invalid token\"}");
+                .isEqualTo("{\"status\":403,\"message\":\"Failed authentication: invalid token\"}");
+        
+        whitelistEmailRepository.save(new WhitelistEmail(DEFAULT_USER_EMAIL));
     }
 
+    
     private MarketProposalData defaultMultiOutcomeMarket(String creatorId) {
 
         return MarketProposalData.of("What will the temperature in Minneapolis be in 1 hour?", creatorId, 100,

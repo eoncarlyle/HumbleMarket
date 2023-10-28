@@ -41,6 +41,6 @@ public class ExceptionControllerAdvice {
 
     @ExceptionHandler(NotAuthorizedException.class)
     public ResponseEntity<ErrorReturnData> notAuthorizedExceptionHandler(Exception e) {
-        return createErrorReturnEntity(e, 401);
+        return createErrorReturnEntity(e, 403);
     }
 }

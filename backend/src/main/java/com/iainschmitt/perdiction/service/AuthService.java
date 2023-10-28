@@ -11,17 +11,19 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.Getter;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
 import com.iainschmitt.perdiction.exceptions.NotAuthorizedException;
 import com.iainschmitt.perdiction.model.User;
+import com.iainschmitt.perdiction.model.WhitelistEmail;
 import com.iainschmitt.perdiction.model.rest.AuthData;
 import com.iainschmitt.perdiction.model.rest.LogInReturnData;
 import com.iainschmitt.perdiction.model.rest.SignUpReturnData;
+import com.iainschmitt.perdiction.repository.WhitelistEmailRepository;
 
+import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigDecimal;
 
 @Getter
 @Service
@@ -31,6 +33,8 @@ public class AuthService {
     private ExternalisedConfiguration externalConfig;
     @Autowired
     private UserService userService;
+    @Autowired
+    private WhitelistEmailRepository whitelistEmailRepository;
 
     public String createToken(User user) {
         return createToken(user, TOKEN_LIFESPAN);
@@ -84,19 +88,26 @@ public class AuthService {
 
     // TODO: Please find a better name for this
     public void authenticateAdminThrows(String token) {
-        if  (!getClaim(token, "email").equals(externalConfig.getAdminEmail())) {
+        if (!getClaim(token, "email").equals(externalConfig.getAdminEmail())) {
             throw new NotAuthorizedException("Failed authentication: invalid token for admin-only operation");
         }
     }
 
     public SignUpReturnData createUserAccount(AuthData authData) {
         authData.validate();
-
         if (userService.exists(authData.getEmail())) {
             throw new NotAuthorizedException(String.format("User with email '%s' already exists", authData.getEmail()));
         }
+
+        if (!whitelistEmailRepository.existsByEmailAddress(authData.getEmail())) {
+            throw new NotAuthorizedException(String.format(
+                    "'%s' is not on the email whitelist, either ask for permission or ask Iain to fix!",
+                    authData.getEmail()));
+        }
+
         var newUser = User.of(authData.getEmail());
         newUser.setPasswordHash(authData.getPasswordHash());
+        newUser.setCredits(toBigDecimal(100));
         userService.saveUser(newUser);
 
         return SignUpReturnData.builder().message("User account creation successful").email(authData.getEmail())
@@ -114,5 +125,4 @@ public class AuthService {
         return LogInReturnData.builder().message("Log in successful")
                 .token(createToken(userService.getUserByEmail(email))).build();
     }
-
 }
