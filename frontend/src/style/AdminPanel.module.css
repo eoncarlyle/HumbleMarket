@@ -1,0 +1,10 @@
+.authForm {
+  margin: auto;
+  text-align: left;
+  width: min(350px, 50%);
+}
+
+button {
+  width: min(350px, 50%);
+  margin: 6% auto;
+}

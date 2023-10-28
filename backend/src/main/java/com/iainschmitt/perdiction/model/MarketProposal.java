@@ -3,10 +3,10 @@ package com.iainschmitt.perdiction.model;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import com.iainschmitt.perdiction.model.rest.MarketProposalData;
-
-import lombok.Getter;
 
 public class MarketProposal extends MarketProposalBasis {
     @Getter

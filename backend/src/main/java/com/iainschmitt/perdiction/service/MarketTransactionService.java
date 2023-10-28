@@ -61,7 +61,7 @@ public class MarketTransactionService {
 
     // This is not @Transactional, as the only time this is used by itself is for
     // tests
-    public MarketTransactionReturnData createMarket(MarketProposalBasis marketData) {
+    public Market createMarket(MarketProposalBasis marketData) {
         //if (!validMarketCreationData(marketData)) {
 
         //}
@@ -82,26 +82,25 @@ public class MarketTransactionService {
         var market = new Market(marketData.getQuestion(), marketData.getCreatorId(),
                 marketData.getMarketMakerK(), marketData.getCloseDate(), outcomes, marketData.isPublic(), false, false);
         
-        // TODO: Goodness gracious return an ID here
         // TODO: Include non-happy path expcetion handling
-        marketRepository.save(market);
-        return new MarketTransactionReturnData(
-                String.format("Succesful market creation for question '%s'", marketData.getQuestion()));
+        return marketRepository.save(market);
     }
 
     // TODO: Goodness gracious return an ID here
     // TODO: Test
     @Transactional
-    public MarketTransactionReturnData acceptMarketProposal(String marketProposalId) {
-        var createMarketResponse = createMarket(marketProposalRepository.findById(marketProposalId).get());
+    public MarketProposal acceptMarketProposal(String marketProposalId) {
+        var marketProposal = marketProposalRepository.findById(marketProposalId).get();
+        createMarket(marketProposal);
         marketProposalRepository.deleteById(marketProposalId);
-        return createMarketResponse;
+        return marketProposal;
     }
 
     @Transactional
-    public MarketTransactionReturnData rejectMarketProposal(String marketProposalId) {
+    public MarketProposal rejectMarketProposal(String marketProposalId) {
+        var marketProposal = marketProposalRepository.findById(marketProposalId).get();
         marketProposalRepository.deleteById(marketProposalId);
-        return new MarketTransactionReturnData(String.format("Succesfull market proposal deletion for id '%s", marketProposalId));    
+        return marketProposal;
     }
 
     // TODO: Logging aspects for purchase, sale methods
@@ -404,11 +403,11 @@ public class MarketTransactionService {
         return returnList;
     }
 
-    public void processMarketProposal(MarketProposalData marketProposalData) {
+    public MarketProposal processMarketProposal(MarketProposalData marketProposalData) {
         if (marketProposalRepository.existsByQuestion(marketProposalData.getQuestion())) {
             throw new IllegalArgumentException(String.format("Duplicate market question '%s'", marketProposalData.getQuestion()));
         }
-        marketProposalRepository.save(MarketProposal.of(marketProposalData));
+        return marketProposalRepository.save(MarketProposal.of(marketProposalData));
     }
 
     public static double unroundedSharesN(BigDecimal price, int marketMakerK) {

@@ -5,7 +5,7 @@ interface MarketProposalReviewState {
 
 export const neturalMarketProposalState: MarketProposalReviewState = {
   isError: false,
-  message: null
+  message: "" 
 } 
 
 export default MarketProposalReviewState

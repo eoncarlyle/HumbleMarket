@@ -33,6 +33,7 @@ function MarketProposalReview({ adminPanelState, setAdminPanelState }: MarketPro
     );
   };
 
+  // ! TODO: Make this idempotent
   // Removes markets that have been reviewed, adds markets created by form but not yet present
   adminPanelState.forEach((singleMarketState: SingleMarketState) => {
     if (singleMarketState.marketReviewed) {
@@ -40,16 +41,14 @@ function MarketProposalReview({ adminPanelState, setAdminPanelState }: MarketPro
         (marketProposal: MarketProposal) => marketProposal.id !== singleMarketState.marketProposal.id
       );
     } else {
-      if (!marketProposalReturnData.includes(singleMarketState.marketProposal)) {
-        marketProposalReturnData.push(singleMarketState.marketProposal)
-      } 
+      marketProposalReturnData.push(singleMarketState.marketProposal);
     }
   });
 
   return (
     <>
       <Col className={styles.marketProposalForm}>
-        <h3> Market Proposal Review </h3>
+        <h3> Market Proposal Form </h3>
         {marketProposalReturnData.map((marketProposal: MarketProposal) => (
           <Card>
             <Card.Title>{marketProposal.question}</Card.Title>
@@ -64,7 +63,7 @@ function MarketProposalReview({ adminPanelState, setAdminPanelState }: MarketPro
                   </ListGroupItem>
               </ListGroup>
             </Card.Body>
-            <Row className={ styles.buttonRow }>
+            <Row>
               <Col>
                 <Button variant="success" onClick={() => marketProposalReviewHandler(marketProposal, true)}>
                   Accept

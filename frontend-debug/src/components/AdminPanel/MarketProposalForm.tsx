@@ -15,11 +15,12 @@ interface MarketProposalFormReviewProps {
   setAdminPanelState: React.Dispatch<React.SetStateAction<AdminPanelState>>;
 }
 
+// TODO! Figure out why the outcome stays after the form is sent
 export default function MarketProposalForm({ adminPanelState, setAdminPanelState }: MarketProposalFormReviewProps) {
   const [marketProposalInputs, setMarketProposalInputs] = useState<MarketProposalInputs>({
     question: "",
     closeDate: null,
-    outcomeClaims: [""],
+    outcomeClaims: [null],
   });
 
   const [marketProposalValidationData, setMarketProposalValidationData] = useState<MarketProposalValidationData>(
@@ -68,7 +69,7 @@ export default function MarketProposalForm({ adminPanelState, setAdminPanelState
   };
 
   //TODO: Validation with redundant names is broken, fix it
-
+  console.log(marketProposalInputs.outcomeClaims)  
   return (
     <Col className={styles.marketProposalForm}>
       <h3> Market Proposal Form </h3>
