@@ -7,17 +7,20 @@ import MarketProposalInputs, { neutralMarketProposalInputs } from "../model/Mark
 import { getAuthenticatedResponse } from "./Auth";
 import ValidationField from "../model/ValidationField";
 import AdminPanelState from "../model/AdminPanelState";
-import { neturalMarketProposalState } from "../model/MarketProposalReviewState";
 
 export default async function processMarketProposalForm(
   marketProposalInputs: MarketProposalInputs,
-  marketProposalValidationData: MarketProposalValidationData,
   setMarketProposalInputs: Dispatch<SetStateAction<MarketProposalInputs>>,
   setMarketProposalValidationData: Dispatch<SetStateAction<MarketProposalValidationData>>,
   adminPanelState: AdminPanelState,
   setAdminPanelState: React.Dispatch<React.SetStateAction<AdminPanelState>>
 ) {
-  const blankValidationField: ValidationField = { valid: false, message: "" };
+  let marketProposalValidationData = {
+    question: { valid: true, message: "" },
+    closeDate: { valid: true, message: "" },
+    outcomeClaims: { valid: true, message: "" },
+    isCreated: false,
+  };
 
   //Pre-request validation
   //TODO: Close date in future
@@ -33,7 +36,7 @@ export default async function processMarketProposalForm(
     } else totalOutcomeClaims.add(outcome);
   });
 
-  if (marketProposalValidationData.closeDate.valid && marketProposalValidationData.outcomeClaims) {
+  if (marketProposalValidationData.closeDate.valid && marketProposalValidationData.outcomeClaims.valid) {
     //TODO: centralise defaults like `marketMakerK`
     const response = await getAuthenticatedResponse("/market/market_proposal", "POST", {
       question: marketProposalInputs.question,
@@ -52,27 +55,16 @@ export default async function processMarketProposalForm(
           message: "A market for this question already exists",
         };
       } else if (response.status == 500) {
-        marketProposalValidationData.question = blankValidationField;
-        marketProposalValidationData.closeDate = blankValidationField;
         marketProposalValidationData.outcomeClaims = {
           valid: false,
           message: "Server error during submission - please try again in a few minutes",
         };
       } else {
-        marketProposalValidationData.question = blankValidationField;
-        marketProposalValidationData.closeDate = blankValidationField;
         marketProposalValidationData.outcomeClaims = {
           valid: false,
           message: `HTTP error response ${response.status} on submission - please report!`,
         };
       }
-
-      setMarketProposalValidationData({
-        question: marketProposalValidationData.question,
-        closeDate: marketProposalValidationData.closeDate,
-        outcomeClaims: marketProposalValidationData.outcomeClaims,
-        isCreated: marketProposalValidationData.isCreated,
-      });
     } else {
       marketProposalValidationData.isCreated = true;
       var marketProposal = (await response.json()) as MarketProposal;
@@ -84,7 +76,8 @@ export default async function processMarketProposalForm(
           },
         ])
       );
-      setMarketProposalValidationData(neutralMarketProposalValidationData);
+
+      marketProposalValidationData = neutralMarketProposalValidationData;
       setMarketProposalInputs({
         question: "",
         closeDate: null,
@@ -92,4 +85,11 @@ export default async function processMarketProposalForm(
       });
     }
   }
+
+  setMarketProposalValidationData({
+    question: marketProposalValidationData.question,
+    closeDate: marketProposalValidationData.closeDate,
+    outcomeClaims: marketProposalValidationData.outcomeClaims,
+    isCreated: marketProposalValidationData.isCreated,
+  });
 }

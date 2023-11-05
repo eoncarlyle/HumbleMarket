@@ -137,7 +137,6 @@ export default function MarketProposalForm({ adminPanelState, setAdminPanelState
           onClick={() =>
             processMarketProposalForm(
               marketProposalInputs,
-              marketProposalValidationData,
               setMarketProposalInputs,
               setMarketProposalValidationData,
               adminPanelState,
