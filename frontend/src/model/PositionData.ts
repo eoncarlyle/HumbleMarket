@@ -1,9 +1,9 @@
 import PositionDirection from "./PositionDirection";
 
 interface PositionData {
-  marketQuestion: String;
+  marketQuestion: string;
   marketSeqId: number;
-  outcomeClaim: String;
+  outcomeClaim: string;
   direction: PositionDirection;
   shares: number;
   priceAtBuy: number;

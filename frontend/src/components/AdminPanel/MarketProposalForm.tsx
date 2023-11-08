@@ -39,7 +39,7 @@ export default function MarketProposalForm({
     setMarketProposalValidationData(neutralMarketProposalValidationData);
   };
 
-  let outcomesList: JSX.Element[] = [];
+  const outcomesList: JSX.Element[] = [];
   for (
     let outcomeIndex = 0;
     outcomeIndex < marketProposalInputs.outcomeClaims.length;
