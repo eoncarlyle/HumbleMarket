@@ -4,6 +4,7 @@ import sha256 from "crypto-js/sha256";
 
 import { setAuthToken, getBaseUrl } from "./Auth";
 import AuthValidationData from "./AuthValidationData";
+import Feedback from "react-bootstrap/esm/Feedback";
 
 export async function action({ request }: any) {
   const formData = await request.formData();
@@ -58,16 +59,18 @@ export async function action({ request }: any) {
     body: JSON.stringify(authData),
   });
 
+  const responseData = await response.json();
+
   if (!response.ok) {
-    if (response.status === 401) {
-      validationData.email = { valid: false, message: "An account with this email has already been created" };
+    if (response.status === 403) {
+      const feedbackMessage = responseData?.message ? responseData.message : "An account with this email has already been created";
+      validationData.email = { valid: false, message: feedbackMessage };
     } else {
-      validationData.email = { valid: false, message: "Server error during authentication - please try again in a few minutes!" };
+      validationData.email = { valid: false, message: `HTTP error ${response.status} during authentication!` };
     }
     return validationData;
   }
 
-  const responseData = await response.json();
   setAuthToken(responseData.token);
   return redirect("/");
 }
