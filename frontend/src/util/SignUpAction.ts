@@ -4,7 +4,6 @@ import sha256 from "crypto-js/sha256";
 
 import { setAuthToken, getBaseUrl } from "./Auth";
 import AuthValidationData from "./AuthValidationData";
-import Feedback from "react-bootstrap/esm/Feedback";
 
 export async function action({ request }: any) {
   const formData = await request.formData();
