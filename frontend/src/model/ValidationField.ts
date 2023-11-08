@@ -1,6 +1,6 @@
 interface ValidationField {
   valid: boolean;
-  message: String;
+  message: string;
 }
 
 export default ValidationField

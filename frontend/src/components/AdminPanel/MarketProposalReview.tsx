@@ -1,10 +1,19 @@
 import { useState } from "react";
 import { useLoaderData } from "react-router-dom";
-import { Card, Button, ListGroup, ListGroupItem, Row, Col } from "react-bootstrap";
+import {
+  Card,
+  Button,
+  ListGroup,
+  ListGroupItem,
+  Row,
+  Col,
+} from "react-bootstrap";
 
-import MarketProposalReviewState, { neturalMarketProposalState } from "../../model/MarketProposalReviewState";
+import MarketProposalReviewState from "../../model/MarketProposalReviewState";
 import processMarketProposalReview from "../../util/ProcessMarketProposalReview";
-import AdminPanelState, { SingleMarketState } from "../../model/AdminPanelState";
+import AdminPanelState, {
+  SingleMarketState,
+} from "../../model/AdminPanelState";
 
 import styles from "../../style/MarketProposalForm.module.css";
 
@@ -13,20 +22,22 @@ interface MarketProposalReviewProps {
   setAdminPanelState: React.Dispatch<React.SetStateAction<AdminPanelState>>;
 }
 
-function MarketProposalReview({ adminPanelState, setAdminPanelState }: MarketProposalReviewProps) {
+function MarketProposalReview({
+  adminPanelState,
+  setAdminPanelState,
+}: MarketProposalReviewProps) {
   let marketProposalReturnData = useLoaderData() as MarketProposal[];
 
-  const [marketProposalReviewState, setMarketProposalReviewState] =
-    useState<MarketProposalReviewState>(neturalMarketProposalState);
+  const [, setMarketProposalReviewState] =
+    useState<MarketProposalReviewState>();
 
-  const marketProposalReviewHandler = (marketProposal: MarketProposal, marketReviewAccepted: boolean) => {
+  const marketProposalReviewHandler = (
+    marketProposal: MarketProposal,
+    marketReviewAccepted: boolean
+  ) => {
     processMarketProposalReview(
       marketProposal,
       marketReviewAccepted,
-      {
-        isError: false,
-        message: null,
-      },
       setMarketProposalReviewState,
       adminPanelState,
       setAdminPanelState
@@ -37,12 +48,15 @@ function MarketProposalReview({ adminPanelState, setAdminPanelState }: MarketPro
   adminPanelState.forEach((singleMarketState: SingleMarketState) => {
     if (singleMarketState.marketReviewed) {
       marketProposalReturnData = marketProposalReturnData.filter(
-        (marketProposal: MarketProposal) => marketProposal.id !== singleMarketState.marketProposal.id
+        (marketProposal: MarketProposal) =>
+          marketProposal.id !== singleMarketState.marketProposal.id
       );
     } else {
-      if (!marketProposalReturnData.includes(singleMarketState.marketProposal)) {
-        marketProposalReturnData.push(singleMarketState.marketProposal)
-      } 
+      if (
+        !marketProposalReturnData.includes(singleMarketState.marketProposal)
+      ) {
+        marketProposalReturnData.push(singleMarketState.marketProposal);
+      }
     }
   });
   //TODO: Fix minor CSS validation bug
@@ -56,23 +70,37 @@ function MarketProposalReview({ adminPanelState, setAdminPanelState }: MarketPro
             <Card.Title>{marketProposal.question}</Card.Title>
             <Card.Body>
               <ListGroup>
-                <ListGroupItem >Close Date: {marketProposal.closeDate}</ListGroupItem>
                 <ListGroupItem>
-                  Outcomes  
-                  <ListGroup>{marketProposal.outcomeClaims.map((claim: string) => (
+                  Close Date: {marketProposal.closeDate}
+                </ListGroupItem>
+                <ListGroupItem>
+                  Outcomes
+                  <ListGroup>
+                    {marketProposal.outcomeClaims.map((claim: string) => (
                       <ListGroupItem>{claim}</ListGroupItem>
-                    ))}</ListGroup>
-                  </ListGroupItem>
+                    ))}
+                  </ListGroup>
+                </ListGroupItem>
               </ListGroup>
             </Card.Body>
-            <Row className={ styles.buttonRow }>
+            <Row className={styles.buttonRow}>
               <Col>
-                <Button variant="success" onClick={() => marketProposalReviewHandler(marketProposal, true)}>
+                <Button
+                  variant="success"
+                  onClick={() =>
+                    marketProposalReviewHandler(marketProposal, true)
+                  }
+                >
                   Accept
                 </Button>
               </Col>
               <Col>
-                <Button variant="danger" onClick={() => marketProposalReviewHandler(marketProposal, false)}>
+                <Button
+                  variant="danger"
+                  onClick={() =>
+                    marketProposalReviewHandler(marketProposal, false)
+                  }
+                >
                   Reject
                 </Button>
               </Col>

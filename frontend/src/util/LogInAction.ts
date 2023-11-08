@@ -48,7 +48,7 @@ export async function action({ request }: { request: Request }) {
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
+    if (response.status === 403) {
       validationData.email = { valid: false, message: "" };
       validationData.password = { valid: false, message: "Incorrect email or password" };
     } else {

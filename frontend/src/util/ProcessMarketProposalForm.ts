@@ -3,9 +3,8 @@ import { Dispatch, SetStateAction } from "react";
 import MarketProposalValidationData, {
   neutralMarketProposalValidationData,
 } from "../model/MarketProposalValidationData";
-import MarketProposalInputs, { neutralMarketProposalInputs } from "../model/MarketProposalInputs";
+import MarketProposalInputs from "../model/MarketProposalInputs";
 import { getAuthenticatedResponse } from "./Auth";
-import ValidationField from "../model/ValidationField";
 import AdminPanelState from "../model/AdminPanelState";
 
 export default async function processMarketProposalForm(
@@ -15,7 +14,7 @@ export default async function processMarketProposalForm(
   adminPanelState: AdminPanelState,
   setAdminPanelState: React.Dispatch<React.SetStateAction<AdminPanelState>>
 ) {
-  let marketProposalValidationData = {
+  let marketProposalValidationData: MarketProposalValidationData = {
     question: { valid: true, message: "" },
     closeDate: { valid: true, message: "" },
     outcomeClaims: { valid: true, message: "" },
@@ -28,7 +27,7 @@ export default async function processMarketProposalForm(
     marketProposalValidationData.closeDate = { valid: false, message: "Market close date must be in the future" };
   }
 
-  let totalOutcomeClaims = new Set();
+  const totalOutcomeClaims = new Set();
 
   marketProposalInputs.outcomeClaims.forEach((outcome) => {
     if (totalOutcomeClaims.has(outcome)) {
@@ -67,7 +66,7 @@ export default async function processMarketProposalForm(
       }
     } else {
       marketProposalValidationData.isCreated = true;
-      var marketProposal = (await response.json()) as MarketProposal;
+      const marketProposal = (await response.json()) as MarketProposal;
       setAdminPanelState(
         adminPanelState.concat([
           {

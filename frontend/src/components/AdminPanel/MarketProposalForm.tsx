@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Form, Row, Col } from "react-bootstrap";
 
-import MarketProposalInputs, { neutralMarketProposalInputs } from "../../model/MarketProposalInputs";
+import MarketProposalInputs from "../../model/MarketProposalInputs";
 import MarketProposalValidationData, {
   neutralMarketProposalValidationData,
 } from "../../model/MarketProposalValidationData";
@@ -15,16 +15,19 @@ interface MarketProposalFormReviewProps {
   setAdminPanelState: React.Dispatch<React.SetStateAction<AdminPanelState>>;
 }
 
-export default function MarketProposalForm({ adminPanelState, setAdminPanelState }: MarketProposalFormReviewProps) {
-  const [marketProposalInputs, setMarketProposalInputs] = useState<MarketProposalInputs>({
-    question: "",
-    closeDate: null,
-    outcomeClaims: [""],
-  });
+export default function MarketProposalForm({
+  adminPanelState,
+  setAdminPanelState,
+}: MarketProposalFormReviewProps) {
+  const [marketProposalInputs, setMarketProposalInputs] =
+    useState<MarketProposalInputs>({
+      question: "",
+      closeDate: null,
+      outcomeClaims: [""],
+    });
 
-  const [marketProposalValidationData, setMarketProposalValidationData] = useState<MarketProposalValidationData>(
-    neutralMarketProposalValidationData
-  );
+  const [marketProposalValidationData, setMarketProposalValidationData] =
+    useState<MarketProposalValidationData>(neutralMarketProposalValidationData);
 
   const outcomeChangeHandler = (index: number, value: string) => {
     const newOutcomes = marketProposalInputs.outcomeClaims;
@@ -37,7 +40,11 @@ export default function MarketProposalForm({ adminPanelState, setAdminPanelState
   };
 
   let outcomesList: JSX.Element[] = [];
-  for (let outcomeIndex = 0; outcomeIndex < marketProposalInputs.outcomeClaims.length; outcomeIndex++) {
+  for (
+    let outcomeIndex = 0;
+    outcomeIndex < marketProposalInputs.outcomeClaims.length;
+    outcomeIndex++
+  ) {
     outcomesList.push(
       <Form.Control
         type="text"
@@ -82,11 +89,15 @@ export default function MarketProposalForm({ adminPanelState, setAdminPanelState
               ...marketProposalInputs,
               question: event.target.value,
             });
-            setMarketProposalValidationData(neutralMarketProposalValidationData);
+            setMarketProposalValidationData(
+              neutralMarketProposalValidationData
+            );
           }}
           value={marketProposalInputs.question}
         />
-        <Form.Control.Feedback type="invalid">{marketProposalValidationData?.question?.message}</Form.Control.Feedback>
+        <Form.Control.Feedback type="invalid">
+          {marketProposalValidationData?.question?.message}
+        </Form.Control.Feedback>
       </Form.Group>
 
       <Form.Group className="mb-3">
@@ -99,12 +110,18 @@ export default function MarketProposalForm({ adminPanelState, setAdminPanelState
               ...marketProposalInputs,
               closeDate: Number(event.target.value),
             });
-            setMarketProposalValidationData(neutralMarketProposalValidationData);
+            setMarketProposalValidationData(
+              neutralMarketProposalValidationData
+            );
           }}
           //Value is what needs to be updated!
-          value={marketProposalInputs.closeDate ? marketProposalInputs.closeDate : ""}
+          value={
+            marketProposalInputs.closeDate ? marketProposalInputs.closeDate : ""
+          }
         />
-        <Form.Control.Feedback type="invalid">{marketProposalValidationData?.closeDate?.message}</Form.Control.Feedback>
+        <Form.Control.Feedback type="invalid">
+          {marketProposalValidationData?.closeDate?.message}
+        </Form.Control.Feedback>
       </Form.Group>
 
       <Form.Group className="mb-3">
@@ -123,7 +140,11 @@ export default function MarketProposalForm({ adminPanelState, setAdminPanelState
         </Col>
         <Col>
           <Button
-            variant={marketProposalInputs.outcomeClaims.length <= 1 ? "outline-danger" : "danger"}
+            variant={
+              marketProposalInputs.outcomeClaims.length <= 1
+                ? "outline-danger"
+                : "danger"
+            }
             onClick={removeOutcome}
             disabled={marketProposalInputs.outcomeClaims.length <= 1}
           >

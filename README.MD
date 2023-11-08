@@ -23,6 +23,11 @@
 
 __Post-launch To Do__
 
+- Ops:
+  - Java journal logging
+  - Ansible playbooks for infrastructure
+  - Scripts for creation of 
+
 - Frontend:
   - Enable notifications, market resolutions
   - Fix navbar taking up too much space on large screen sizes
