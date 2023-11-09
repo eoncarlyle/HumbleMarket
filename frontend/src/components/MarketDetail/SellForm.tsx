@@ -21,15 +21,25 @@ interface BuyFormProps {
 
 function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
   const outcome = market.outcomes[order.outcomeIndex];
-  const outcomeSalePriceList = salePriceList[order.outcomeIndex][order.positionDirection === PositionDirection.YES ? 0 : 1];
-  const sharePrice = order.shares > outcomeSalePriceList.length ? outcomeSalePriceList[-1] : outcomeSalePriceList[order.shares - 1];
-  const directionCost = order.positionDirection === PositionDirection.YES ? sharePrice : 1 - sharePrice;
+  const outcomeSalePriceList =
+    salePriceList[order.outcomeIndex][
+      order.positionDirection === PositionDirection.YES ? 0 : 1
+    ];
+  const sharePrice =
+    order.shares > outcomeSalePriceList.length
+      ? outcomeSalePriceList[-1]
+      : outcomeSalePriceList[order.shares - 1];
+  const directionCost =
+    order.positionDirection === PositionDirection.YES
+      ? sharePrice
+      : 1 - sharePrice;
   const inputDisabled = outcomeSalePriceList.length === 0;
-  const [transactionValidation, setTransactionValidation] = useState<TransactionValidation>({
-    valid: true,
-    showModal: false,
-    message: "",
-  });
+  const [transactionValidation, setTransactionValidation] =
+    useState<TransactionValidation>({
+      valid: true,
+      showModal: false,
+      message: "",
+    });
 
   const handleSubmit = async () => {
     setTransactionValidation({ valid: true, showModal: true, message: "" });
@@ -43,7 +53,6 @@ function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
     });
   };
 
-  
   return (
     <>
       <RRForm className={styles.transactionForm} onSubmit={handleSubmit}>
@@ -57,7 +66,11 @@ function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
             <Col>{order.positionDirection}</Col>
           </Row>
           <Row>
-            <Col>Shares</Col>
+            <Col>Shares Available to Sell</Col>
+            <Col>{outcomeSalePriceList.length}</Col>
+          </Row>
+          <Row>
+            <Col>Shares to Sell</Col>
             <Col>
               <Form.Control
                 name="shares"
@@ -67,16 +80,34 @@ function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
                 max={outcomeSalePriceList.length}
                 placeholder={String(order.shares)}
                 onChange={shareChangeHandlerCreator(order, setOrder)}
-                onClick={() => setTransactionValidation({ valid: true, showModal: false, message: "" })}
+                onClick={() =>
+                  setTransactionValidation({
+                    valid: true,
+                    showModal: false,
+                    message: "",
+                  })
+                }
                 isInvalid={!transactionValidation.valid}
-                isValid={transactionValidation.valid && transactionValidation.message !== ""}
+                isValid={
+                  transactionValidation.valid &&
+                  transactionValidation.message !== ""
+                }
                 disabled={inputDisabled}
               ></Form.Control>
-              <Form.Control.Feedback type="invalid">{transactionValidation.message}</Form.Control.Feedback>
-              <Form.Control.Feedback type="valid">{transactionValidation.message}</Form.Control.Feedback>
+              <Form.Control.Feedback type="invalid">
+                {transactionValidation.message}
+              </Form.Control.Feedback>
+              <Form.Control.Feedback type="valid">
+                {transactionValidation.message}
+              </Form.Control.Feedback>
             </Col>
           </Row>
-          <Button variant="primary" type="submit" className={styles.marketButton} disabled={inputDisabled}>
+          <Button
+            variant="primary"
+            type="submit"
+            className={styles.marketButton}
+            disabled={inputDisabled}
+          >
             Sell
           </Button>
           <Row>
@@ -85,20 +116,29 @@ function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
           </Row>
         </Container>
       </RRForm>
-      
+
       <Modal show={transactionValidation.showModal} on>
         <Modal.Header>
           <Modal.Title>Confirm Sale</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Are you sure that you want to sell {order.shares} {order.positionDirection} shares "{outcome.claim}" for 
-          {" "}{priceNumberFormat(order.shares * directionCost)} CR?
+          Are you sure that you want to sell {order.shares}{" "}
+          {order.positionDirection} shares "{outcome.claim}" for{" "}
+          {priceNumberFormat(order.shares * directionCost)} CR?
         </Modal.Body>
         <Modal.Footer>
           <Button variant="danger" onClick={handleClose}>
             Cancel
           </Button>
-          <Button variant="success" onClick={processSellForm(market, order, sharePrice, setTransactionValidation)}>
+          <Button
+            variant="success"
+            onClick={processSellForm(
+              market,
+              order,
+              sharePrice,
+              setTransactionValidation
+            )}
+          >
             Submit Sale
           </Button>
         </Modal.Footer>

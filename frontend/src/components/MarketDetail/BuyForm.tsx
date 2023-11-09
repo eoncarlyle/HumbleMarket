@@ -1,14 +1,14 @@
 import { Dispatch, SetStateAction, useState } from "react";
+import { Button, Col, Container, Form, Modal, Row } from "react-bootstrap";
 import { Form as RRForm } from "react-router-dom";
-import { Container, Row, Col, Form, Button, Modal } from "react-bootstrap";
 
-import { priceNumberFormat } from "../../util/Numeric";
-import shareChangeHandlerCreator from "../../util/ShareChangeHandlerCreator";
-import Order from "../../model/Order";
 import Market from "../../model/Market";
+import Order from "../../model/Order";
 import PositionDirection from "../../model/PositionDirection";
-import processBuyForm from "../../util/ProcessBuyForm";
 import TransactionValidation from "../../model/TransactionValidation";
+import { priceNumberFormat } from "../../util/Numeric";
+import processBuyForm from "../../util/ProcessBuyForm";
+import shareChangeHandlerCreator from "../../util/ShareChangeHandlerCreator";
 
 import styles from "../../style/TransactionForm.module.css";
 
@@ -20,14 +20,23 @@ interface BuyFormProps {
 
 function BuyForm({ market, order, setOrder }: BuyFormProps) {
   const outcome = market.outcomes[order.outcomeIndex];
-  const directionShares = order.positionDirection === PositionDirection.YES ? outcome.sharesY : outcome.sharesN;
-  const directionCost = order.positionDirection === PositionDirection.YES ? outcome.price : 1 - outcome.price;
+  const directionShares =
+    order.positionDirection === PositionDirection.YES
+      ? outcome.sharesY
+      : outcome.sharesN;
+  const availableShares = directionShares - 1;
 
-  const [transactionValidation, setTransactionValidation] = useState<TransactionValidation>({
-    valid: true,
-    showModal: false,
-    message: "",
-  });
+  const directionCost =
+    order.positionDirection === PositionDirection.YES
+      ? outcome.price
+      : 1 - outcome.price;
+
+  const [transactionValidation, setTransactionValidation] =
+    useState<TransactionValidation>({
+      valid: true,
+      showModal: false,
+      message: "",
+    });
 
   const handleSubmit = async () => {
     setTransactionValidation({ valid: true, showModal: true, message: "" });
@@ -54,25 +63,46 @@ function BuyForm({ market, order, setOrder }: BuyFormProps) {
             <Col>{order.positionDirection}</Col>
           </Row>
           <Row>
-            <Col>Shares</Col>
+            <Col>Available Shares to Buy</Col>
+            <Col>{availableShares}</Col>
+          </Row>
+          <Row>
+            <Col>Shares to Buy</Col>
             <Col>
               <Form.Control
                 name="shares"
                 type="number"
                 step="1"
                 min="1"
-                max={directionShares}
+                max={availableShares}
                 placeholder={String(order.shares)}
                 onChange={shareChangeHandlerCreator(order, setOrder)}
-                onClick={() => setTransactionValidation({ valid: true, showModal: false, message: "" })}
+                onClick={() =>
+                  setTransactionValidation({
+                    valid: true,
+                    showModal: false,
+                    message: "",
+                  })
+                }
                 isInvalid={!transactionValidation.valid}
-                isValid={transactionValidation.valid && transactionValidation.message !== ""}
+                isValid={
+                  transactionValidation.valid &&
+                  transactionValidation.message !== ""
+                }
               ></Form.Control>
-              <Form.Control.Feedback type="invalid">{transactionValidation.message}</Form.Control.Feedback>
-              <Form.Control.Feedback type="valid">{transactionValidation.message}</Form.Control.Feedback>
+              <Form.Control.Feedback type="invalid">
+                {transactionValidation.message}
+              </Form.Control.Feedback>
+              <Form.Control.Feedback type="valid">
+                {transactionValidation.message}
+              </Form.Control.Feedback>
             </Col>
           </Row>
-          <Button variant="primary" type="submit" className={styles.marketButton}>
+          <Button
+            variant="primary"
+            type="submit"
+            className={styles.marketButton}
+          >
             Buy
           </Button>
           <Row>
@@ -87,14 +117,18 @@ function BuyForm({ market, order, setOrder }: BuyFormProps) {
           <Modal.Title>Confirm Buy</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Are you sure that you want to buy {order.shares} {order.positionDirection} shares "{outcome.claim}" for{" "}
+          Are you sure that you want to buy {order.shares}{" "}
+          {order.positionDirection} shares "{outcome.claim}" for{" "}
           {priceNumberFormat(order.shares * directionCost)} CR?
         </Modal.Body>
         <Modal.Footer>
           <Button variant="danger" onClick={handleClose}>
             Cancel
           </Button>
-          <Button variant="success" onClick={processBuyForm(market, order, setTransactionValidation)}>
+          <Button
+            variant="success"
+            onClick={processBuyForm(market, order, setTransactionValidation)}
+          >
             Submit Purchase
           </Button>
         </Modal.Footer>

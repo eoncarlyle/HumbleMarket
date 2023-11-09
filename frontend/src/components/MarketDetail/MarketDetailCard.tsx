@@ -17,30 +17,37 @@ interface MarketDetailCardProps {
   setOrder: Dispatch<SetStateAction<Order>>;
 }
 
-function MarketDetailCard({ market, salePriceList, order, setOrder }: MarketDetailCardProps) {
-  let closeDate = new Date(market.closeDate);
+function MarketDetailCard({
+  market,
+  salePriceList,
+  order,
+  setOrder,
+}: MarketDetailCardProps) {
+  const closeDate = new Date(market.closeDate);
   let outcomeIndex = 0;
-  let outcomesList: JSX.Element[] = [];
+  const outcomesList: JSX.Element[] = [];
 
   market.outcomes.forEach((outcome) => {
-    outcomesList.push(<MarketDetailOutcomeBox outcome={outcome} setOrder={setOrder} outcomeIndex={outcomeIndex} />);
+    outcomesList.push(
+      <MarketDetailOutcomeBox
+        outcome={outcome}
+        setOrder={setOrder}
+        outcomeIndex={outcomeIndex}
+      />
+    );
     outcomeIndex++;
   });
   return (
     <Card border="dark" className={styles.marketCard}>
       <Card.Body>
-        <Card.Title className={styles.marketCardTitle}>{market.question}</Card.Title>
+        <Card.Title className={styles.marketCardTitle}>
+          {market.question}
+        </Card.Title>
         <Card.Text className={styles.marketCardText}>
-          Close Date: {closeDate.toDateString()} at {closeDate.toLocaleTimeString()}
+          Close Date: {closeDate.toDateString()} at{" "}
+          {closeDate.toLocaleTimeString()}
         </Card.Text>
         {outcomesList}
-
-        {/* 
-        TODO
-        - Buy/Sell form submission and validation
-          - Modal to confirm -> loading spinner -> feedback
-        
-        */}
         <Tabs className={styles.marketTabs}>
           <Tab eventKey="purchase" title="Buy">
             <Container className={styles.marketTabContent}>
@@ -49,7 +56,12 @@ function MarketDetailCard({ market, salePriceList, order, setOrder }: MarketDeta
           </Tab>
           <Tab eventKey="sale" title="Sale">
             <Container className={styles.marketTabContent}>
-              <SellForm market={market} salePriceList={salePriceList} order={order} setOrder={setOrder} />
+              <SellForm
+                market={market}
+                salePriceList={salePriceList}
+                order={order}
+                setOrder={setOrder}
+              />
             </Container>
           </Tab>
         </Tabs>

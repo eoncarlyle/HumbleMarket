@@ -5,14 +5,23 @@ import MarketOverview from "./MarketOverview/MarketOverview";
 
 function MarketsBody() {
   const markets = useRouteLoaderData("home") as Array<Market>;
-  return (
-    //TODO: show markets on desktop as a 2 column grid
+  const marketOverviewList = (
     <>
-        {markets.map((market: Market) => (
-          <MarketOverview market={market} />
-        ))}
+      {markets.map((market: Market) => (
+        <MarketOverview market={market} />
+      ))}
     </>
   );
+
+  const noMarketsMessage = (
+    <>
+      <h2>
+        No current markets to transact with, make sure to check back later!
+      </h2>
+    </>
+  );
+
+  return markets.length > 0 ? marketOverviewList : noMarketsMessage;
 }
 
 export default MarketsBody;

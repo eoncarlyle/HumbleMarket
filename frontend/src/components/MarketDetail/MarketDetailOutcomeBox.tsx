@@ -15,14 +15,18 @@ interface MarketDetailOutcomeBoxProps {
 }
 
 //TODO: Go back to CSS modules, placed as the classname on the top level fragment
-function MarketDetailOutcomeBox({ outcome, setOrder, outcomeIndex }: MarketDetailOutcomeBoxProps) {
+function MarketDetailOutcomeBox({
+  outcome,
+  setOrder,
+  outcomeIndex,
+}: MarketDetailOutcomeBoxProps) {
   return (
     <Container>
       <Row className={styles.outcomeRow}>
         <Col sm={4}>{outcome.claim}</Col>
         <Col sm={8}>
           <Button
-            className = {styles.marketButton}
+            className={styles.marketButton}
             onClick={() =>
               setOrder({
                 positionDirection: PositionDirection.YES,
@@ -35,7 +39,7 @@ function MarketDetailOutcomeBox({ outcome, setOrder, outcomeIndex }: MarketDetai
             Yes: {priceNumberFormat(outcome.price)} CR
           </Button>
           <Button
-            className = {styles.marketButton}
+            className={styles.marketButton}
             onClick={() =>
               setOrder({
                 positionDirection: PositionDirection.NO,
