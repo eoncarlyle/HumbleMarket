@@ -19,12 +19,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.iainschmitt.perdiction.model.rest.MarketProposalData;
 import com.iainschmitt.perdiction.model.rest.MarketReturnData;
-import com.iainschmitt.perdiction.model.rest.MarketTransactionReturnData;
 import com.iainschmitt.perdiction.model.rest.PurchaseRequestData;
 import com.iainschmitt.perdiction.model.rest.SaleRequestData;
-import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
 import com.iainschmitt.perdiction.model.Market;
 import com.iainschmitt.perdiction.model.MarketProposal;
+import com.iainschmitt.perdiction.model.MarketTransaction;
 import com.iainschmitt.perdiction.repository.MarketProposalRepository;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.service.AuthService;
@@ -65,7 +64,7 @@ public class MarketTransactionController {
     }
 
     @PostMapping(value = "/purchase")
-    public ResponseEntity<MarketTransactionReturnData> purchase(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+    public ResponseEntity<MarketTransaction> purchase(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @RequestBody PurchaseRequestData purchaseRequestData) {
         authService.authenticateTokenThrows(token);
         return new ResponseEntity<>(
@@ -74,7 +73,7 @@ public class MarketTransactionController {
     }
 
     @PostMapping(value = "/sale")
-    public ResponseEntity<MarketTransactionReturnData> sale(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+    public ResponseEntity<MarketTransaction> sale(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @RequestBody SaleRequestData saleRequestData) {
         authService.authenticateTokenThrows(token);
         return new ResponseEntity<>(
@@ -103,10 +102,9 @@ public class MarketTransactionController {
         return new ResponseEntity<>(marketProposalRepository.findAll(), HttpStatus.OK);
     }
 
-    // accepted market
     @PostMapping(value = "/accept_market_proposal/{marketProposalId}")
-    public ResponseEntity<MarketProposal> acceptMarketProposal(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String token, @PathVariable String marketProposalId) {
+    public ResponseEntity<MarketProposal> acceptMarketProposal(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @PathVariable String marketProposalId) {
         authService.authenticateTokenThrows(token);
         authService.authenticateAdminThrows(token);
         return new ResponseEntity<>(marketTransactionService.acceptMarketProposal(marketProposalId),
@@ -114,12 +112,12 @@ public class MarketTransactionController {
     }
 
     @PostMapping(value = "/reject_market_proposal/{marketProposalId}")
-    public ResponseEntity<MarketProposal> rejectMarketProposal(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String token, @PathVariable String marketProposalId) {
+    public ResponseEntity<MarketProposal> rejectMarketProposal(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @PathVariable String marketProposalId) {
 
         authService.authenticateTokenThrows(token);
         authService.authenticateAdminThrows(token);
-        return new ResponseEntity<>(
-                marketTransactionService.rejectMarketProposal(marketProposalId), null, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(marketTransactionService.rejectMarketProposal(marketProposalId), null,
+                HttpStatus.ACCEPTED);
     }
 }

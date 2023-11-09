@@ -62,15 +62,18 @@ public class MarketTransactionService {
     // This is not @Transactional, as the only time this is used by itself is for
     // tests
     public Market createMarket(MarketProposalBasis marketData) {
-        //if (!validMarketCreationData(marketData)) {
+        // if (!validMarketCreationData(marketData)) {
 
-        //}
+        // }
 
         // TODO: consider how we want to accomodate different market making styles in
         // the future: a lot of this math should be moved to the market class
-        
-        // For 1 or 2 outcomes, the starting price should be 0.5 for YES outcomes. For 3 or more outcomes, \sum P = 1 =  P_1 + P_2 + ... + P_3 
-        var startingPrice = marketData.getOutcomeClaims().size() > 2 ? toBigDecimal(1d / (marketData.getOutcomeClaims().size())) : toBigDecimal(0.5d);
+
+        // For 1 or 2 outcomes, the starting price should be 0.5 for YES outcomes. For 3
+        // or more outcomes, \sum P = 1 = P_1 + P_2 + ... + P_3
+        var startingPrice = marketData.getOutcomeClaims().size() > 2
+                ? toBigDecimal(1d / (marketData.getOutcomeClaims().size()))
+                : toBigDecimal(0.5d);
         var startingSharesY = (int) Math.round(unroundedSharesY(startingPrice, marketData.getMarketMakerK()));
         var startingSharesN = (int) Math.round(unroundedSharesN(startingPrice, marketData.getMarketMakerK()));
         var outcomes = new ArrayList<Outcome>() {
@@ -79,14 +82,13 @@ public class MarketTransactionService {
                         new Outcome(outcomeClaim, startingPrice, startingSharesY, startingSharesN)));
             }
         };
-        var market = new Market(marketData.getQuestion(), marketData.getCreatorId(),
-                marketData.getMarketMakerK(), marketData.getCloseDate(), outcomes, marketData.isPublic(), false, false);
-        
+        var market = new Market(marketData.getQuestion(), marketData.getCreatorId(), marketData.getMarketMakerK(),
+                marketData.getCloseDate(), outcomes, marketData.isPublic(), false, false);
+
         // TODO: Include non-happy path expcetion handling
         return marketRepository.save(market);
     }
 
-    // TODO: Goodness gracious return an ID here
     // TODO: Test
     @Transactional
     public MarketProposal acceptMarketProposal(String marketProposalId) {
@@ -104,7 +106,7 @@ public class MarketTransactionService {
     }
 
     // TODO: Logging aspects for purchase, sale methods
-    public MarketTransactionReturnData purchase(String userEmail, PurchaseRequestData purchaseRequestData) {
+    public MarketTransaction purchase(String userEmail, PurchaseRequestData purchaseRequestData) {
         var user = userService.getUserByEmail(userEmail);
         var market = marketRepository.findById(purchaseRequestData.getId()).get();
         var outcomeIndex = purchaseRequestData.getOutcomeIndex();
@@ -115,7 +117,7 @@ public class MarketTransactionService {
     }
 
     @Transactional
-    public MarketTransactionReturnData purchase(User user, Market market, int outcomeIndex, PositionDirection direction,
+    public MarketTransaction purchase(User user, Market market, int outcomeIndex, PositionDirection direction,
             int shares) {
         // TODO: Package up the logic that is oft-repeated between the other transaction
         // types into methods
@@ -166,10 +168,10 @@ public class MarketTransactionService {
         positionRepository.save(position);
         transactionRepository.save(transaction);
 
-        return new MarketTransactionReturnData("");
+        return transaction;
     }
 
-    public MarketTransactionReturnData sale(String userEmail, SaleRequestData saleRequestData) {
+    public MarketTransaction sale(String userEmail, SaleRequestData saleRequestData) {
         var user = userService.getUserByEmail(userEmail);
         var market = marketRepository.findById(saleRequestData.getId()).get();
         var outcomeIndex = saleRequestData.getOutcomeIndex();
@@ -181,8 +183,8 @@ public class MarketTransactionService {
     }
 
     @Transactional
-    public MarketTransactionReturnData sale(User user, Market market, int outcomeIndex, PositionDirection direction,
-            int shares, BigDecimal sharePrice) {
+    public MarketTransaction sale(User user, Market market, int outcomeIndex, PositionDirection direction, int shares,
+            BigDecimal sharePrice) {
         if (market.isClosed()) {
             throw new IllegalArgumentException("Cannot transact on closed market");
         } else if (shares < 1) {
@@ -238,10 +240,8 @@ public class MarketTransactionService {
 
         // Outcome pricing changes
         if (direction.equals(PositionDirection.YES)) {
-
             outcome.setSharesY(newSharesY);
         } else {
-
             outcome.setSharesN(newSharesN);
         }
 
@@ -259,7 +259,7 @@ public class MarketTransactionService {
         transactionRepository.save(transaction);
 
         // TODO: Fill out
-        return new MarketTransactionReturnData("");
+        return transaction; 
     }
 
     public static boolean priceValidSale(Market market, int outcomeIndex, PositionDirection direction, int shares,
@@ -314,7 +314,7 @@ public class MarketTransactionService {
                 correct = position.getDirection() != direction;
             }
             if (correct) {
-                // Each share redeems at a  value of 1
+                // Each share redeems at a value of 1
                 transactions.add(new MarketTransaction(getBankUserId(), position.getUserId(), market.getId(),
                         outcomeIndex, position.getDirection(), MarketTransactionType.RESOLUTION,
                         toBigDecimal(1d * position.getShares())));
@@ -337,18 +337,20 @@ public class MarketTransactionService {
         return new MarketTransactionReturnData("");
     }
 
-    // TODO: think about a more permanent home for this, like a new MarketService class
+    // TODO: think about a more permanent home for this, like a new MarketService
+    // class
     public boolean validMarketCreationData(MarketProposalData marketCreationData) {
         if (marketRepository.findByQuestion(marketCreationData.getQuestion()) != null) {
             return false;
         }
         var outcomesSet = new HashSet<String>();
         for (String claim : marketCreationData.getOutcomeClaims()) {
-            if (outcomesSet.contains(claim)) return false;
+            if (outcomesSet.contains(claim))
+                return false;
             outcomesSet.add(claim);
         }
         return true;
-    } 
+    }
 
     public static BigDecimal toBigDecimal(double val) {
         return new BigDecimal(val).setScale(2, ROUNDING_RULE);
@@ -405,7 +407,8 @@ public class MarketTransactionService {
 
     public MarketProposal processMarketProposal(MarketProposalData marketProposalData) {
         if (marketProposalRepository.existsByQuestion(marketProposalData.getQuestion())) {
-            throw new IllegalArgumentException(String.format("Duplicate market question '%s'", marketProposalData.getQuestion()));
+            throw new IllegalArgumentException(
+                    String.format("Duplicate market question '%s'", marketProposalData.getQuestion()));
         }
         return marketProposalRepository.save(MarketProposal.of(marketProposalData));
     }
