@@ -20,6 +20,7 @@ interface BuyFormProps {
 
 function BuyForm({ market, order, setOrder }: BuyFormProps) {
   const outcome = market.outcomes[order.outcomeIndex];
+
   const directionShares =
     order.positionDirection === PositionDirection.YES
       ? outcome.sharesY
@@ -36,10 +37,25 @@ function BuyForm({ market, order, setOrder }: BuyFormProps) {
       valid: true,
       showModal: false,
       message: "",
+      order: order,
     });
 
+  if (transactionValidation.order !== order) {
+    setTransactionValidation({
+      valid: transactionValidation.valid,
+      showModal: false,
+      message: "",
+      order: order,
+    });
+  }
+
   const handleSubmit = async () => {
-    setTransactionValidation({ valid: true, showModal: true, message: "" });
+    setTransactionValidation({
+      valid: true,
+      showModal: true,
+      message: "",
+      order: order,
+    });
   };
 
   const handleClose = () => {
@@ -47,6 +63,7 @@ function BuyForm({ market, order, setOrder }: BuyFormProps) {
       valid: transactionValidation.valid,
       showModal: false,
       message: transactionValidation.message,
+      order: order,
     });
   };
 
@@ -82,6 +99,7 @@ function BuyForm({ market, order, setOrder }: BuyFormProps) {
                     valid: true,
                     showModal: false,
                     message: "",
+                    order: order,
                   })
                 }
                 isInvalid={!transactionValidation.valid}

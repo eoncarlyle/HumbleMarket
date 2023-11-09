@@ -21,28 +21,48 @@ interface BuyFormProps {
 
 function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
   const outcome = market.outcomes[order.outcomeIndex];
+
   const outcomeSalePriceList =
     salePriceList[order.outcomeIndex][
       order.positionDirection === PositionDirection.YES ? 0 : 1
     ];
+
   const sharePrice =
     order.shares > outcomeSalePriceList.length
       ? outcomeSalePriceList[-1]
       : outcomeSalePriceList[order.shares - 1];
+
   const directionCost =
     order.positionDirection === PositionDirection.YES
       ? sharePrice
       : 1 - sharePrice;
+
   const inputDisabled = outcomeSalePriceList.length === 0;
+
   const [transactionValidation, setTransactionValidation] =
     useState<TransactionValidation>({
       valid: true,
       showModal: false,
       message: "",
+      order: order,
     });
 
+  if (transactionValidation.order !== order) {
+    setTransactionValidation({
+      valid: transactionValidation.valid,
+      showModal: false,
+      message: "",
+      order: order,
+    });
+  }
+
   const handleSubmit = async () => {
-    setTransactionValidation({ valid: true, showModal: true, message: "" });
+    setTransactionValidation({
+      valid: true,
+      showModal: true,
+      message: "",
+      order: order,
+    });
   };
 
   const handleClose = () => {
@@ -50,6 +70,7 @@ function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
       valid: transactionValidation.valid,
       showModal: false,
       message: transactionValidation.message,
+      order: order,
     });
   };
 
@@ -85,6 +106,7 @@ function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
                     valid: true,
                     showModal: false,
                     message: "",
+                    order: order,
                   })
                 }
                 isInvalid={!transactionValidation.valid}
