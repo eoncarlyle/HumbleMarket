@@ -120,4 +120,11 @@ public class MarketTransactionController {
         return new ResponseEntity<>(marketTransactionService.rejectMarketProposal(marketProposalId), null,
                 HttpStatus.ACCEPTED);
     }
+
+    @GetMapping(value = "/resolved")
+    public ResponseEntity<List<Market>> getMarketsReadyForResolution(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        authService.authenticateTokenThrows(token);
+        authService.authenticateAdminThrows(token);
+        return new ResponseEntity<>(marketRepository.findByIsClosedAndIsResolved(true, false), HttpStatus.OK);
+    }
 }
