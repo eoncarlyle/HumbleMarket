@@ -43,8 +43,7 @@ const router = createBrowserRouter([
             path: "/market/:seqId",
             element: <MarketDetail />,
             loader: marketLoader,
-          }, //TODO: Check to see places where handler function
-          // TODO can be run on state changes
+          },
           {
             path: "/account",
             element: <AccountOverview />,

@@ -7,6 +7,7 @@ import MarketProposalValidationData, {
 } from "../../model/MarketProposalValidationData";
 import processMarketProposalForm from "../../util/ProcessMarketProposalForm";
 import AdminPanelState from "../../model/AdminPanelState";
+import RowWithColumns from "../../util/RowWithColumns";
 
 import styles from "../../style/MarketProposalForm.module.css";
 
@@ -15,19 +16,16 @@ interface MarketProposalFormReviewProps {
   setAdminPanelState: React.Dispatch<React.SetStateAction<AdminPanelState>>;
 }
 
-export default function MarketProposalForm({
-  adminPanelState,
-  setAdminPanelState,
-}: MarketProposalFormReviewProps) {
-  const [marketProposalInputs, setMarketProposalInputs] =
-    useState<MarketProposalInputs>({
-      question: "",
-      closeDate: null,
-      outcomeClaims: [""],
-    });
+export default function MarketProposalForm({ adminPanelState, setAdminPanelState }: MarketProposalFormReviewProps) {
+  const [marketProposalInputs, setMarketProposalInputs] = useState<MarketProposalInputs>({
+    question: "",
+    closeDate: null,
+    outcomeClaims: [""],
+  });
 
-  const [marketProposalValidationData, setMarketProposalValidationData] =
-    useState<MarketProposalValidationData>(neutralMarketProposalValidationData);
+  const [marketProposalValidationData, setMarketProposalValidationData] = useState<MarketProposalValidationData>(
+    neutralMarketProposalValidationData
+  );
 
   const outcomeChangeHandler = (index: number, value: string) => {
     const newOutcomes = marketProposalInputs.outcomeClaims;
@@ -40,11 +38,7 @@ export default function MarketProposalForm({
   };
 
   const outcomesList: JSX.Element[] = [];
-  for (
-    let outcomeIndex = 0;
-    outcomeIndex < marketProposalInputs.outcomeClaims.length;
-    outcomeIndex++
-  ) {
+  for (let outcomeIndex = 0; outcomeIndex < marketProposalInputs.outcomeClaims.length; outcomeIndex++) {
     outcomesList.push(
       <Form.Control
         type="text"
@@ -74,6 +68,32 @@ export default function MarketProposalForm({
     }
   };
 
+  const questionChangeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setMarketProposalInputs({
+      ...marketProposalInputs,
+      question: event.target.value,
+    });
+    setMarketProposalValidationData(neutralMarketProposalValidationData);
+  };
+
+  const marketCloseDateChangeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setMarketProposalInputs({
+      ...marketProposalInputs,
+      closeDate: Number(event.target.value),
+    });
+    setMarketProposalValidationData(neutralMarketProposalValidationData);
+  };
+
+  const submitMarketProposalHandler = () => {
+    processMarketProposalForm(
+      marketProposalInputs,
+      setMarketProposalInputs,
+      setMarketProposalValidationData,
+      adminPanelState,
+      setAdminPanelState
+    );
+  };
+
   //TODO: Validation with redundant names is broken, fix it
 
   return (
@@ -84,20 +104,10 @@ export default function MarketProposalForm({
         <Form.Control
           type="text"
           isInvalid={!marketProposalValidationData.question.valid}
-          onChange={(event) => {
-            setMarketProposalInputs({
-              ...marketProposalInputs,
-              question: event.target.value,
-            });
-            setMarketProposalValidationData(
-              neutralMarketProposalValidationData
-            );
-          }}
+          onChange={questionChangeHandler}
           value={marketProposalInputs.question}
         />
-        <Form.Control.Feedback type="invalid">
-          {marketProposalValidationData?.question?.message}
-        </Form.Control.Feedback>
+        <Form.Control.Feedback type="invalid">{marketProposalValidationData?.question?.message}</Form.Control.Feedback>
       </Form.Group>
 
       <Form.Group className="mb-3">
@@ -105,23 +115,10 @@ export default function MarketProposalForm({
         <Form.Control
           type="number"
           isInvalid={!marketProposalValidationData.closeDate.valid}
-          onChange={(event) => {
-            setMarketProposalInputs({
-              ...marketProposalInputs,
-              closeDate: Number(event.target.value),
-            });
-            setMarketProposalValidationData(
-              neutralMarketProposalValidationData
-            );
-          }}
-          //Value is what needs to be updated!
-          value={
-            marketProposalInputs.closeDate ? marketProposalInputs.closeDate : ""
-          }
+          onChange={marketCloseDateChangeHandler}
+          value={marketProposalInputs.closeDate ? marketProposalInputs.closeDate : ""}
         />
-        <Form.Control.Feedback type="invalid">
-          {marketProposalValidationData?.closeDate?.message}
-        </Form.Control.Feedback>
+        <Form.Control.Feedback type="invalid">{marketProposalValidationData?.closeDate?.message}</Form.Control.Feedback>
       </Form.Group>
 
       <Form.Group className="mb-3">
@@ -132,39 +129,23 @@ export default function MarketProposalForm({
         </Form.Control.Feedback>
       </Form.Group>
 
-      <Row>
-        <Col>
+      <RowWithColumns
+        columnsInnerElements={[
           <Button variant="success" onClick={addOutcome}>
             Add Outcome
-          </Button>
-        </Col>
-        <Col>
+          </Button>,
           <Button
-            variant={
-              marketProposalInputs.outcomeClaims.length <= 1
-                ? "outline-danger"
-                : "danger"
-            }
+            variant={marketProposalInputs.outcomeClaims.length <= 1 ? "outline-danger" : "danger"}
             onClick={removeOutcome}
             disabled={marketProposalInputs.outcomeClaims.length <= 1}
           >
             Delete Outcome
-          </Button>
-        </Col>
-      </Row>
+          </Button>,
+        ]}
+      />
+
       <Row>
-        <Button
-          variant="primary"
-          onClick={() =>
-            processMarketProposalForm(
-              marketProposalInputs,
-              setMarketProposalInputs,
-              setMarketProposalValidationData,
-              adminPanelState,
-              setAdminPanelState
-            )
-          }
-        >
+        <Button variant="primary" onClick={submitMarketProposalHandler}>
           Create Market Proposal
         </Button>
       </Row>
