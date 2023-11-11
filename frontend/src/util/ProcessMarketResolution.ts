@@ -1,31 +1,46 @@
-import { Dispatch, SetStateAction } from "react";
 import Market from "../model/Market";
 
 import { getAuthenticatedResponse } from "./Auth";
 import MarketResolutionState from "../model/MarketResolutionState";
 
 export default async function processMarketResolution(
-  marketId: string,
-  outcomeIndex: number,
   marketResolutionState: MarketResolutionState,
   setMarketResolutionState: React.Dispatch<React.SetStateAction<MarketResolutionState>>
 ) {
-  const response = await getAuthenticatedResponse(`/market/resolve_market/${marketId}/${outcomeIndex}`, "POST");
+  let response: Response;
+  if (marketResolutionState.market.outcomes.length > 1) {
+    response = await getAuthenticatedResponse(
+      `/market/resolve_market/${marketResolutionState.market.id}/${marketResolutionState.outcomeIndex}`,
+      "POST"
+    );
+  } else {
+    response = await getAuthenticatedResponse(
+      `/market/resolve_market/${marketResolutionState.market.id}/direction/${marketResolutionState.direction}`,
+      "POST"
+    );
+  }
 
+  //TODO: Provide acutal feedback for when this goes wrong
   if (!response.ok) {
     setMarketResolutionState({
-      markets: marketResolutionState.markets, 
+      resolvedMarkets: marketResolutionState.resolvedMarkets,
+      market: marketResolutionState.market,
+      outcomeIndex: marketResolutionState.outcomeIndex,
       code: response.status,
       isError: true,
       message: `HTTP Error ${response.status} encountered during submission!`,
+      showModal: false,
     });
   } else {
     const market = (await response.json()) as Market;
     setMarketResolutionState({
-      markets: marketResolutionState.markets.concat(market),
+      resolvedMarkets: marketResolutionState.resolvedMarkets.concat(market),
+      market: market,
+      outcomeIndex: marketResolutionState.outcomeIndex,
       code: response.status,
       isError: true,
       message: "Market resolution successful!",
+      showModal: false,
     });
   }
 }

@@ -4,19 +4,22 @@ import Market from "../../model/Market";
 import MarketResolutionCard from "./MarketResolutionCard";
 import { useState } from "react";
 import MarketResolutionState from "../../model/MarketResolutionState";
+import ResolutionPanelModal from "./ResolutionPanelModal";
 
 export default function ResolutionSubPanel() {
   let resolvableMarkets = useLoaderData() as Array<Market>;
-  
+
   const [marketResolutionState, setMarketResolutionState] = useState<MarketResolutionState>({
-    markets: [],
+    resolvedMarkets: [],
+    market: null,
+    outcomeIndex: null,
     code: null,
     isError: false,
     message: "",
+    showModal: false
   });
-  //!TODO: Put modal for confirmation
-  const resolvedMarketIds = marketResolutionState.markets.map((market: Market) => market.id);
-
+  
+  const resolvedMarketIds = marketResolutionState.resolvedMarkets.map((market: Market) => market.id);
   resolvableMarkets = resolvableMarkets.filter((market: Market) => {
     return !resolvedMarketIds.includes(market.id);
   });
@@ -30,6 +33,10 @@ export default function ResolutionSubPanel() {
           setMarketResolutionState={setMarketResolutionState}
         />
       ))}
+      <ResolutionPanelModal
+        marketResolutionState={marketResolutionState}
+        setMarketResolutionState={setMarketResolutionState}
+      />
     </>
   );
 }

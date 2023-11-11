@@ -1,11 +1,10 @@
 import { Card, Button } from "react-bootstrap";
 
 import Market from "../../model/Market";
-import Outcome from "../../model/Outcome";
 import MarketResolutionState from "../../model/MarketResolutionState";
-import processMarketResolution from "../../util/ProcessMarketResolution";
 
 import styles from "../../style/MarketCard.module.css";
+import PositionDirection from "../../model/PositionDirection";
 
 interface MarketResolutionCardProps {
   market: Market;
@@ -18,15 +17,49 @@ export default function MarketResolutionCard({
   marketResolutionState,
   setMarketResolutionState,
 }: MarketResolutionCardProps) {
-  //const outcomeButtons = market.outcomes.map((outcome: Outcome) => <Button>{outcome.claim}</Button>);
-
   const outcomeButtons: JSX.Element[] = [];
+  const outcomeCount = market.outcomes.length;
+  let handler: () => void;
 
-  for (let index = 0; index < market.outcomes.length; index++) {
-    let handler = () => {
-      processMarketResolution(market.id, index, marketResolutionState, setMarketResolutionState);
+  const createSingleOutcomeButton = (positionDirection: PositionDirection) => {
+    handler = () => {
+      setMarketResolutionState({
+        resolvedMarkets: marketResolutionState.resolvedMarkets,
+        market: market,
+        outcomeIndex: 0,
+        code: marketResolutionState.code,
+        isError: marketResolutionState.isError,
+        message: marketResolutionState.message,
+        showModal: true,
+        direction: positionDirection,
+      });
     };
-    outcomeButtons.push(<Button onClick={handler}>{market.outcomes.at(index).claim}</Button>);
+    return (
+      <Button variant={positionDirection === PositionDirection.YES ? "success" : "danger"} onClick={handler}>
+        {market.outcomes.at(0).claim}: {positionDirection}
+      </Button>
+    );
+  };
+
+  //TODO: Provide different logic that sets a position direction to state for single-outcome markets
+  if (outcomeCount > 1) {
+    for (let index = 0; index < outcomeCount; index++) {
+      handler = () => {
+        setMarketResolutionState({
+          resolvedMarkets: marketResolutionState.resolvedMarkets,
+          market: market,
+          outcomeIndex: index,
+          code: marketResolutionState.code,
+          isError: marketResolutionState.isError,
+          message: marketResolutionState.message,
+          showModal: true,
+        });
+      };
+      outcomeButtons.push(<Button onClick={handler}>{market.outcomes.at(index).claim}</Button>);
+    }
+  } else {
+    outcomeButtons.push(createSingleOutcomeButton(PositionDirection.YES))
+    outcomeButtons.push(createSingleOutcomeButton(PositionDirection.NO))
   }
 
   return (

@@ -83,7 +83,7 @@ public class MarketTransactionController {
                 HttpStatus.ACCEPTED);
     }
 
-    //TODO: Change this to put
+    // TODO: Change this to put
     @PostMapping(value = "/market_proposal")
     public ResponseEntity<MarketProposal> createMarketProposal(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @RequestBody MarketProposalData marketProposalData) {
@@ -105,7 +105,7 @@ public class MarketTransactionController {
         return new ResponseEntity<>(marketProposalRepository.findAll(), HttpStatus.OK);
     }
 
-    //TODO: Change this to put
+    // TODO: Change this to put
     @PostMapping(value = "/accept_market_proposal/{marketProposalId}")
     public ResponseEntity<MarketProposal> acceptMarketProposal(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @PathVariable String marketProposalId) {
@@ -135,8 +135,23 @@ public class MarketTransactionController {
 
     @PostMapping(value = "/resolve_market/{marketId}/{outcomeIndex}")
     public ResponseEntity<Market> resolveMarket(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-    @PathVariable String marketId, @PathVariable int outcomeIndex) {
+            @PathVariable String marketId, @PathVariable int outcomeIndex) {
         var market = marketRepository.findById(marketId).get();
-        return new ResponseEntity<>(marketTransactionService.resolve(market, outcomeIndex, PositionDirection.YES), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(marketTransactionService.resolve(market, outcomeIndex, PositionDirection.YES),
+                HttpStatus.ACCEPTED);
+    }
+
+    @PostMapping(value = "/resolve_market/{marketId}/direction/{positionDirection}")
+    public ResponseEntity<Market> resolveSingleOutcomeMarket(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @PathVariable String marketId, @PathVariable PositionDirection positionDirection) {
+        var market = marketRepository.findById(marketId).get();
+        if (market.getOutcomes().size() > 1) {
+            throw new IllegalArgumentException(
+                    String.format("Cannot use single outcome resolution endpoint for market with '%d' endpoints",
+                            market.getOutcomes().size()));
+        }
+ 
+        return new ResponseEntity<>(marketTransactionService.resolve(market, 0, positionDirection),
+                HttpStatus.ACCEPTED);
     }
 }
