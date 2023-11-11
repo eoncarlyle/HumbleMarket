@@ -21,7 +21,7 @@ interface BuyFormProps {
   setOrder: Dispatch<SetStateAction<Order>>;
 }
 
-function BuyForm({ market, order, setOrder }: BuyFormProps) {
+export default function BuyForm({ market, order, setOrder }: BuyFormProps) {
   const transactionType = TransactionType.Purchase;
   const outcome = market.outcomes[order.outcomeIndex];
   const directionShares = order.positionDirection === PositionDirection.YES ? outcome.sharesY : outcome.sharesN;
@@ -121,5 +121,3 @@ function BuyForm({ market, order, setOrder }: BuyFormProps) {
     </>
   );
 }
-
-export default BuyForm;

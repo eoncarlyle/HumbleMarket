@@ -14,7 +14,7 @@ interface MarketProposalReviewProps {
   setAdminPanelState: React.Dispatch<React.SetStateAction<AdminPanelState>>;
 }
 
-function MarketProposalReview({ adminPanelState, setAdminPanelState }: MarketProposalReviewProps) {
+export default function MarketProposalReview({ adminPanelState, setAdminPanelState }: MarketProposalReviewProps) {
   let marketProposalReturnData = useLoaderData() as MarketProposal[];
 
   const [, setMarketProposalReviewState] = useState<MarketProposalReviewState>();
@@ -71,5 +71,3 @@ function MarketProposalReview({ adminPanelState, setAdminPanelState }: MarketPro
     </>
   );
 }
-
-export default MarketProposalReview;

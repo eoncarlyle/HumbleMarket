@@ -8,7 +8,7 @@ interface MarketDetailLink {
   singleMarketURI: string;
 }
 
-function MarketDetailLink({ market, singleMarketURI }: MarketDetailLink) {
+export default function MarketDetailLink({ market, singleMarketURI }: MarketDetailLink) {
   return (
     <LinkContainer to={singleMarketURI}>
       <Button variant="secondary">
@@ -18,4 +18,3 @@ function MarketDetailLink({ market, singleMarketURI }: MarketDetailLink) {
   );
 }
 
-export default MarketDetailLink;

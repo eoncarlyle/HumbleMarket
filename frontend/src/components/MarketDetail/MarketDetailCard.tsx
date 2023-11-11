@@ -17,7 +17,7 @@ interface MarketDetailCardProps {
   setOrder: Dispatch<SetStateAction<Order>>;
 }
 
-function MarketDetailCard({ market, salePriceList, order, setOrder }: MarketDetailCardProps) {
+export default function MarketDetailCard({ market, salePriceList, order, setOrder }: MarketDetailCardProps) {
   const closeDate = new Date(market.closeDate);
   let outcomeIndex = 0;
   const outcomesList: JSX.Element[] = [];
@@ -58,5 +58,3 @@ function MarketDetailCard({ market, salePriceList, order, setOrder }: MarketDeta
     </Card>
   );
 }
-
-export default MarketDetailCard;

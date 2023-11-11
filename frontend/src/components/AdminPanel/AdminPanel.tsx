@@ -6,7 +6,7 @@ import AdminPanelState, {
   neutralAdminPanelState,
 } from "../../model/AdminPanelState";
 // TODO: Build out this admin panel
-function AdminPanel() {
+export default function AdminPanel() {
   const [adminPanelState, setAdminPanelState] = useState<AdminPanelState>(
     neutralAdminPanelState
   );
@@ -30,5 +30,3 @@ function AdminPanel() {
     </>
   );
 }
-
-export default AdminPanel;

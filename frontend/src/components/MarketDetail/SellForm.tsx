@@ -22,7 +22,7 @@ interface BuyFormProps {
   setOrder: Dispatch<SetStateAction<Order>>;
 }
 
-function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
+export default function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
   const transactionType = TransactionType.Sale;
   const outcome = market.outcomes[order.outcomeIndex];
   const outcomeSalePriceList =
@@ -126,5 +126,3 @@ function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
     </>
   );
 }
-
-export default SellForm;

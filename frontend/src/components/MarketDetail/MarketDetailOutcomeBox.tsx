@@ -15,7 +15,7 @@ interface MarketDetailOutcomeBoxProps {
 }
 
 //TODO: Go back to CSS modules, placed as the classname on the top level fragment
-function MarketDetailOutcomeBox({
+export default function MarketDetailOutcomeBox({
   outcome,
   setOrder,
   outcomeIndex,
@@ -57,4 +57,3 @@ function MarketDetailOutcomeBox({
   );
 }
 
-export default MarketDetailOutcomeBox;

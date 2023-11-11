@@ -4,7 +4,7 @@ import { Button, Form } from "react-bootstrap";
 import AuthValidationData from "../util/AuthValidationData";
 import "../style/AuthForm.module.css";
 
-function SignUpContent() {
+export default function SignUpContent() {
   const validationData = useActionData() as AuthValidationData;
 
   const emaiIsInvalid = validationData && !validationData.email.valid;
@@ -69,4 +69,3 @@ function SignUpContent() {
   );
 }
 
-export default SignUpContent;

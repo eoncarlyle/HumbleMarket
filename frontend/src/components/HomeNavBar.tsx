@@ -6,7 +6,7 @@ import { PersonCircle } from "react-bootstrap-icons";
 import { isAdmin } from "../util/Auth";
 import { tokenExpired } from "../util/Auth";
 
-function HomeNavbar() {
+export default function HomeNavbar() {
   const token = useRouteLoaderData("root") as string;
   return (
     <>
@@ -47,4 +47,3 @@ function HomeNavbar() {
   );
 }
 
-export default HomeNavbar;

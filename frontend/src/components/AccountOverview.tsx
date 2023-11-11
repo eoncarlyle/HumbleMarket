@@ -6,7 +6,7 @@ import AccountData from "../model/AccountData";
 
 import styles from "../style/AccountOverview.module.css";
 
-function AccountOverview() {
+export default function AccountOverview() {
   const returnData = useLoaderData() as AccountData;
 
   return (
@@ -15,9 +15,7 @@ function AccountOverview() {
         <h4>Account Details</h4>
         <ListGroup variant="flush">
           <ListGroup.Item>Email: {returnData.email}</ListGroup.Item>
-          <ListGroup.Item>
-            Credit Balance: {priceNumberFormat(returnData.credits)} CR
-          </ListGroup.Item>
+          <ListGroup.Item>Credit Balance: {priceNumberFormat(returnData.credits)} CR</ListGroup.Item>
         </ListGroup>
       </Card>
       <Card className={styles.accountElements}>
@@ -46,5 +44,3 @@ function AccountOverview() {
     </>
   );
 }
-
-export default AccountOverview;
