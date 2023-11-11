@@ -2,7 +2,6 @@ import { Row, Col } from "react-bootstrap";
 
 import PositionDirection from "../../model/PositionDirection";
 import TransactionType from "../../model/TransactionType";
-import RowWithColumns from "../../util/RowWithColumns";
 
 interface OrderInformationProps {
   transactionType: TransactionType;

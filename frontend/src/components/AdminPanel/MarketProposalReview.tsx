@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLoaderData } from "react-router-dom";
-import { Card, Button, ListGroup, ListGroupItem, Row, Col } from "react-bootstrap";
+import { Card, Button, Row, Col } from "react-bootstrap";
 
 import MarketProposalReviewState from "../../model/MarketProposalReviewState";
 import processMarketProposalReview from "../../util/ProcessMarketProposalReview";

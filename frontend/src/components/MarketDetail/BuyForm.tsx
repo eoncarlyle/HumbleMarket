@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, useState } from "react";
-import { Button, Col, Container, Form, Modal, Row } from "react-bootstrap";
+import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { Form as RRForm } from "react-router-dom";
 
 import Market from "../../model/Market";

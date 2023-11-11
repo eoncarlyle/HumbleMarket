@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import { Form as RRForm } from "react-router-dom";
-import { Container, Row, Col, Form, Button, Modal } from "react-bootstrap";
+import { Container, Row, Col, Form, Button } from "react-bootstrap";
 
 import { priceNumberFormat } from "../../util/Numeric";
 import shareChangeHandlerCreator from "../../util/ShareChangeHandlerCreator";
