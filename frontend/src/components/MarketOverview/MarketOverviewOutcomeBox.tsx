@@ -14,7 +14,7 @@ interface MarketOverviewOutcomeBoxProps {
   outcomeIndex: number;
 }
 
-function MarketOverviewOutcomeBox({ outcome, singleMarketURI, outcomeIndex }: MarketOverviewOutcomeBoxProps) {
+export default function MarketOverviewOutcomeBox({ outcome, singleMarketURI, outcomeIndex }: MarketOverviewOutcomeBoxProps) {
   return (
     <Container>
       <Row className={styles.outcomeRow}>
@@ -52,4 +52,3 @@ function MarketOverviewOutcomeBox({ outcome, singleMarketURI, outcomeIndex }: Ma
   );
 }
 
-export default MarketOverviewOutcomeBox;

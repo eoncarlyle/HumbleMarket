@@ -23,8 +23,8 @@ export default function processSellForm(market: Market, order: Order, sharePrice
 
     if (!response.ok) {
       const responseBody = await response.json() as { message: string };
-      let feedbackMessage; 
-      
+      let feedbackMessage;
+
       if (response.status === 422) {
         feedbackMessage = responseBody.message;
       } else {
@@ -33,14 +33,16 @@ export default function processSellForm(market: Market, order: Order, sharePrice
       setValid({
         valid: false,
         showModal: false,
-        message: feedbackMessage
+        message: feedbackMessage,
+        order: order
       })
-    
+
     } else {
       setValid({
         valid: true,
         showModal: false,
-        message: "Sale succesful!"
+        message: "Sale succesful!",
+        order: order
       })
     }
   }

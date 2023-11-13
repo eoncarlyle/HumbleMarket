@@ -3,9 +3,10 @@ import { Outlet, useRouteLoaderData } from "react-router-dom";
 import { LinkContainer } from "react-router-bootstrap";
 import { PersonCircle } from "react-bootstrap-icons";
 
+import { isAdmin } from "../util/Auth";
 import { tokenExpired } from "../util/Auth";
 
-function HomeNavbar() {
+export default function HomeNavbar() {
   const token = useRouteLoaderData("root") as string;
   return (
     <>
@@ -26,6 +27,14 @@ function HomeNavbar() {
                 <LinkContainer to="/auth/logout">
                   <NavDropdown.Item>Logout</NavDropdown.Item>
                 </LinkContainer>
+                {isAdmin() ? <>
+                  <LinkContainer to="/admin">
+                    <NavDropdown.Item>Market Proposal Review</NavDropdown.Item>
+                  </LinkContainer>
+                  <LinkContainer to="/resolve">
+                    <NavDropdown.Item>Market Proposal Resolve</NavDropdown.Item>
+                  </LinkContainer>
+                </> : <></>}
               </NavDropdown>
             </>
           ) : (
@@ -38,4 +47,3 @@ function HomeNavbar() {
   );
 }
 
-export default HomeNavbar;

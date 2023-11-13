@@ -3,7 +3,7 @@ import { useRouteLoaderData } from "react-router-dom";
 import Market from "../model/Market";
 import MarketOverview from "./MarketOverview/MarketOverview";
 
-function MarketsBody() {
+export default function MarketsBody() {
   const markets = useRouteLoaderData("home") as Array<Market>;
   const marketOverviewList = (
     <>
@@ -24,4 +24,3 @@ function MarketsBody() {
   return markets.length > 0 ? marketOverviewList : noMarketsMessage;
 }
 
-export default MarketsBody;

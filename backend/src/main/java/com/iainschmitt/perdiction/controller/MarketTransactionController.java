@@ -1,6 +1,7 @@
 package com.iainschmitt.perdiction.controller;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +25,7 @@ import com.iainschmitt.perdiction.model.rest.SaleRequestData;
 import com.iainschmitt.perdiction.model.Market;
 import com.iainschmitt.perdiction.model.MarketProposal;
 import com.iainschmitt.perdiction.model.MarketTransaction;
+import com.iainschmitt.perdiction.model.PositionDirection;
 import com.iainschmitt.perdiction.repository.MarketProposalRepository;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.service.AuthService;
@@ -81,6 +83,7 @@ public class MarketTransactionController {
                 HttpStatus.ACCEPTED);
     }
 
+    // TODO: Change this to put
     @PostMapping(value = "/market_proposal")
     public ResponseEntity<MarketProposal> createMarketProposal(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @RequestBody MarketProposalData marketProposalData) {
@@ -102,6 +105,7 @@ public class MarketTransactionController {
         return new ResponseEntity<>(marketProposalRepository.findAll(), HttpStatus.OK);
     }
 
+    // TODO: Change this to put
     @PostMapping(value = "/accept_market_proposal/{marketProposalId}")
     public ResponseEntity<MarketProposal> acceptMarketProposal(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @PathVariable String marketProposalId) {
@@ -118,6 +122,36 @@ public class MarketTransactionController {
         authService.authenticateTokenThrows(token);
         authService.authenticateAdminThrows(token);
         return new ResponseEntity<>(marketTransactionService.rejectMarketProposal(marketProposalId), null,
+                HttpStatus.ACCEPTED);
+    }
+
+    @GetMapping(value = "/resolved")
+    public ResponseEntity<List<Market>> getMarketsReadyForResolution(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        authService.authenticateTokenThrows(token);
+        authService.authenticateAdminThrows(token);
+        return new ResponseEntity<>(marketRepository.findByIsClosedAndIsResolved(true, false), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/resolve_market/{marketId}/{outcomeIndex}")
+    public ResponseEntity<Market> resolveMarket(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @PathVariable String marketId, @PathVariable int outcomeIndex) {
+        var market = marketRepository.findById(marketId).get();
+        return new ResponseEntity<>(marketTransactionService.resolve(market, outcomeIndex, PositionDirection.YES),
+                HttpStatus.ACCEPTED);
+    }
+
+    @PostMapping(value = "/resolve_market/{marketId}/direction/{positionDirection}")
+    public ResponseEntity<Market> resolveSingleOutcomeMarket(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @PathVariable String marketId, @PathVariable PositionDirection positionDirection) {
+        var market = marketRepository.findById(marketId).get();
+        if (market.getOutcomes().size() > 1) {
+            throw new IllegalArgumentException(
+                    String.format("Cannot use single outcome resolution endpoint for market with '%d' endpoints",
+                            market.getOutcomes().size()));
+        }
+ 
+        return new ResponseEntity<>(marketTransactionService.resolve(market, 0, positionDirection),
                 HttpStatus.ACCEPTED);
     }
 }

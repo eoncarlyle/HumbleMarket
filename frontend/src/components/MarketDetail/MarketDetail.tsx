@@ -7,7 +7,7 @@ import PositionDirection from "../../model/PositionDirection";
 import MarketDetailCard from "./MarketDetailCard";
 import MarketReturnData from "../../model/MarketReturnData";
 
-function MarketDetail() {
+export default function MarketDetail() {
   const marketReturnData = useLoaderData() as MarketReturnData;
   const [market, salePriceList] = [
     marketReturnData.market,
@@ -35,5 +35,3 @@ function MarketDetail() {
     />
   );
 }
-
-export default MarketDetail;

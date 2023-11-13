@@ -1,5 +1,5 @@
 interface Outcome {
-  claim: String;
+  claim: string;
   price: number;
   sharesY: number;
   sharesN: number;

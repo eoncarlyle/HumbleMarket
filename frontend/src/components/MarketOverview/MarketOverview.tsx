@@ -9,7 +9,7 @@ interface SingleMarketProps {
   market: Market;
 }
 
-function SingleMarket({ market }: SingleMarketProps) {
+export default function SingleMarket({ market }: SingleMarketProps) {
   const closeDate = new Date(market.closeDate);
   const singleMarketURI = "/market/" + market.id;
   return (
@@ -35,5 +35,3 @@ function SingleMarket({ market }: SingleMarketProps) {
     </Card>
   );
 }
-
-export default SingleMarket;

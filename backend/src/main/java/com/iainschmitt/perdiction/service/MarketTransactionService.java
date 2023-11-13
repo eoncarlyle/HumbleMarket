@@ -259,7 +259,7 @@ public class MarketTransactionService {
         transactionRepository.save(transaction);
 
         // TODO: Fill out
-        return transaction; 
+        return transaction;
     }
 
     public static boolean priceValidSale(Market market, int outcomeIndex, PositionDirection direction, int shares,
@@ -295,13 +295,17 @@ public class MarketTransactionService {
     }
 
     @Transactional
-    public MarketTransactionReturnData resolve(Market market, int outcomeIndex, PositionDirection direction) {
-        // TODO: throw exception for markets that aren't closed
+    public Market resolve(Market market, int outcomeIndex, PositionDirection direction) {
         if (market.getOutcomes().size() > 1 && direction.equals(PositionDirection.NO)) {
             throw new IllegalArgumentException("Underdefined resolution criteria");
         }
         if (!market.isClosed()) {
             throw new IllegalArgumentException("Attempt to resolve a still open market");
+        }
+        if (market.getOutcomes().size() <= outcomeIndex) {
+            throw new IllegalArgumentException(
+                    String.format("Outcome index of '%d' outside of the '%d' possible indexes", outcomeIndex,
+                            market.getOutcomes().size()));
         }
 
         var transactions = new ArrayList<MarketTransaction>();
@@ -334,7 +338,9 @@ public class MarketTransactionService {
         }
 
         userService.saveUser(getBankUser());
-        return new MarketTransactionReturnData("");
+        market.setResolved(true);
+
+        return marketRepository.save(market);
     }
 
     // TODO: think about a more permanent home for this, like a new MarketService

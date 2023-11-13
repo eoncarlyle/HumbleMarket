@@ -2,7 +2,7 @@ import { Button } from 'react-bootstrap'
 import { LinkContainer } from 'react-router-bootstrap'
 import '../style/LandingContent.module.css'
 
-function LandingContent() {
+export default function LandingContent() {
   return (
     <>
       <h1>Think you have what it takes?</h1>
@@ -12,5 +12,3 @@ function LandingContent() {
     </>
   )
 }
-
-export default LandingContent;

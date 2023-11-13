@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, useState } from "react";
-import { Button, Col, Container, Form, Modal, Row } from "react-bootstrap";
+import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { Form as RRForm } from "react-router-dom";
 
 import Market from "../../model/Market";
@@ -11,6 +11,9 @@ import processBuyForm from "../../util/ProcessBuyForm";
 import shareChangeHandlerCreator from "../../util/ShareChangeHandlerCreator";
 
 import styles from "../../style/TransactionForm.module.css";
+import MarketTransactionModal from "./MarketTransactionModal";
+import TransactionType from "../../model/TransactionType";
+import OrderInformation from "./OrderInformation";
 
 interface BuyFormProps {
   market: Market;
@@ -18,27 +21,19 @@ interface BuyFormProps {
   setOrder: Dispatch<SetStateAction<Order>>;
 }
 
-function BuyForm({ market, order, setOrder }: BuyFormProps) {
+export default function BuyForm({ market, order, setOrder }: BuyFormProps) {
+  const transactionType = TransactionType.Purchase;
   const outcome = market.outcomes[order.outcomeIndex];
-
-  const directionShares =
-    order.positionDirection === PositionDirection.YES
-      ? outcome.sharesY
-      : outcome.sharesN;
+  const directionShares = order.positionDirection === PositionDirection.YES ? outcome.sharesY : outcome.sharesN;
   const availableShares = directionShares - 1;
+  const directionCost = order.positionDirection === PositionDirection.YES ? outcome.price : 1 - outcome.price;
 
-  const directionCost =
-    order.positionDirection === PositionDirection.YES
-      ? outcome.price
-      : 1 - outcome.price;
-
-  const [transactionValidation, setTransactionValidation] =
-    useState<TransactionValidation>({
-      valid: true,
-      showModal: false,
-      message: "",
-      order: order,
-    });
+  const [transactionValidation, setTransactionValidation] = useState<TransactionValidation>({
+    valid: true,
+    showModal: false,
+    message: "",
+    order: order,
+  });
 
   if (transactionValidation.order !== order) {
     setTransactionValidation({
@@ -49,7 +44,7 @@ function BuyForm({ market, order, setOrder }: BuyFormProps) {
     });
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     setTransactionValidation({
       valid: true,
       showModal: true,
@@ -67,22 +62,24 @@ function BuyForm({ market, order, setOrder }: BuyFormProps) {
     });
   };
 
+  const shareButtonClickHandler = () =>
+    setTransactionValidation({
+      valid: true,
+      showModal: false,
+      message: "",
+      order: order,
+    });
+
   return (
     <>
       <RRForm className={styles.transactionForm} onSubmit={handleSubmit}>
         <Container className={styles.transactionFormContainer}>
-          <Row>
-            <Col>Outcome</Col>
-            <Col>{outcome.claim}</Col>
-          </Row>
-          <Row>
-            <Col>Direction</Col>
-            <Col>{order.positionDirection}</Col>
-          </Row>
-          <Row>
-            <Col>Available Shares to Buy</Col>
-            <Col>{availableShares}</Col>
-          </Row>
+          <OrderInformation
+            transactionType={transactionType}
+            claim={outcome.claim}
+            direction={order.positionDirection}
+            availableShares={availableShares}
+          />
           <Row>
             <Col>Shares to Buy</Col>
             <Col>
@@ -94,33 +91,15 @@ function BuyForm({ market, order, setOrder }: BuyFormProps) {
                 max={availableShares}
                 placeholder={String(order.shares)}
                 onChange={shareChangeHandlerCreator(order, setOrder)}
-                onClick={() =>
-                  setTransactionValidation({
-                    valid: true,
-                    showModal: false,
-                    message: "",
-                    order: order,
-                  })
-                }
+                onClick={shareButtonClickHandler}
                 isInvalid={!transactionValidation.valid}
-                isValid={
-                  transactionValidation.valid &&
-                  transactionValidation.message !== ""
-                }
+                isValid={transactionValidation.valid && transactionValidation.message !== ""}
               ></Form.Control>
-              <Form.Control.Feedback type="invalid">
-                {transactionValidation.message}
-              </Form.Control.Feedback>
-              <Form.Control.Feedback type="valid">
-                {transactionValidation.message}
-              </Form.Control.Feedback>
+              <Form.Control.Feedback type="invalid">{transactionValidation.message}</Form.Control.Feedback>
+              <Form.Control.Feedback type="valid">{transactionValidation.message}</Form.Control.Feedback>
             </Col>
           </Row>
-          <Button
-            variant="primary"
-            type="submit"
-            className={styles.marketButton}
-          >
+          <Button variant="primary" type="submit" className={styles.marketButton}>
             Buy
           </Button>
           <Row>
@@ -130,29 +109,15 @@ function BuyForm({ market, order, setOrder }: BuyFormProps) {
         </Container>
       </RRForm>
 
-      <Modal show={transactionValidation.showModal} on>
-        <Modal.Header>
-          <Modal.Title>Confirm Buy</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Are you sure that you want to buy {order.shares}{" "}
-          {order.positionDirection} shares "{outcome.claim}" for{" "}
-          {priceNumberFormat(order.shares * directionCost)} CR?
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="danger" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="success"
-            onClick={processBuyForm(market, order, setTransactionValidation)}
-          >
-            Submit Purchase
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <MarketTransactionModal
+        transactionType={transactionType}
+        showModal={transactionValidation.showModal}
+        order={order}
+        outcomeClaim={outcome.claim}
+        directionCost={directionCost}
+        handleClose={handleClose}
+        handleSubmit={processBuyForm(market, order, setTransactionValidation)}
+      />
     </>
   );
 }
-
-export default BuyForm;
