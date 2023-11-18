@@ -21,6 +21,7 @@ import { loader as marketsReadyForResolution } from "./util/MarketsReadyForResol
 
 import "./style/App.css";
 import ResolutionPanel from "./components/ResolutionPanel/ResolutionPanel.tsx";
+import ErrorElement from "./components/ErrorElement.tsx";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
     element: <RootLayout />,
     loader: getAuthToken,
     id: "root",
+    errorElement: <ErrorElement />,
     children: [
       {
         path: "/",
@@ -58,6 +60,10 @@ const router = createBrowserRouter([
             path: "/resolve",
             element: <ResolutionPanel />,
             loader: marketsReadyForResolution,
+          },
+          {
+            path: "/error",
+            element: <ErrorElement />,
           },
           {
             path: "/auth",
