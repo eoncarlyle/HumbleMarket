@@ -1,9 +1,7 @@
-import { Dispatch, SetStateAction, useContext } from "react";
+import { useContext } from "react";
 import { Card, Tab, Tabs, Container, Button } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 
-import Order from "../../model/Order";
-import Market from "../../model/Market";
 import MarketDetailOutcomeBox from "./MarketDetailOutcomeBox";
 import BuyForm from "./BuyForm";
 import SellForm from "./SellForm";

@@ -1,10 +1,9 @@
 import { Button, Container, Row, Col } from "react-bootstrap";
-import { Dispatch, SetStateAction, useContext } from "react";
+import { useContext } from "react";
 
 import Outcome from "../../model/Outcome";
 import { priceNumberFormat } from "../../util/Numeric";
 import PositionDirection from "../../model/PositionDirection";
-import Order from "../../model/Order";
 import MarketDetailContext from "../../util/MarketDetailContext";
 import MarketDetailContextValue from "../../model/MarketDetailContextValue";
 
