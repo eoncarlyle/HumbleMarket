@@ -43,17 +43,18 @@ export default function processSellForm(market: Market,
       })
 
     } else {
-      setValid({
-        valid: true,
-        showModal: false,
-        message: "Sale successful!",
-        order: order
-      })
-      setOrder({
+      const updatedOrder: Order = {
         positionDirection: positionDirection,
         outcomeIndex: outcomeIndex,
         shares: shares,
         submitted: true
+      }
+      setOrder(updatedOrder)
+      setValid({
+        valid: true,
+        showModal: false,
+        message: "Sale successful!",
+        order: updatedOrder
       })
     }
   }

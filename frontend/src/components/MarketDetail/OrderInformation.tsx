@@ -17,19 +17,19 @@ export default function OrderInformation({
   availableShares,
 }: OrderInformationProps) {
   return (
-  <>
-    <Row>
-      <Col>Outcome</Col>
-      <Col>{claim}</Col>
-    </Row>
-    <Row>
-      <Col>Direction</Col>
-      <Col>{direction}</Col>
-    </Row>
-    <Row>
-      <Col>Shares Available to {transactionType}</Col>
-      <Col>{availableShares}</Col>
-    </Row>
+    <>
+      <Row>
+        <Col>Outcome</Col>
+        <Col>{claim}</Col>
+      </Row>
+      <Row>
+        <Col>Direction</Col>
+        <Col>{direction}</Col>
+      </Row>
+      <Row>
+        <Col>Shares Available for {transactionType}</Col>
+        <Col>{availableShares}</Col>
+      </Row>
     </>
-  )
+  );
 }

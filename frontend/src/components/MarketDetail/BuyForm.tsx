@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState, useContext } from "react";
+import { useState, useContext } from "react";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { Form as RRForm } from "react-router-dom";
 
@@ -17,7 +17,6 @@ import MarketTransactionModal from "./MarketTransactionModal";
 import TransactionType from "../../model/TransactionType";
 import OrderInformation from "./OrderInformation";
 
-//TODO pm-22: figure out why validation and feedback aren't working as intended
 export default function BuyForm() {
   const marketDetailContextValue = useContext(MarketDetailContext) as MarketDetailContextValue;
   const { marketReturnData, order, setOrder } = marketDetailContextValue;
