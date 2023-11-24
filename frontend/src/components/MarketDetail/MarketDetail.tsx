@@ -1,5 +1,5 @@
-import { createContext, useEffect, useState } from "react";
-import { useLoaderData, useLocation, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
 
 import Order from "../../model/Order";
 import TransactionType from "../../model/TransactionType";
@@ -27,7 +27,6 @@ export default function MarketDetail() {
         }
   );
 
-  //TODO pm-22: need to prevent this from spamming a re-render
   const useMarket = () => {
     useEffect(() => {
       getMarket(marketId).then((result) => setMarketReturnData(result));

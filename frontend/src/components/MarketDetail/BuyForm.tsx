@@ -2,8 +2,6 @@ import { useState, useContext } from "react";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { Form as RRForm } from "react-router-dom";
 
-import Market from "../../model/Market";
-import Order from "../../model/Order";
 import PositionDirection from "../../model/PositionDirection";
 import TransactionValidation from "../../model/TransactionValidation";
 import { priceNumberFormat } from "../../util/Numeric";
@@ -11,23 +9,28 @@ import processBuyForm from "../../util/ProcessBuyForm";
 import shareChangeHandlerCreator from "../../util/ShareChangeHandlerCreator";
 import MarketDetailContext from "../../util/MarketDetailContext";
 import MarketDetailContextValue from "../../model/MarketDetailContextValue";
-
-import styles from "../../style/TransactionForm.module.css";
-import MarketTransactionModal from "./MarketTransactionModal";
 import TransactionType from "../../model/TransactionType";
 import OrderInformation from "./OrderInformation";
+import MarketTransactionModal from "./MarketTransactionModal";
+import {
+  submitHandlerFactory,
+  closeHandlerFactory,
+  shareButtonHandlerFactory,
+} from "../../util/TransactionValidationStateManagement";
+
+import styles from "../../style/TransactionForm.module.css";
 
 export default function BuyForm() {
   const marketDetailContextValue = useContext(MarketDetailContext) as MarketDetailContextValue;
   const { marketReturnData, order, setOrder } = marketDetailContextValue;
-  const { market } = marketReturnData;
+  const { market, userCredits } = marketReturnData;
 
   const transactionType = TransactionType.Purchase;
   const outcome = market.outcomes[order.outcomeIndex];
   const directionShares = order.positionDirection === PositionDirection.YES ? outcome.sharesY : outcome.sharesN;
 
-  const availableShares = directionShares - 1;
   const directionCost = order.positionDirection === PositionDirection.YES ? outcome.price : 1 - outcome.price;
+  const availableShares = Math.min(directionShares - 1, Math.floor(userCredits / directionCost));
 
   const [transactionValidation, setTransactionValidation] = useState<TransactionValidation>({
     valid: true,
@@ -35,6 +38,10 @@ export default function BuyForm() {
     message: "",
     order: order,
   });
+
+  const submitHandler = submitHandlerFactory(setTransactionValidation, order);
+  const closeHandler = closeHandlerFactory(transactionValidation, setTransactionValidation, order);
+  const shareButtonClickHandler = shareButtonHandlerFactory(setTransactionValidation, order);
 
   if (transactionValidation.order !== order) {
     setTransactionValidation({
@@ -45,35 +52,9 @@ export default function BuyForm() {
     });
   }
 
-  const handleSubmit = () => {
-    setTransactionValidation({
-      valid: true,
-      showModal: true,
-      message: "",
-      order: order,
-    });
-  };
-
-  const handleClose = () => {
-    setTransactionValidation({
-      valid: transactionValidation.valid,
-      showModal: false,
-      message: transactionValidation.message,
-      order: order,
-    });
-  };
-
-  const shareButtonClickHandler = () =>
-    setTransactionValidation({
-      valid: true,
-      showModal: false,
-      message: "",
-      order: order,
-    });
-
   return (
     <>
-      <RRForm className={styles.transactionForm} onSubmit={handleSubmit}>
+      <RRForm className={styles.transactionForm} onSubmit={submitHandler}>
         <Container className={styles.transactionFormContainer}>
           <OrderInformation
             transactionType={transactionType}
@@ -116,7 +97,7 @@ export default function BuyForm() {
         order={order}
         outcomeClaim={outcome.claim}
         directionCost={directionCost}
-        handleClose={handleClose}
+        handleClose={closeHandler}
         handleSubmit={processBuyForm(market, order, setTransactionValidation, setOrder)}
       />
     </>

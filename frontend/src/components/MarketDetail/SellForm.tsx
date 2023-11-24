@@ -10,12 +10,16 @@ import processSellForm from "../../util/ProcessSellForm";
 import OrderInformation from "./OrderInformation";
 import MarketDetailContext from "../../util/MarketDetailContext";
 import MarketDetailContextValue from "../../model/MarketDetailContextValue";
-
-import styles from "../../style/TransactionForm.module.css";
+import {
+  submitHandlerFactory,
+  closeHandlerFactory,
+  shareButtonHandlerFactory,
+} from "../../util/TransactionValidationStateManagement";
 import MarketTransactionModal from "./MarketTransactionModal";
 import TransactionType from "../../model/TransactionType";
 
-//TODO pm-22: figure out why validation and feedback aren't working as intended
+import styles from "../../style/TransactionForm.module.css";
+
 export default function SellForm() {
   const marketDetailContextValue = useContext(MarketDetailContext) as MarketDetailContextValue;
   const { marketReturnData, order, setOrder } = marketDetailContextValue;
@@ -38,6 +42,10 @@ export default function SellForm() {
     order: order,
   });
 
+  const submitHandler = submitHandlerFactory(setTransactionValidation, order);
+  const closeHandler = closeHandlerFactory(transactionValidation, setTransactionValidation, order);
+  const shareButtonHandler = shareButtonHandlerFactory(setTransactionValidation, order);
+
   if (transactionValidation.order !== order) {
     setTransactionValidation({
       valid: transactionValidation.valid,
@@ -47,35 +55,9 @@ export default function SellForm() {
     });
   }
 
-  const handleSubmit = () => {
-    setTransactionValidation({
-      valid: true,
-      showModal: true,
-      message: "",
-      order: order,
-    });
-  };
-
-  const handleClose = () => {
-    setTransactionValidation({
-      valid: transactionValidation.valid,
-      showModal: false,
-      message: transactionValidation.message,
-      order: order,
-    });
-  };
-
-  const shareButtonClickHandler = () =>
-    setTransactionValidation({
-      valid: true,
-      showModal: false,
-      message: "",
-      order: order,
-    });
-
   return (
     <>
-      <RRForm className={styles.transactionForm} onSubmit={handleSubmit}>
+      <RRForm className={styles.transactionForm} onSubmit={submitHandler}>
         <Container className={styles.transactionFormContainer}>
           <OrderInformation
             transactionType={transactionType}
@@ -94,7 +76,7 @@ export default function SellForm() {
                 max={outcomeSalePriceList.length}
                 placeholder={String(order.shares)}
                 onChange={shareChangeHandlerCreator(order, setOrder)}
-                onClick={shareButtonClickHandler}
+                onClick={shareButtonHandler}
                 isInvalid={!transactionValidation.valid}
                 isValid={transactionValidation.valid && transactionValidation.message !== ""}
                 disabled={inputDisabled}
@@ -119,7 +101,7 @@ export default function SellForm() {
         order={order}
         outcomeClaim={outcome.claim}
         directionCost={directionCost}
-        handleClose={handleClose}
+        handleClose={closeHandler}
         handleSubmit={processSellForm(market, order, sharePrice, setTransactionValidation, setOrder)}
       />
     </>

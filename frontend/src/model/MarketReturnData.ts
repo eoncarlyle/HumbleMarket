@@ -5,9 +5,11 @@ import Market from "./Market";
 export default interface MarketReturnData {
   market: Market;
   salePriceList: number[][][];
+  userCredits: number;
 }
 
 export const neutralMarketReturnData: MarketReturnData = {
   market: null,
-  salePriceList: [[[]]]
+  salePriceList: [[[]]],
+  userCredits: null
 }
