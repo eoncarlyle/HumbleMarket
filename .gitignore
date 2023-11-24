@@ -6,7 +6,7 @@ backend/build
 *.jar
 log
 .DS_Store
-.vscode/
+.vscode
 .obsidian/
 Scratch.md
 .idea
