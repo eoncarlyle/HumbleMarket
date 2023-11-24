@@ -6,7 +6,10 @@ import Market from "../model/Market";
 import { getAuthenticatedResponse } from "./Auth";
 
 
-export default function processBuyForm(market: Market, order: Order, setValid: Dispatch<SetStateAction<TransactionValidation>>) {
+export default function processBuyForm(market: Market,
+  order: Order,
+  setValid: Dispatch<SetStateAction<TransactionValidation>>,
+  setOrder: Dispatch<SetStateAction<Order>>) {
   return async () => {
     const [outcomeIndex, positionDirection, shares] = [
       order.outcomeIndex,
@@ -28,7 +31,7 @@ export default function processBuyForm(market: Market, order: Order, setValid: D
       if (response.status === 422) {
         feedbackMessage = responseBody.message;
       } else {
-        feedbackMessage = "Purchase unsuccesful, likely due to problems on our end!"
+        feedbackMessage = "Purchase unsuccessful, likely due to problems on our end!"
       }
 
       setValid({
@@ -41,8 +44,14 @@ export default function processBuyForm(market: Market, order: Order, setValid: D
       setValid({
         valid: true,
         showModal: false,
-        message: "Purchase succesful!",
+        message: "Purchase successful!",
         order: order
+      })
+      setOrder({
+        positionDirection: positionDirection,
+        outcomeIndex: outcomeIndex,
+        shares: shares,
+        submitted: true
       })
     }
   };

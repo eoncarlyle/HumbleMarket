@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useContext } from "react";
 import { Card, Tab, Tabs, Container, Button } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 
@@ -7,32 +7,29 @@ import Market from "../../model/Market";
 import MarketDetailOutcomeBox from "./MarketDetailOutcomeBox";
 import BuyForm from "./BuyForm";
 import SellForm from "./SellForm";
+import MarketDetailContext from "../../util/MarketDetailContext";
+import MarketDetailContextValue from "../../model/MarketDetailContextValue";
 
 import styles from "../../style/MarketCard.module.css";
 
-interface MarketDetailCardProps {
-  market: Market;
-  salePriceList: number[][][];
-  order: Order;
-  setOrder: Dispatch<SetStateAction<Order>>;
-}
+export default function MarketDetailCard() {
+  const marketDetailContextValue = useContext(MarketDetailContext) as MarketDetailContextValue;
+  const { marketReturnData } = marketDetailContextValue;
+  const { market } = marketReturnData;
 
-export default function MarketDetailCard({ market, salePriceList, order, setOrder }: MarketDetailCardProps) {
   const closeDate = new Date(market.closeDate);
   let outcomeIndex = 0;
   const outcomesList: JSX.Element[] = [];
 
   market.outcomes.forEach((outcome) => {
-    outcomesList.push(<MarketDetailOutcomeBox outcome={outcome} setOrder={setOrder} outcomeIndex={outcomeIndex} />);
+    outcomesList.push(<MarketDetailOutcomeBox outcome={outcome} outcomeIndex={outcomeIndex} />);
     outcomeIndex++;
   });
 
   return (
     <Card border="dark" className={styles.marketCard}>
       <Card.Body>
-        <Card.Title className={styles.marketCardTitle}>
-          {market.question}
-        </Card.Title>
+        <Card.Title className={styles.marketCardTitle}>{market.question}</Card.Title>
         <Card.Text className={styles.marketCardText}>
           Close Date: {closeDate.toDateString()} at {closeDate.toLocaleTimeString()}
         </Card.Text>
@@ -40,12 +37,12 @@ export default function MarketDetailCard({ market, salePriceList, order, setOrde
         <Tabs className={styles.marketTabs}>
           <Tab eventKey="purchase" title="Buy">
             <Container className={styles.marketTabContent}>
-              <BuyForm market={market} order={order} setOrder={setOrder} />
+              <BuyForm />
             </Container>
           </Tab>
           <Tab eventKey="sale" title="Sale">
             <Container className={styles.marketTabContent}>
-              <SellForm market={market} salePriceList={salePriceList} order={order} setOrder={setOrder} />
+              <SellForm />
             </Container>
           </Tab>
         </Tabs>

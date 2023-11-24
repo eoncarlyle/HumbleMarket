@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useState, useContext } from "react";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { Form as RRForm } from "react-router-dom";
 
@@ -9,22 +9,24 @@ import TransactionValidation from "../../model/TransactionValidation";
 import { priceNumberFormat } from "../../util/Numeric";
 import processBuyForm from "../../util/ProcessBuyForm";
 import shareChangeHandlerCreator from "../../util/ShareChangeHandlerCreator";
+import MarketDetailContext from "../../util/MarketDetailContext";
+import MarketDetailContextValue from "../../model/MarketDetailContextValue";
 
 import styles from "../../style/TransactionForm.module.css";
 import MarketTransactionModal from "./MarketTransactionModal";
 import TransactionType from "../../model/TransactionType";
 import OrderInformation from "./OrderInformation";
 
-interface BuyFormProps {
-  market: Market;
-  order: Order;
-  setOrder: Dispatch<SetStateAction<Order>>;
-}
+//TODO pm-22: figure out why validation and feedback aren't working as intended
+export default function BuyForm() {
+  const marketDetailContextValue = useContext(MarketDetailContext) as MarketDetailContextValue;
+  const { marketReturnData, order, setOrder } = marketDetailContextValue;
+  const { market } = marketReturnData;
 
-export default function BuyForm({ market, order, setOrder }: BuyFormProps) {
   const transactionType = TransactionType.Purchase;
   const outcome = market.outcomes[order.outcomeIndex];
   const directionShares = order.positionDirection === PositionDirection.YES ? outcome.sharesY : outcome.sharesN;
+
   const availableShares = directionShares - 1;
   const directionCost = order.positionDirection === PositionDirection.YES ? outcome.price : 1 - outcome.price;
 
@@ -116,7 +118,7 @@ export default function BuyForm({ market, order, setOrder }: BuyFormProps) {
         outcomeClaim={outcome.claim}
         directionCost={directionCost}
         handleClose={handleClose}
-        handleSubmit={processBuyForm(market, order, setTransactionValidation)}
+        handleSubmit={processBuyForm(market, order, setTransactionValidation, setOrder)}
       />
     </>
   );

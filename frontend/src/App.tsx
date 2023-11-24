@@ -42,7 +42,7 @@ const router = createBrowserRouter([
             loader: homeLoader,
           }, //TODO: Include error element
           {
-            path: "/market/:seqId",
+            path: "/market/:marketId",
             element: <MarketDetail />,
             loader: marketLoader,
           },

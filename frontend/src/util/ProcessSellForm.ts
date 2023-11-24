@@ -5,7 +5,12 @@ import TransactionValidation from "../model/TransactionValidation";
 import { getAuthenticatedResponse } from "./Auth";
 
 //TODO: Rename TransactionValidation to TransactionValidationData
-export default function processSellForm(market: Market, order: Order, sharePrice: Number, setValid: Dispatch<SetStateAction<TransactionValidation>>) {
+export default function processSellForm(market: Market,
+  order: Order,
+  sharePrice: number,
+  setValid: Dispatch<SetStateAction<TransactionValidation>>,
+  setOrder: Dispatch<SetStateAction<Order>>) {
+
   return async () => {
     const [outcomeIndex, positionDirection, shares] = [
       order.outcomeIndex,
@@ -28,7 +33,7 @@ export default function processSellForm(market: Market, order: Order, sharePrice
       if (response.status === 422) {
         feedbackMessage = responseBody.message;
       } else {
-        feedbackMessage = "Sale unsuccesful, likely due to problems on our end!"
+        feedbackMessage = "Sale unsuccessful, likely due to problems on our end!"
       }
       setValid({
         valid: false,
@@ -41,8 +46,14 @@ export default function processSellForm(market: Market, order: Order, sharePrice
       setValid({
         valid: true,
         showModal: false,
-        message: "Sale succesful!",
+        message: "Sale successful!",
         order: order
+      })
+      setOrder({
+        positionDirection: positionDirection,
+        outcomeIndex: outcomeIndex,
+        shares: shares,
+        submitted: true
       })
     }
   }

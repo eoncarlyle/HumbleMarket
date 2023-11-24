@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useState, useContext } from "react";
 import { Form as RRForm } from "react-router-dom";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 
@@ -10,25 +10,26 @@ import PositionDirection from "../../model/PositionDirection";
 import TransactionValidation from "../../model/TransactionValidation";
 import processSellForm from "../../util/ProcessSellForm";
 import OrderInformation from "./OrderInformation";
+import MarketDetailContext from "../../util/MarketDetailContext";
+import MarketDetailContextValue from "../../model/MarketDetailContextValue";
 
 import styles from "../../style/TransactionForm.module.css";
 import MarketTransactionModal from "./MarketTransactionModal";
 import TransactionType from "../../model/TransactionType";
 
-interface BuyFormProps {
-  market: Market;
-  order: Order;
-  salePriceList: number[][][];
-  setOrder: Dispatch<SetStateAction<Order>>;
-}
+//TODO pm-22: figure out why validation and feedback aren't working as intended
+export default function SellForm() {
+  const marketDetailContextValue = useContext(MarketDetailContext) as MarketDetailContextValue;
+  const { marketReturnData, order, setOrder } = marketDetailContextValue;
+  const { market, salePriceList } = marketReturnData;
 
-export default function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
   const transactionType = TransactionType.Sale;
   const outcome = market.outcomes[order.outcomeIndex];
   const outcomeSalePriceList =
     salePriceList[order.outcomeIndex][order.positionDirection === PositionDirection.YES ? 0 : 1];
   const sharePrice =
     order.shares > outcomeSalePriceList.length ? outcomeSalePriceList[-1] : outcomeSalePriceList[order.shares - 1];
+
   const directionCost = order.positionDirection === PositionDirection.YES ? sharePrice : 1 - sharePrice;
   const inputDisabled = outcomeSalePriceList.length === 0;
 
@@ -121,7 +122,7 @@ export default function SellForm({ market, salePriceList, order, setOrder }: Buy
         outcomeClaim={outcome.claim}
         directionCost={directionCost}
         handleClose={handleClose}
-        handleSubmit={processSellForm(market, order, sharePrice, setTransactionValidation)}
+        handleSubmit={processSellForm(market, order, sharePrice, setTransactionValidation, setOrder)}
       />
     </>
   );
