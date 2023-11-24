@@ -11,8 +11,10 @@ import com.iainschmitt.perdiction.model.Market;
 public class MarketReturnData {
     public Market market;
     public List<List<List<BigDecimal>>> salePriceList;
+    public BigDecimal userCredits;
 
-    public static MarketReturnData of(Market market, List<List<List<BigDecimal>>> salePriceList) {
-        return new MarketReturnData(market, salePriceList);
+    public static MarketReturnData of(Market market, List<List<List<BigDecimal>>> salePriceList,
+            BigDecimal userCredits) {
+        return new MarketReturnData(market, salePriceList, userCredits);
     }
 }

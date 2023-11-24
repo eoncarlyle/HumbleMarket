@@ -4,9 +4,8 @@ import Order from "../../model/Order";
 import { priceNumberFormat } from "../../util/Numeric";
 import TransactionType from "../../model/TransactionType";
 
-
 interface MarketTransactionProps {
-  transactionType: TransactionType, 
+  transactionType: TransactionType;
   showModal: boolean;
   order: Order;
   outcomeClaim: string;
@@ -15,6 +14,7 @@ interface MarketTransactionProps {
   handleSubmit: () => Promise<void>;
 }
 
+//TODO pm-22: Order prop to context
 export default function MarketTransactionModal({
   transactionType,
   showModal,
@@ -27,18 +27,18 @@ export default function MarketTransactionModal({
   return (
     <Modal show={showModal} on>
       <Modal.Header>
-        <Modal.Title>Confirm { transactionType }</Modal.Title>
+        <Modal.Title>Confirm {transactionType}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        Are you sure that you want to { transactionType.toLowerCase() } {order.shares} {order.positionDirection} shares "{outcomeClaim}" for{" "}
-        {priceNumberFormat(order.shares * directionCost)} CR?
+        Are you sure that you want to {transactionType.toLowerCase()} {order.shares} {order.positionDirection} shares "
+        {outcomeClaim}" for {priceNumberFormat(order.shares * directionCost)} CR?
       </Modal.Body>
       <Modal.Footer>
         <Button variant="danger" onClick={handleClose}>
           Cancel
         </Button>
         <Button variant="success" onClick={handleSubmit}>
-          Submit { transactionType.toLowerCase() } 
+          Submit {transactionType.toLowerCase()}
         </Button>
       </Modal.Footer>
     </Modal>

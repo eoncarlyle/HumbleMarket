@@ -59,10 +59,11 @@ public class MarketTransactionController {
     public ResponseEntity<MarketReturnData> getMarket(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @PathVariable String id) {
         authService.authenticateTokenThrows(token);
+        var user = userService.getUserByEmail(authService.getClaim(token, "email"));
         var market = marketRepository.findById(id).get();
-        var salePriceList = marketTransactionService.getSalePriceList(market,
-                userService.getUserByEmail(authService.getClaim(token, "email")));
-        return new ResponseEntity<>(MarketReturnData.of(market, salePriceList), HttpStatus.OK);
+        var salePriceList = marketTransactionService.getSalePriceList(market, user);
+        var userCredits = user.getCredits();
+        return new ResponseEntity<>(MarketReturnData.of(market, salePriceList, userCredits), HttpStatus.OK);
     }
 
     @PostMapping(value = "/purchase")
@@ -150,7 +151,7 @@ public class MarketTransactionController {
                     String.format("Cannot use single outcome resolution endpoint for market with '%d' endpoints",
                             market.getOutcomes().size()));
         }
- 
+
         return new ResponseEntity<>(marketTransactionService.resolve(market, 0, positionDirection),
                 HttpStatus.ACCEPTED);
     }

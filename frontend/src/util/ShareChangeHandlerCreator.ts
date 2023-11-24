@@ -3,10 +3,11 @@ import { BaseSyntheticEvent, Dispatch, SetStateAction } from "react";
 
 function shareChangeHandlerCreator(order: Order, setOrder: Dispatch<SetStateAction<Order>>) {
   return (event: BaseSyntheticEvent) => {
-    let newOrder: Order = {
+    const newOrder: Order = {
       positionDirection: order.positionDirection,
       outcomeIndex: order.outcomeIndex,
       shares: Number(event.target.value),
+      submitted: false
     };
     setOrder(newOrder);
   };

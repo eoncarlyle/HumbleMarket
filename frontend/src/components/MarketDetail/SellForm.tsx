@@ -1,34 +1,37 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState, useContext } from "react";
 import { Form as RRForm } from "react-router-dom";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 
 import { priceNumberFormat } from "../../util/Numeric";
 import shareChangeHandlerCreator from "../../util/ShareChangeHandlerCreator";
-import Order from "../../model/Order";
-import Market from "../../model/Market";
 import PositionDirection from "../../model/PositionDirection";
 import TransactionValidation from "../../model/TransactionValidation";
 import processSellForm from "../../util/ProcessSellForm";
 import OrderInformation from "./OrderInformation";
-
-import styles from "../../style/TransactionForm.module.css";
+import MarketDetailContext from "../../util/MarketDetailContext";
+import MarketDetailContextValue from "../../model/MarketDetailContextValue";
+import {
+  submitHandlerFactory,
+  closeHandlerFactory,
+  shareButtonHandlerFactory,
+} from "../../util/TransactionValidationStateManagement";
 import MarketTransactionModal from "./MarketTransactionModal";
 import TransactionType from "../../model/TransactionType";
 
-interface BuyFormProps {
-  market: Market;
-  order: Order;
-  salePriceList: number[][][];
-  setOrder: Dispatch<SetStateAction<Order>>;
-}
+import styles from "../../style/TransactionForm.module.css";
 
-export default function SellForm({ market, salePriceList, order, setOrder }: BuyFormProps) {
+export default function SellForm() {
+  const marketDetailContextValue = useContext(MarketDetailContext) as MarketDetailContextValue;
+  const { marketReturnData, order, setOrder } = marketDetailContextValue;
+  const { market, salePriceList } = marketReturnData;
+
   const transactionType = TransactionType.Sale;
   const outcome = market.outcomes[order.outcomeIndex];
   const outcomeSalePriceList =
     salePriceList[order.outcomeIndex][order.positionDirection === PositionDirection.YES ? 0 : 1];
   const sharePrice =
     order.shares > outcomeSalePriceList.length ? outcomeSalePriceList[-1] : outcomeSalePriceList[order.shares - 1];
+
   const directionCost = order.positionDirection === PositionDirection.YES ? sharePrice : 1 - sharePrice;
   const inputDisabled = outcomeSalePriceList.length === 0;
 
@@ -39,6 +42,10 @@ export default function SellForm({ market, salePriceList, order, setOrder }: Buy
     order: order,
   });
 
+  const submitHandler = submitHandlerFactory(setTransactionValidation, order);
+  const closeHandler = closeHandlerFactory(transactionValidation, setTransactionValidation, order);
+  const shareButtonHandler = shareButtonHandlerFactory(setTransactionValidation, order);
+
   if (transactionValidation.order !== order) {
     setTransactionValidation({
       valid: transactionValidation.valid,
@@ -48,35 +55,9 @@ export default function SellForm({ market, salePriceList, order, setOrder }: Buy
     });
   }
 
-  const handleSubmit = () => {
-    setTransactionValidation({
-      valid: true,
-      showModal: true,
-      message: "",
-      order: order,
-    });
-  };
-
-  const handleClose = () => {
-    setTransactionValidation({
-      valid: transactionValidation.valid,
-      showModal: false,
-      message: transactionValidation.message,
-      order: order,
-    });
-  };
-
-  const shareButtonClickHandler = () =>
-    setTransactionValidation({
-      valid: true,
-      showModal: false,
-      message: "",
-      order: order,
-    });
-
   return (
     <>
-      <RRForm className={styles.transactionForm} onSubmit={handleSubmit}>
+      <RRForm className={styles.transactionForm} onSubmit={submitHandler}>
         <Container className={styles.transactionFormContainer}>
           <OrderInformation
             transactionType={transactionType}
@@ -95,7 +76,7 @@ export default function SellForm({ market, salePriceList, order, setOrder }: Buy
                 max={outcomeSalePriceList.length}
                 placeholder={String(order.shares)}
                 onChange={shareChangeHandlerCreator(order, setOrder)}
-                onClick={shareButtonClickHandler}
+                onClick={shareButtonHandler}
                 isInvalid={!transactionValidation.valid}
                 isValid={transactionValidation.valid && transactionValidation.message !== ""}
                 disabled={inputDisabled}
@@ -120,8 +101,8 @@ export default function SellForm({ market, salePriceList, order, setOrder }: Buy
         order={order}
         outcomeClaim={outcome.claim}
         directionCost={directionCost}
-        handleClose={handleClose}
-        handleSubmit={processSellForm(market, order, sharePrice, setTransactionValidation)}
+        handleClose={closeHandler}
+        handleSubmit={processSellForm(market, order, sharePrice, setTransactionValidation, setOrder)}
       />
     </>
   );

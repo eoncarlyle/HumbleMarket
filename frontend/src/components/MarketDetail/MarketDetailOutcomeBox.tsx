@@ -1,25 +1,23 @@
 import { Button, Container, Row, Col } from "react-bootstrap";
-import { Dispatch, SetStateAction } from "react";
+import { useContext } from "react";
 
 import Outcome from "../../model/Outcome";
 import { priceNumberFormat } from "../../util/Numeric";
 import PositionDirection from "../../model/PositionDirection";
-import Order from "../../model/Order";
+import MarketDetailContext from "../../util/MarketDetailContext";
+import MarketDetailContextValue from "../../model/MarketDetailContextValue";
 
 import styles from "../../style/MarketDetailOutcomeBox.module.css";
 
 interface MarketDetailOutcomeBoxProps {
   outcome: Outcome;
-  setOrder: Dispatch<SetStateAction<Order>>;
   outcomeIndex: number;
 }
 
 //TODO: Go back to CSS modules, placed as the classname on the top level fragment
-export default function MarketDetailOutcomeBox({
-  outcome,
-  setOrder,
-  outcomeIndex,
-}: MarketDetailOutcomeBoxProps) {
+export default function MarketDetailOutcomeBox({ outcome, outcomeIndex }: MarketDetailOutcomeBoxProps) {
+  const marketDetailContextValue = useContext(MarketDetailContext) as MarketDetailContextValue;
+  const { setOrder } = marketDetailContextValue;
   return (
     <Container>
       <Row className={styles.outcomeRow}>
@@ -32,6 +30,7 @@ export default function MarketDetailOutcomeBox({
                 positionDirection: PositionDirection.YES,
                 outcomeIndex: outcomeIndex,
                 shares: 1,
+                submitted: false,
               })
             }
             variant="success"
@@ -45,6 +44,7 @@ export default function MarketDetailOutcomeBox({
                 positionDirection: PositionDirection.NO,
                 outcomeIndex: outcomeIndex,
                 shares: 1,
+                submitted: false,
               })
             }
             variant="danger"
@@ -56,4 +56,3 @@ export default function MarketDetailOutcomeBox({
     </Container>
   );
 }
-
