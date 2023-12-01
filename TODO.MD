@@ -9,4 +9,4 @@
 
 The Future
 - Prediction contests
-- USDC for real money _if and only if_ it is legal_
+- USDC for real money _if and only if_ it is legal
