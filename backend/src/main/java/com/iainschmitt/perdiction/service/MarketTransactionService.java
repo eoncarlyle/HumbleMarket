@@ -57,8 +57,7 @@ public class MarketTransactionService {
     public final static RoundingMode ROUNDING_RULE = RoundingMode.HALF_UP;
     public final static int BUFFER_POSITIONS = 1;
 
-    // This is not @Transactional, as the only time this is used by itself is for
-    // tests
+    // Not @Transactional, as the only time this is used by itself is for
     public Market createMarket(MarketProposalBasis marketData) {
         // if (!validMarketCreationData(marketData)) {
 
@@ -120,7 +119,7 @@ public class MarketTransactionService {
         // TODO: Package up the logic that is oft-repeated between the other transaction
         // types into methods
 
-        buyAndSellTransactionValidation(market, shares);
+        purchaseAndSaleTransactionValidation(market, shares);
 
         var outcome = market.getOutcome(outcomeIndex);
         var positionPrice = direction.equals(PositionDirection.YES) ? outcome.getPrice()
@@ -128,21 +127,7 @@ public class MarketTransactionService {
         var tradeValue = positionPrice.multiply(toBigDecimal(shares));
 
         // TODO pm-15: Move these validations to new method
-        if (user.getCredits().compareTo(tradeValue) == -1) {
-            throw new IllegalArgumentException("Insufficient Funds");
-        }
-
-        var yesOverflow = (isYes(direction) && (outcome.getSharesY() - BUFFER_POSITIONS < shares));
-        var noOverflow = (isNo(direction) && (outcome.getSharesN() - BUFFER_POSITIONS < shares));
-        if (yesOverflow || noOverflow) {
-            throw new IllegalArgumentException("Too many shares requested");
-        }
-
-        var newSharesY = direction.equals(PositionDirection.YES) ? outcome.getSharesY() - shares : outcome.getSharesY();
-        var newSharesN = direction.equals(PositionDirection.NO) ? outcome.getSharesN() - shares : outcome.getSharesN();
-        if (!sharePrice.equals(price(newSharesY, newSharesN))) {
-            throw new IllegalArgumentException("Invalid or out-of-date share sale price");
-        }
+        purchaseTransactionValidation(user, direction, shares, outcome, sharePrice, sharePrice);
 
         // Transaction, Position Handling
         var transaction = new MarketTransaction(user.getId(), getBankUserId(), market.getId(), outcomeIndex, direction,
@@ -153,8 +138,8 @@ public class MarketTransactionService {
 
         // Outcome pricing changes
         outcome.setPrice(sharePrice);
-        outcome.setSharesY(newSharesY);
-        outcome.setSharesN(newSharesN);
+        outcome.setSharesY(getPurchaseNewSharesY(direction, shares, outcome));
+        outcome.setSharesN(getPurchaseNewSharesN(direction, shares, outcome));
 
         marketRepository.save(market);
         userService.saveUser(user);
@@ -163,6 +148,33 @@ public class MarketTransactionService {
         transactionRepository.save(transaction);
 
         return transaction;
+    }
+
+    public int getPurchaseNewSharesY(PositionDirection direction, int shares, Outcome outcome) {
+        return direction.equals(PositionDirection.YES) ? outcome.getSharesY() - shares : outcome.getSharesY();
+    }
+
+    public int getPurchaseNewSharesN(PositionDirection direction, int shares, Outcome outcome) {
+        return direction.equals(PositionDirection.NO) ? outcome.getSharesN() - shares : outcome.getSharesN();
+    }
+
+    public void purchaseTransactionValidation(User user, PositionDirection direction, int shares,
+            Outcome outcome, BigDecimal sharePrice, BigDecimal tradeValue) {
+        if (user.getCredits().compareTo(tradeValue) == -1) {
+            throw new IllegalArgumentException("Insufficient Funds");
+        }
+
+        var yesOverflow = (isYes(direction) && (outcome.getSharesY() - BUFFER_POSITIONS < shares));
+        var noOverflow = (isNo(direction) && (outcome.getSharesN() - BUFFER_POSITIONS < shares));
+        if (yesOverflow || noOverflow) {
+            throw new IllegalArgumentException("Too many shares requested");
+        }
+
+        if (!sharePrice.equals(price(getPurchaseNewSharesY(direction, shares, outcome),
+                getPurchaseNewSharesN(direction, shares, outcome)))) {
+            throw new IllegalArgumentException("Invalid or out-of-date share sale price");
+        }
+
     }
 
     public MarketTransaction sale(String userEmail, MarketTransactionRequestData marketTransactionRequestData) {
@@ -179,7 +191,7 @@ public class MarketTransactionService {
     public MarketTransaction sale(User user, Market market, int outcomeIndex, PositionDirection direction, int shares,
             BigDecimal sharePrice) {
 
-        buyAndSellTransactionValidation(market, shares);
+        purchaseAndSaleTransactionValidation(market, shares);
 
         var outcome = market.getOutcomes().get(outcomeIndex);
         var validPositions = positionRepository.findByUserIdAndMarketIdAndOutcomeIndexAndDirectionOrderByPriceAtBuyDesc(
@@ -189,17 +201,9 @@ public class MarketTransactionService {
         var newSharesY = direction.equals(PositionDirection.YES) ? outcome.getSharesY() + shares : outcome.getSharesY();
         var newSharesN = direction.equals(PositionDirection.NO) ? outcome.getSharesN() + shares : outcome.getSharesN();
 
-        // TODO pm-15: Extract checks out to method
-        if (shares > validUserShares) {
-            throw new IllegalArgumentException("Insufficient Shares");
-        }
-        if (!sharePrice.equals(price(newSharesY, newSharesN))) {
-            throw new IllegalArgumentException("Invalid or out-of-date share sale price");
-        }
+        saleTransactionValidation(shares, sharePrice, validUserShares, newSharesY, newSharesN);
 
         var tradeValue = sharePrice.multiply(toBigDecimal(shares));
-
-        // Transaction, Position Handling
         var transaction = new MarketTransaction(user.getId(), getBankUserId(), market.getId(), outcomeIndex, direction,
                 MarketTransactionType.SALE, tradeValue);
         getBankUser().withdrawCredits(transaction.getCredits());
@@ -244,6 +248,16 @@ public class MarketTransactionService {
         transactionRepository.save(transaction);
 
         return transaction;
+    }
+
+    public void saleTransactionValidation(int shares, BigDecimal sharePrice, int validUserShares, int newSharesY,
+            int newSharesN) {
+        if (shares > validUserShares) {
+            throw new IllegalArgumentException("Insufficient Shares");
+        }
+        if (!sharePrice.equals(price(newSharesY, newSharesN))) {
+            throw new IllegalArgumentException("Invalid or out-of-date share sale price");
+        }
     }
 
     public static boolean priceValidSale(Market market, int outcomeIndex, PositionDirection direction, int shares,
@@ -446,7 +460,7 @@ public class MarketTransactionService {
         return positionDirection.equals(PositionDirection.NO);
     }
 
-    public void buyAndSellTransactionValidation(Market market, int shares) {
+    public void purchaseAndSaleTransactionValidation(Market market, int shares) {
         if (market.isClosed()) {
             throw new IllegalArgumentException("Cannot transact on closed market");
         } else if (shares < 1) {
