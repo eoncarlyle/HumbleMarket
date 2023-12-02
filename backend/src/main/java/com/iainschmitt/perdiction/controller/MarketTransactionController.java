@@ -72,16 +72,15 @@ public class MarketTransactionController {
                 HttpStatus.OK);
     }
 
-    // @PostMapping(value = "/purchase")
-    // public ResponseEntity<MarketTransaction>
-    // purchase(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-    // @RequestBody PurchaseRequestData purchaseRequestData) {
-    // authService.authenticateTokenThrows(token);
-    // return new ResponseEntity<>(
-    // marketTransactionService.purchase(authService.getClaim(token, "email"),
-    // purchaseRequestData),
-    // HttpStatus.ACCEPTED);
-    // }
+    @PostMapping(value = "/purchase")
+    public ResponseEntity<MarketTransaction> purchase(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestBody MarketTransactionRequestData purchaseRequestData) {
+        authService.authenticateTokenThrows(token);
+        return new ResponseEntity<>(
+                marketTransactionService.purchase(authService.getClaim(token, "email"),
+                        purchaseRequestData),
+                HttpStatus.ACCEPTED);
+    }
 
     @PostMapping(value = "/sale")
     public ResponseEntity<MarketTransaction> sale(

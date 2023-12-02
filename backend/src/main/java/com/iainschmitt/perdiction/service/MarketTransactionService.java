@@ -125,15 +125,17 @@ public class MarketTransactionService {
         var positionPrice = direction.equals(PositionDirection.YES) ? outcome.getPrice()
                 : toBigDecimal(1d - outcome.getPrice().doubleValue());
         var tradeValue = positionPrice.multiply(toBigDecimal(shares));
+        var bank = getBankUser();
 
         // TODO pm-15: Move these validations to new method
-        purchaseTransactionValidation(user, direction, shares, outcome, sharePrice, sharePrice);
+        purchaseTransactionValidation(user, direction, shares, outcome, sharePrice, tradeValue);
 
         // Transaction, Position Handling
         var transaction = new MarketTransaction(user.getId(), getBankUserId(), market.getId(), outcomeIndex, direction,
                 MarketTransactionType.PURCHASE, tradeValue);
         var position = new Position(user.getId(), market.getId(), outcomeIndex, direction, shares, positionPrice);
-        getBankUser().depositCredits(transaction.getCredits());
+
+        bank.depositCredits(transaction.getCredits());
         user.withdrawCredits(transaction.getCredits());
 
         // Outcome pricing changes
@@ -143,7 +145,7 @@ public class MarketTransactionService {
 
         marketRepository.save(market);
         userService.saveUser(user);
-        userService.saveUser(getBankUser());
+        userService.saveUser(bank);
         positionRepository.save(position);
         transactionRepository.save(transaction);
 
@@ -200,13 +202,14 @@ public class MarketTransactionService {
                 (acc, element) -> acc + element);
         var newSharesY = direction.equals(PositionDirection.YES) ? outcome.getSharesY() + shares : outcome.getSharesY();
         var newSharesN = direction.equals(PositionDirection.NO) ? outcome.getSharesN() + shares : outcome.getSharesN();
+        var bank = getBankUser();
 
         saleTransactionValidation(shares, sharePrice, validUserShares, newSharesY, newSharesN);
 
         var tradeValue = sharePrice.multiply(toBigDecimal(shares));
         var transaction = new MarketTransaction(user.getId(), getBankUserId(), market.getId(), outcomeIndex, direction,
                 MarketTransactionType.SALE, tradeValue);
-        getBankUser().withdrawCredits(transaction.getCredits());
+        bank.withdrawCredits(transaction.getCredits());
         user.depositCredits(transaction.getCredits());
 
         // TODO pm-15 Extact into two functions: one that returns deleted positions,
@@ -240,7 +243,7 @@ public class MarketTransactionService {
 
         marketRepository.save(market);
         userService.saveUser(user);
-        userService.saveUser(getBankUser());
+        userService.saveUser(bank);
         deletedPositions.forEach(position -> positionRepository.delete(position));
         if (modifiedPosition.isPresent()) {
             positionRepository.save(modifiedPosition.get());
@@ -465,6 +468,16 @@ public class MarketTransactionService {
             throw new IllegalArgumentException("Cannot transact on closed market");
         } else if (shares < 1) {
             throw new IllegalArgumentException(String.format("Shares to be transacted '%d' must be positive", shares));
+        }
+    }
+
+    public static BigDecimal purchasePriceCalculator(Market market, int outcomeIndex, PositionDirection direction,
+            int shares) {
+        var outcome = market.getOutcome(outcomeIndex);
+        if (direction.equals(PositionDirection.YES)) {
+            return price(outcome.getSharesY() - shares, outcome.getSharesN());
+        } else {
+            return price(outcome.getSharesY(), outcome.getSharesN() - shares);
         }
     }
 }

@@ -93,6 +93,8 @@ public class TransactionControllerIntegrationTests {
                         setOutcomeIndex(1);
                         setPositionDirection(PositionDirection.YES);
                         setShares(1);
+                        setSharePrice(MarketTransactionService.purchasePriceCalculator(
+                                marketRepository.findAll().get(0), 1, PositionDirection.YES, 1));
                     }
                 }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(202));
     }
@@ -117,6 +119,8 @@ public class TransactionControllerIntegrationTests {
                         setOutcomeIndex(1);
                         setPositionDirection(PositionDirection.YES);
                         setShares(1);
+                        setSharePrice(MarketTransactionService.purchasePriceCalculator(
+                                marketRepository.findAll().get(0), 1, PositionDirection.YES, 1));
                     }
                 }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(422)).expectBody().returnResult();
 

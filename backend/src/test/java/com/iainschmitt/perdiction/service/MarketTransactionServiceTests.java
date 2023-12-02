@@ -1,6 +1,7 @@
 package com.iainschmitt.perdiction.service;
 
 import static com.iainschmitt.perdiction.service.MarketTransactionService.price;
+import static com.iainschmitt.perdiction.service.MarketTransactionService.priceValidSale;
 import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -121,15 +122,15 @@ public class MarketTransactionServiceTests {
         var marketData = defaultSingleOutcomeMarket(getAdminId());
         marketTransactionService.createMarket(marketData);
         var market = marketRepository.findAll().get(0);
-        var outcome = market.getOutcome(0);
-        var initialPrice = market.getOutcome(0).getPrice();
+        var outcomeIndex = 0;
+        var outcome = market.getOutcome(outcomeIndex);
+        var initialPrice = market.getOutcome(outcomeIndex).getPrice();
         var shares = 3;
         var startingCredits = bank.getCredits().add(user.getCredits());
         var initialTotalCredits = totalCredits();
-        var secondPrice = price(outcome.getSharesY(), outcome.getSharesN());
 
-        marketTransactionService.purchase(user, market, 0, PositionDirection.NO, shares,
-                toBigDecimal(1d - secondPrice.doubleValue()));
+        marketTransactionService.purchase(user, market, outcomeIndex, PositionDirection.NO, shares,
+                MarketTransactionService.purchasePriceCalculator(market, outcomeIndex, PositionDirection.NO, shares));
         assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
 
         bank = marketTransactionService.getBankUser();
@@ -138,7 +139,7 @@ public class MarketTransactionServiceTests {
         var markets = marketRepository.findAll();
         var transactions = transactionRepository.findAll();
         var positions = positionRepository.findAll();
-        outcome = markets.get(0).getOutcome(0);
+        outcome = markets.get(0).getOutcome(outcomeIndex);
 
         assertThat(bank.getCredits().doubleValue()).isEqualTo(1_000_000d + shares * initialPrice.doubleValue());
         assertThat(user.getCredits().doubleValue()).isEqualTo(100d - shares * initialPrice.doubleValue());
@@ -147,8 +148,8 @@ public class MarketTransactionServiceTests {
         assertThat(positions.size()).isEqualTo(1);
         assertThat(bank.getCredits().add(user.getCredits()).doubleValue()).isEqualTo(startingCredits.doubleValue());
 
-        assertThat(outcome.getSharesN()).isEqualTo(8);
-        assertThat(outcome.getSharesY()).isEqualTo(12);
+        assertThat(outcome.getSharesN()).isEqualTo(7);
+        assertThat(outcome.getSharesY()).isEqualTo(10);
 
         var marketTransaction = transactions.get(0);
         assertThat(marketTransaction.getDirection()).isEqualTo(PositionDirection.NO);
@@ -176,13 +177,15 @@ public class MarketTransactionServiceTests {
         var shares = 3;
         var initialTotalCredits = totalCredits();
 
-        marketTransactionService.purchase(user, market, 0, PositionDirection.NO, shares);
+        marketTransactionService.purchase(user, market, 0, PositionDirection.NO, shares,
+                MarketTransactionService.purchasePriceCalculator(market, 0, PositionDirection.NO, shares));
 
         assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
         assertThat(positionRepository.findAll().get(0).getPriceAtBuy())
                 .isEqualTo(toBigDecimal(1d - initialOutcomeZeroPrice.doubleValue()));
 
-        marketTransactionService.purchase(user, market, 1, PositionDirection.YES, shares);
+        marketTransactionService.purchase(user, market, 1, PositionDirection.YES, shares,
+                MarketTransactionService.purchasePriceCalculator(market, 1, PositionDirection.YES, shares));
         assertThat(positionRepository.findAll().get(1).getPriceAtBuy()).isEqualTo(initialOutcomeOnePrice);
         assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
     }
@@ -198,7 +201,8 @@ public class MarketTransactionServiceTests {
         var market = marketRepository.findAll().get(0);
         market.setClosed(true);
         marketRepository.save(market);
-        assertThatThrownBy(() -> marketTransactionService.purchase(user, market, 0, PositionDirection.NO, 3))
+        assertThatThrownBy(
+                () -> marketTransactionService.purchase(user, market, 0, PositionDirection.NO, 3, toBigDecimal(0.5d)))
                 .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Cannot transact on closed market");
     }
 
@@ -211,7 +215,8 @@ public class MarketTransactionServiceTests {
         var marketData = defaultSingleOutcomeMarket(getAdminId());
         marketTransactionService.createMarket(marketData);
         var market = marketRepository.findAll().get(0);
-        assertThatThrownBy(() -> marketTransactionService.purchase(user, market, 0, PositionDirection.NO, 3))
+        assertThatThrownBy(() -> marketTransactionService.purchase(user, market, 0, PositionDirection.NO, 3,
+                MarketTransactionService.purchasePriceCalculator(market, 0, PositionDirection.NO, 3)))
                 .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Insufficient Funds");
     }
 
@@ -224,7 +229,9 @@ public class MarketTransactionServiceTests {
         var marketData = defaultSingleOutcomeMarket(getAdminId());
         marketTransactionService.createMarket(marketData);
         var market = marketRepository.findAll().get(0);
-        assertThatThrownBy(() -> marketTransactionService.purchase(user, market, 0, PositionDirection.NO, 9))
+        assertThatThrownBy(
+                () -> marketTransactionService.purchase(user, market, 0, PositionDirection.NO, 10,
+                        MarketTransactionService.purchasePriceCalculator(market, 0, PositionDirection.NO, 10)))
                 .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Too many shares requested");
     }
 
@@ -235,18 +242,23 @@ public class MarketTransactionServiceTests {
         userService.saveUser(user);
         var marketData = defaultSingleOutcomeMarket(getAdminId());
         marketTransactionService.createMarket(marketData);
+        var outcomeIndex = 0;
 
         Supplier<Market> market = () -> marketRepository.findAll().get(0);
-        Supplier<Outcome> outcome = () -> market.get().getOutcomes().get(0);
+        Supplier<Outcome> outcome = () -> market.get().getOutcome(outcomeIndex);
         var shares = 3;
         var initialTotalCredits = totalCredits();
 
         var firstPrice = outcome.get().getPrice();
-        marketTransactionService.purchase(user, market.get(), 0, PositionDirection.YES, shares);
+        marketTransactionService.purchase(user, market.get(), outcomeIndex, PositionDirection.YES, shares,
+                MarketTransactionService.purchasePriceCalculator(market.get(), outcomeIndex, PositionDirection.YES,
+                        shares));
         assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
 
         var secondPrice = outcome.get().getPrice();
-        marketTransactionService.purchase(user, market.get(), 0, PositionDirection.YES, shares);
+        marketTransactionService.purchase(user, market.get(), outcomeIndex, PositionDirection.YES, shares,
+                MarketTransactionService.purchasePriceCalculator(market.get(), outcomeIndex, PositionDirection.YES,
+                        shares));
         assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
 
         var positions = positionRepository.findByUserIdAndMarketIdOrderByPriceAtBuyDesc(user.getId(),
@@ -263,7 +275,8 @@ public class MarketTransactionServiceTests {
         var newSharesY = outcome.get().getSharesY() + shares + 1;
         var newSharesN = outcome.get().getSharesN();
         var proposedPrice = MarketTransactionService.price(newSharesY, newSharesN);
-        marketTransactionService.sale(user, market.get(), 0, PositionDirection.YES, shares + 1, proposedPrice);
+        marketTransactionService.sale(user, market.get(), outcomeIndex, PositionDirection.YES, shares + 1,
+                proposedPrice);
         assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
     }
 
@@ -280,7 +293,8 @@ public class MarketTransactionServiceTests {
         var shares = 3;
         var initialTotalCredits = totalCredits();
 
-        marketTransactionService.purchase(user, market.get(), 0, PositionDirection.YES, shares);
+        marketTransactionService.purchase(user, market.get(), 0, PositionDirection.YES, shares,
+                MarketTransactionService.purchasePriceCalculator(market.get(), 0, PositionDirection.YES, shares));
         assertThat(totalCredits().doubleValue()).isEqualTo(initialTotalCredits.doubleValue());
 
         var newSharesY = outcome.get().getSharesY() + shares + 1;
@@ -491,7 +505,8 @@ public class MarketTransactionServiceTests {
                 PositionDirection.YES, tradedShares, price)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Cannot transact on closed market");
         assertThatThrownBy(
-                () -> marketTransactionService.purchase(user0, market, selectedOutcomeIndex, PositionDirection.YES, 3))
+                () -> marketTransactionService.purchase(user0, market, selectedOutcomeIndex, PositionDirection.YES, 3,
+                        toBigDecimal(0.5d)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Cannot transact on closed market");
 
@@ -573,4 +588,12 @@ public class MarketTransactionServiceTests {
             outcomeClaimsList.add(arg);
         return outcomeClaimsList;
     }
+
+    // public MarketTransaction purchase(User user, Market market, int outcomeIndex,
+    // PositionDirection direction,
+    // int shares, BigDecimal sharePrice)
+
+    // marketTransactionService.purchase(user, market, 0, PositionDirection.NO,
+    // shares,
+    // toBigDecimal(1d - secondPrice.doubleValue()));
 }

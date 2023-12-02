@@ -39,6 +39,6 @@ public class Market {
     }
 
     public Outcome getOutcome(int outcomeIndex) {
-        return getOutcome(outcomeIndex);
+        return getOutcomes().get(outcomeIndex);
     }
 }
