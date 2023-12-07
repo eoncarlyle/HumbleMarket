@@ -37,4 +37,8 @@ public class Market {
         this.isClosed = isClosed;
         this.isResolved = isResolved;
     }
+
+    public Outcome getOutcome(int outcomeIndex) {
+        return getOutcomes().get(outcomeIndex);
+    }
 }

@@ -18,8 +18,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
 import com.iainschmitt.perdiction.model.rest.MarketProposalData;
-import com.iainschmitt.perdiction.model.rest.PurchaseRequestData;
-import com.iainschmitt.perdiction.model.rest.SaleRequestData;
+import com.iainschmitt.perdiction.model.rest.MarketTransactionRequestData;
 import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
 import com.iainschmitt.perdiction.model.PositionDirection;
 import com.iainschmitt.perdiction.model.User;
@@ -81,20 +80,23 @@ public class TransactionControllerIntegrationTests {
         user.setCredits(toBigDecimal(100d));
         userService.saveUser(user);
         var token = authService.createToken(user);
-        
+
         var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
         var marketId = marketRepository.findAll().get(0).getId();
-        
+
         webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON).bodyValue(new PurchaseRequestData() {
+                .contentType(MediaType.APPLICATION_JSON).bodyValue(new MarketTransactionRequestData() {
                     {
                         setId(marketId);
                         setOutcomeIndex(1);
                         setPositionDirection(PositionDirection.YES);
                         setShares(1);
+                        setSharePrice(MarketTransactionService.purchasePriceCalculator(
+                                marketRepository.findAll().get(0), 1, PositionDirection.YES, 1));
                     }
-                }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(202));
+                }).exchange().expectStatus()
+                .isEqualTo(HttpStatusCode.valueOf(202));
     }
 
     @Test
@@ -108,18 +110,63 @@ public class TransactionControllerIntegrationTests {
         var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
         var marketId = marketRepository.findAll().get(0).getId();
+
         var response = webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON).bodyValue(new PurchaseRequestData() {
+                .contentType(MediaType.APPLICATION_JSON).bodyValue(new MarketTransactionRequestData() {
                     {
                         setId(marketId);
                         setOutcomeIndex(1);
                         setPositionDirection(PositionDirection.YES);
                         setShares(1);
+                        setSharePrice(MarketTransactionService.purchasePriceCalculator(
+                                marketRepository.findAll().get(0), 1, PositionDirection.YES, shares));
                     }
                 }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(422)).expectBody().returnResult();
 
         assertThat(new String(response.getResponseBody()))
                 .isEqualTo("{\"status\":422,\"message\":\"Insufficient Funds\"}");
+    }
+
+    @Test
+    void purchaseThenSaleSuccess() {
+        var user = User.of(DEFAULT_USER_EMAIL);
+        user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
+        user.setCredits(toBigDecimal(100d));
+        userService.saveUser(user);
+        marketTransactionService.createMarket(defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail()));
+
+        var marketId = marketRepository.findAll().get(0).getId();
+        var orderOutcomeIndex = 1;
+        var orderShares = 3;
+
+        webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", authService.createToken(user))
+                .contentType(MediaType.APPLICATION_JSON).bodyValue(
+                        new MarketTransactionRequestData() {
+                            {
+                                setId(marketId);
+                                setOutcomeIndex(orderOutcomeIndex);
+                                setPositionDirection(PositionDirection.YES);
+                                setShares(orderShares);
+                                setSharePrice(MarketTransactionService.purchasePriceCalculator(
+                                        marketRepository.findAll().get(0), orderOutcomeIndex, PositionDirection.YES,
+                                        orderShares));
+                            }
+                        })
+                .exchange().expectStatus()
+                .isEqualTo(HttpStatusCode.valueOf(202));
+
+        webTestClient.post().uri(MARKET_URI_PATH + "/sale").header("Authorization", authService.createToken(user))
+                .contentType(MediaType.APPLICATION_JSON).bodyValue(new MarketTransactionRequestData() {
+                    {
+                        setId(marketId);
+                        setOutcomeIndex(orderOutcomeIndex);
+                        setPositionDirection(PositionDirection.YES);
+                        setShares(orderShares);
+                        setSharePrice(MarketTransactionService.salePriceCalculator(
+                                marketRepository.findAll().get(0), orderOutcomeIndex, PositionDirection.YES,
+                                orderShares));
+                    }
+                }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(202));
     }
 
     @Test
@@ -147,14 +194,14 @@ public class TransactionControllerIntegrationTests {
         var token = authService.createToken(user);
         var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
-        
+
         var marketId = marketRepository.findAll().get(0).getId();
         var sharesY = marketRepository.findById(marketId).get().getOutcomes().get(1).getSharesY();
         var sharesN = marketRepository.findById(marketId).get().getOutcomes().get(1).getSharesN();
         var sharesTraded = 1;
 
         var response = webTestClient.post().uri(MARKET_URI_PATH + "/sale").header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON).bodyValue(new SaleRequestData() {
+                .contentType(MediaType.APPLICATION_JSON).bodyValue(new MarketTransactionRequestData() {
                     {
                         setId(marketId);
                         setOutcomeIndex(1);
@@ -182,13 +229,13 @@ public class TransactionControllerIntegrationTests {
         var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
         var marketId = marketRepository.findAll().get(0).getId();
-        
+
         var sharesY = marketRepository.findById(marketId).get().getOutcomes().get(1).getSharesY();
         var sharesN = marketRepository.findById(marketId).get().getOutcomes().get(1).getSharesN();
         var sharesTraded = 1;
 
         var response = webTestClient.post().uri(MARKET_URI_PATH + "/sale").header("Authorization", token)
-                .contentType(MediaType.APPLICATION_JSON).bodyValue(new SaleRequestData() {
+                .contentType(MediaType.APPLICATION_JSON).bodyValue(new MarketTransactionRequestData() {
                     {
                         setId(marketId);
                         setOutcomeIndex(1);
@@ -200,11 +247,10 @@ public class TransactionControllerIntegrationTests {
 
         assertThat(new String(response.getResponseBody()))
                 .isEqualTo("{\"status\":403,\"message\":\"Failed authentication: invalid token\"}");
-        
+
         whitelistEmailRepository.save(new WhitelistEmail(DEFAULT_USER_EMAIL));
     }
 
-    
     private MarketProposalData defaultMultiOutcomeMarket(String creatorId) {
 
         return MarketProposalData.of("What will the temperature in Minneapolis be in 1 hour?", creatorId, 100,

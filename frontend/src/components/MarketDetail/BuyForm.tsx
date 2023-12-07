@@ -2,7 +2,6 @@ import { useState, useContext } from "react";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { Form as RRForm } from "react-router-dom";
 
-import PositionDirection from "../../model/PositionDirection";
 import TransactionValidation from "../../model/TransactionValidation";
 import { priceNumberFormat } from "../../util/Numeric";
 import processBuyForm from "../../util/ProcessBuyForm";
@@ -17,20 +16,20 @@ import {
   closeHandlerFactory,
   shareButtonHandlerFactory,
 } from "../../util/TransactionValidationStateManagement";
+import { isYes, rawPrice, directionCost } from "../../util/TradeMarketTransaction";
 
 import styles from "../../style/TransactionForm.module.css";
 
 export default function BuyForm() {
   const marketDetailContextValue = useContext(MarketDetailContext) as MarketDetailContextValue;
   const { marketReturnData, order, setOrder } = marketDetailContextValue;
-  const { market, userCredits } = marketReturnData;
+  const { market, purchasePriceList, userCredits } = marketReturnData;
 
-  const transactionType = TransactionType.Purchase;
   const outcome = market.outcomes[order.outcomeIndex];
-  const directionShares = order.positionDirection === PositionDirection.YES ? outcome.sharesY : outcome.sharesN;
-
-  const directionCost = order.positionDirection === PositionDirection.YES ? outcome.price : 1 - outcome.price;
-  const availableShares = Math.min(directionShares - 1, Math.floor(userCredits / directionCost));
+  const outcomePurchasePriceList = purchasePriceList[order.outcomeIndex][isYes(order.positionDirection) ? 0 : 1];
+  const directionShares = isYes(order.positionDirection) ? outcome.sharesY : outcome.sharesN;
+  const orderDirectionCost = directionCost(order.positionDirection, order.shares, outcomePurchasePriceList);
+  const availableShares = Math.min(directionShares - 1, Math.floor(userCredits / orderDirectionCost));
 
   const [transactionValidation, setTransactionValidation] = useState<TransactionValidation>({
     valid: true,
@@ -52,12 +51,14 @@ export default function BuyForm() {
     });
   }
 
+  // TODO pm-15: Need to change BuyForm to use purchasePriceData
+
   return (
     <>
       <RRForm className={styles.transactionForm} onSubmit={submitHandler}>
         <Container className={styles.transactionFormContainer}>
           <OrderInformation
-            transactionType={transactionType}
+            transactionType={TransactionType.Purchase}
             claim={outcome.claim}
             direction={order.positionDirection}
             availableShares={availableShares}
@@ -86,19 +87,25 @@ export default function BuyForm() {
           </Button>
           <Row>
             <Col>Cost</Col>
-            <Col>{priceNumberFormat(order.shares * directionCost)} CR</Col>
+            <Col>{priceNumberFormat(order.shares * orderDirectionCost)} CR</Col>
           </Row>
         </Container>
       </RRForm>
 
       <MarketTransactionModal
-        transactionType={transactionType}
+        transactionType={TransactionType.Purchase}
         showModal={transactionValidation.showModal}
         order={order}
         outcomeClaim={outcome.claim}
-        directionCost={directionCost}
+        directionCost={orderDirectionCost}
         handleClose={closeHandler}
-        handleSubmit={processBuyForm(market, order, setTransactionValidation, setOrder)}
+        handleSubmit={processBuyForm(
+          market,
+          order,
+          rawPrice(order.shares, outcomePurchasePriceList),
+          setTransactionValidation,
+          setOrder
+        )}
       />
     </>
   );

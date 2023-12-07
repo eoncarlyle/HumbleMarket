@@ -17,27 +17,25 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
+import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
+import com.iainschmitt.perdiction.model.Market;
+import com.iainschmitt.perdiction.model.MarketProposal;
+import com.iainschmitt.perdiction.model.MarketProposalBasis;
+import com.iainschmitt.perdiction.model.MarketTransaction;
+import com.iainschmitt.perdiction.model.MarketTransactionType;
+import com.iainschmitt.perdiction.model.Outcome;
+import com.iainschmitt.perdiction.model.Position;
+import com.iainschmitt.perdiction.model.PositionDirection;
+import com.iainschmitt.perdiction.model.User;
+import com.iainschmitt.perdiction.model.rest.MarketProposalData;
+import com.iainschmitt.perdiction.model.rest.MarketTransactionRequestData;
+import com.iainschmitt.perdiction.model.rest.MarketTransactionReturnData;
 import com.iainschmitt.perdiction.repository.MarketProposalRepository;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.repository.PositionRepository;
 import com.iainschmitt.perdiction.repository.TransactionRepository;
-import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
-import com.iainschmitt.perdiction.model.Market;
-import com.iainschmitt.perdiction.model.MarketProposal;
-import com.iainschmitt.perdiction.model.User;
-import com.iainschmitt.perdiction.model.Outcome;
-import com.iainschmitt.perdiction.model.Position;
-import com.iainschmitt.perdiction.model.MarketTransaction;
-import com.iainschmitt.perdiction.model.MarketTransactionType;
-import com.iainschmitt.perdiction.model.PositionDirection;
-import com.iainschmitt.perdiction.model.rest.MarketProposalData;
-import com.iainschmitt.perdiction.model.rest.PurchaseRequestData;
-import com.iainschmitt.perdiction.model.rest.SaleRequestData;
-import com.iainschmitt.perdiction.model.rest.MarketTransactionReturnData;
-import com.iainschmitt.perdiction.model.MarketProposalBasis;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -56,11 +54,10 @@ public class MarketTransactionService {
     private MarketProposalRepository marketProposalRepository;
 
     public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
     public final static RoundingMode ROUNDING_RULE = RoundingMode.HALF_UP;
+    public final static int BUFFER_POSITIONS = 1;
 
-    // This is not @Transactional, as the only time this is used by itself is for
-    // tests
+    // Not @Transactional, as the only time this is used by itself is for
     public Market createMarket(MarketProposalBasis marketData) {
         // if (!validMarketCreationData(marketData)) {
 
@@ -106,61 +103,44 @@ public class MarketTransactionService {
     }
 
     // TODO: Logging aspects for purchase, sale methods
-    public MarketTransaction purchase(String userEmail, PurchaseRequestData purchaseRequestData) {
-        var user = userService.getUserByEmail(userEmail);
-        var market = marketRepository.findById(purchaseRequestData.getId()).get();
-        var outcomeIndex = purchaseRequestData.getOutcomeIndex();
-        var direction = purchaseRequestData.getPositionDirection();
-        var shares = purchaseRequestData.getShares();
-
-        return purchase(user, market, outcomeIndex, direction, shares);
+    public MarketTransaction purchase(String userEmail, MarketTransactionRequestData marketTransactionRequestData) {
+        return purchase(
+                userService.getUserByEmail(userEmail),
+                marketRepository.findById(marketTransactionRequestData.getId()).get(),
+                marketTransactionRequestData.getOutcomeIndex(),
+                marketTransactionRequestData.getPositionDirection(),
+                marketTransactionRequestData.getShares(),
+                marketTransactionRequestData.getSharePrice());
     }
 
     @Transactional
     public MarketTransaction purchase(User user, Market market, int outcomeIndex, PositionDirection direction,
-            int shares) {
+            int shares, BigDecimal sharePrice) {
         // TODO: Package up the logic that is oft-repeated between the other transaction
         // types into methods
-        if (market.isClosed()) {
-            throw new IllegalArgumentException("Cannot transact on closed market");
-        } else if (shares < 1) {
-            throw new IllegalArgumentException(String.format("Shares to be transacted '%d' must be positive", shares));
-        }
-        var outcome = market.getOutcomes().get(outcomeIndex);
+
+        purchaseAndSaleTransactionValidation(market, shares);
+
+        var outcome = market.getOutcome(outcomeIndex);
         var positionPrice = direction.equals(PositionDirection.YES) ? outcome.getPrice()
                 : toBigDecimal(1d - outcome.getPrice().doubleValue());
         var tradeValue = positionPrice.multiply(toBigDecimal(shares));
+        var bank = getBankUser();
 
-        if (user.getCredits().compareTo(tradeValue) == -1) {
-            throw new IllegalArgumentException("Insufficient Funds");
-        }
-        if (direction.equals(PositionDirection.YES) && (outcome.getSharesY() - 2 < shares)) {
-            throw new IllegalArgumentException("Too many shares requested");
-        } else if (direction.equals(PositionDirection.NO) && (outcome.getSharesN() - 2 < shares)) {
-            throw new IllegalArgumentException("Too many shares requested");
-        }
+        purchaseTransactionValidation(user, direction, shares, outcome, sharePrice, tradeValue);
 
         // Transaction, Position Handling
-        var bank = getBankUser();
         var transaction = new MarketTransaction(user.getId(), getBankUserId(), market.getId(), outcomeIndex, direction,
                 MarketTransactionType.PURCHASE, tradeValue);
         var position = new Position(user.getId(), market.getId(), outcomeIndex, direction, shares, positionPrice);
+
         bank.depositCredits(transaction.getCredits());
         user.withdrawCredits(transaction.getCredits());
 
         // Outcome pricing changes
-        if (direction.equals(PositionDirection.YES)) {
-            outcome.setSharesY(outcome.getSharesY() - shares);
-        } else {
-            outcome.setSharesN(outcome.getSharesN() - shares);
-        }
-        var newPrice = priceRecalc(outcome.getSharesY(), outcome.getSharesN());
-        outcome.setPrice(newPrice);
-
-        var newSharesY = Math.max((int) Math.round(unroundedSharesY(newPrice, market.getMarketMakerK())), 1);
-        var newSharesN = Math.max((int) Math.round(unroundedSharesN(newPrice, market.getMarketMakerK())), 1);
-        outcome.setSharesY(newSharesY);
-        outcome.setSharesN(newSharesN);
+        outcome.setPrice(sharePrice);
+        outcome.setSharesY(getPurchaseNewSharesY(direction, shares, outcome));
+        outcome.setSharesN(getPurchaseNewSharesN(direction, shares, outcome));
 
         marketRepository.save(market);
         userService.saveUser(user);
@@ -171,25 +151,48 @@ public class MarketTransactionService {
         return transaction;
     }
 
-    public MarketTransaction sale(String userEmail, SaleRequestData saleRequestData) {
-        var user = userService.getUserByEmail(userEmail);
-        var market = marketRepository.findById(saleRequestData.getId()).get();
-        var outcomeIndex = saleRequestData.getOutcomeIndex();
-        var direction = saleRequestData.getPositionDirection();
-        var shares = saleRequestData.getShares();
-        var sharePrice = saleRequestData.getSharePrice();
+    public int getPurchaseNewSharesY(PositionDirection direction, int shares, Outcome outcome) {
+        return direction.equals(PositionDirection.YES) ? outcome.getSharesY() - shares : outcome.getSharesY();
+    }
 
-        return sale(user, market, outcomeIndex, direction, shares, sharePrice);
+    public int getPurchaseNewSharesN(PositionDirection direction, int shares, Outcome outcome) {
+        return direction.equals(PositionDirection.NO) ? outcome.getSharesN() - shares : outcome.getSharesN();
+    }
+
+    public void purchaseTransactionValidation(User user, PositionDirection direction, int shares,
+            Outcome outcome, BigDecimal sharePrice, BigDecimal tradeValue) {
+        if (user.getCredits().compareTo(tradeValue) == -1) {
+            throw new IllegalArgumentException("Insufficient Funds");
+        }
+
+        var yesOverflow = (isYes(direction) && (outcome.getSharesY() - BUFFER_POSITIONS < shares));
+        var noOverflow = (isNo(direction) && (outcome.getSharesN() - BUFFER_POSITIONS < shares));
+        if (yesOverflow || noOverflow) {
+            throw new IllegalArgumentException("Too many shares requested");
+        }
+
+        if (!toBigDecimal(sharePrice.doubleValue()).equals(price(getPurchaseNewSharesY(direction, shares, outcome),
+                getPurchaseNewSharesN(direction, shares, outcome)))) {
+            throw new IllegalArgumentException("Invalid or out-of-date share sale price");
+        }
+
+    }
+
+    public MarketTransaction sale(String userEmail, MarketTransactionRequestData marketTransactionRequestData) {
+        return sale(
+                userService.getUserByEmail(userEmail),
+                marketRepository.findById(marketTransactionRequestData.getId()).get(),
+                marketTransactionRequestData.getOutcomeIndex(),
+                marketTransactionRequestData.getPositionDirection(),
+                marketTransactionRequestData.getShares(),
+                marketTransactionRequestData.getSharePrice());
     }
 
     @Transactional
     public MarketTransaction sale(User user, Market market, int outcomeIndex, PositionDirection direction, int shares,
             BigDecimal sharePrice) {
-        if (market.isClosed()) {
-            throw new IllegalArgumentException("Cannot transact on closed market");
-        } else if (shares < 1) {
-            throw new IllegalArgumentException(String.format("Shares to be transacted '%d' must be positive", shares));
-        }
+
+        purchaseAndSaleTransactionValidation(market, shares);
 
         var outcome = market.getOutcomes().get(outcomeIndex);
         var validPositions = positionRepository.findByUserIdAndMarketIdAndOutcomeIndexAndDirectionOrderByPriceAtBuyDesc(
@@ -198,27 +201,21 @@ public class MarketTransactionService {
                 (acc, element) -> acc + element);
         var newSharesY = direction.equals(PositionDirection.YES) ? outcome.getSharesY() + shares : outcome.getSharesY();
         var newSharesN = direction.equals(PositionDirection.NO) ? outcome.getSharesN() + shares : outcome.getSharesN();
-
-        if (shares > validUserShares) {
-            throw new IllegalArgumentException("Insufficient Shares");
-        }
-        if (!sharePrice.equals(price(newSharesY, newSharesN))) {
-            throw new IllegalArgumentException("Invalid or out-of-date share sale price");
-        }
-
         var bank = getBankUser();
-        var tradeValue = sharePrice.multiply(toBigDecimal(shares));
 
-        // Transaction, Position Handling
+        saleTransactionValidation(shares, sharePrice, validUserShares, newSharesY, newSharesN);
+
+        var tradeValue = sharePrice.multiply(toBigDecimal(shares));
         var transaction = new MarketTransaction(user.getId(), getBankUserId(), market.getId(), outcomeIndex, direction,
                 MarketTransactionType.SALE, tradeValue);
         bank.withdrawCredits(transaction.getCredits());
         user.depositCredits(transaction.getCredits());
 
+        // TODO pm-15 Extact into two functions: one that returns deleted positions,
+        // TODO pm-15 ...another that calculates the modified position
         var shareCount = 0;
         var deletedPositions = new ArrayList<Position>();
         Optional<Position> modifiedPosition = Optional.empty();
-
         for (Position position : validPositions) {
             if (position.getShares() > (shares - shareCount)) {
                 // Current position has more shares than needed to fill sale
@@ -239,12 +236,6 @@ public class MarketTransactionService {
         }
 
         // Outcome pricing changes
-        if (direction.equals(PositionDirection.YES)) {
-            outcome.setSharesY(newSharesY);
-        } else {
-            outcome.setSharesN(newSharesN);
-        }
-
         outcome.setPrice(sharePrice);
         outcome.setSharesY(newSharesY);
         outcome.setSharesN(newSharesN);
@@ -258,14 +249,17 @@ public class MarketTransactionService {
         }
         transactionRepository.save(transaction);
 
-        // TODO: Fill out
         return transaction;
     }
 
-    public static boolean priceValidSale(Market market, int outcomeIndex, PositionDirection direction, int shares,
-            BigDecimal sharePrice) {
-        var outcome = market.getOutcomes().get(outcomeIndex);
-        return sharePrice.equals(price(outcome.getSharesY(), outcome.getSharesN()));
+    public void saleTransactionValidation(int shares, BigDecimal sharePrice, int validUserShares, int newSharesY,
+            int newSharesN) {
+        if (shares > validUserShares) {
+            throw new IllegalArgumentException("Insufficient Shares");
+        }
+        if (!toBigDecimal(sharePrice.doubleValue()).equals(price(newSharesY, newSharesN))) {
+            throw new IllegalArgumentException("Invalid or out-of-date share sale price");
+        }
     }
 
     @Scheduled(fixedRateString = "${marketCloseIntervalMinutes}", timeUnit = TimeUnit.MINUTES)
@@ -308,6 +302,7 @@ public class MarketTransactionService {
                             market.getOutcomes().size()));
         }
 
+        // TODO pm-15: Extract out `transaction` creation
         var transactions = new ArrayList<MarketTransaction>();
         boolean correct;
 
@@ -358,6 +353,10 @@ public class MarketTransactionService {
         return true;
     }
 
+    public static BigDecimal toBigDecimal(String val) {
+        return new BigDecimal(Double.valueOf(val));
+    }
+
     public static BigDecimal toBigDecimal(double val) {
         return new BigDecimal(val).setScale(2, ROUNDING_RULE);
     }
@@ -368,12 +367,6 @@ public class MarketTransactionService {
 
     public static BigDecimal subtractBigDecimal(BigDecimal minuend, BigDecimal subtrahend) {
         return minuend.subtract(subtrahend);
-    }
-
-    public static BigDecimal priceRecalc(int sharesY, int sharesN) {
-        var Y = (double) sharesY;
-        var N = (double) sharesN;
-        return toBigDecimal(N / (N + Y));
     }
 
     public static BigDecimal price(int sharesY, int sharesN) {
@@ -411,6 +404,26 @@ public class MarketTransactionService {
         return returnList;
     }
 
+    public List<List<List<BigDecimal>>> getPurchasePriceList(Market market, User user) {
+        List<List<List<BigDecimal>>> returnList = new ArrayList<>();
+
+        for (int outcomeIndex = 0; outcomeIndex < market.getOutcomes().size(); outcomeIndex++) {
+            var outcome = market.getOutcomes().get(outcomeIndex);
+            List<BigDecimal> yesSalePriceList = new ArrayList<>();
+            for (int sharesToBuy = 1; sharesToBuy <= outcome.getSharesY() - BUFFER_POSITIONS; sharesToBuy++) {
+                yesSalePriceList.add(price(outcome.getSharesY() - sharesToBuy, outcome.getSharesN()));
+            }
+
+            List<BigDecimal> noSalePriceList = new ArrayList<>();
+            for (int sharesToBuy = 1; sharesToBuy <= outcome.getSharesN() - BUFFER_POSITIONS; sharesToBuy++) {
+                noSalePriceList.add(price(outcome.getSharesY(), outcome.getSharesN() - sharesToBuy));
+            }
+
+            returnList.add(List.of(yesSalePriceList, noSalePriceList));
+        }
+        return returnList;
+    }
+
     public MarketProposal processMarketProposal(MarketProposalData marketProposalData) {
         if (marketProposalRepository.existsByQuestion(marketProposalData.getQuestion())) {
             throw new IllegalArgumentException(
@@ -437,5 +450,41 @@ public class MarketTransactionService {
 
     public String getBankUserId() {
         return getBankUser().getId();
+    }
+
+    public boolean isYes(PositionDirection positionDirection) {
+        return positionDirection.equals(PositionDirection.YES);
+    }
+
+    public boolean isNo(PositionDirection positionDirection) {
+        return positionDirection.equals(PositionDirection.NO);
+    }
+
+    public void purchaseAndSaleTransactionValidation(Market market, int shares) {
+        if (market.isClosed()) {
+            throw new IllegalArgumentException("Cannot transact on closed market");
+        } else if (shares < 1) {
+            throw new IllegalArgumentException(String.format("Shares to be transacted '%d' must be positive", shares));
+        }
+    }
+
+    public static BigDecimal purchasePriceCalculator(Market market, int outcomeIndex, PositionDirection direction,
+            int shares) {
+        var outcome = market.getOutcome(outcomeIndex);
+        if (direction.equals(PositionDirection.YES)) {
+            return price(outcome.getSharesY() - shares, outcome.getSharesN());
+        } else {
+            return price(outcome.getSharesY(), outcome.getSharesN() - shares);
+        }
+    }
+
+    public static BigDecimal salePriceCalculator(Market market, int outcomeIndex, PositionDirection direction,
+            int shares) {
+        var outcome = market.getOutcome(outcomeIndex);
+        if (direction.equals(PositionDirection.YES)) {
+            return price(outcome.getSharesY() + shares, outcome.getSharesN());
+        } else {
+            return price(outcome.getSharesY(), outcome.getSharesN() + shares);
+        }
     }
 }

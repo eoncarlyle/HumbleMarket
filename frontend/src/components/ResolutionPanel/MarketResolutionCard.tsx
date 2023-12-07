@@ -2,9 +2,10 @@ import { Card, Button } from "react-bootstrap";
 
 import Market from "../../model/Market";
 import MarketResolutionState from "../../model/MarketResolutionState";
+import PositionDirection from "../../model/PositionDirection";
+import { isYes } from "../../util/TradeMarketTransaction";
 
 import styles from "../../style/MarketCard.module.css";
-import PositionDirection from "../../model/PositionDirection";
 
 interface MarketResolutionCardProps {
   market: Market;
@@ -35,7 +36,7 @@ export default function MarketResolutionCard({
       });
     };
     return (
-      <Button variant={positionDirection === PositionDirection.YES ? "success" : "danger"} onClick={handler}>
+      <Button variant={isYes(positionDirection) ? "success" : "danger"} onClick={handler}>
         {market.outcomes.at(0).claim}: {positionDirection}
       </Button>
     );
@@ -58,8 +59,8 @@ export default function MarketResolutionCard({
       outcomeButtons.push(<Button onClick={handler}>{market.outcomes.at(index).claim}</Button>);
     }
   } else {
-    outcomeButtons.push(createSingleOutcomeButton(PositionDirection.YES))
-    outcomeButtons.push(createSingleOutcomeButton(PositionDirection.NO))
+    outcomeButtons.push(createSingleOutcomeButton(PositionDirection.YES));
+    outcomeButtons.push(createSingleOutcomeButton(PositionDirection.NO));
   }
 
   return (

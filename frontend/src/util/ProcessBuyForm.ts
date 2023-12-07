@@ -8,6 +8,7 @@ import { getAuthenticatedResponse } from "./Auth";
 
 export default function processBuyForm(market: Market,
   order: Order,
+  sharePrice: number,
   setValid: Dispatch<SetStateAction<TransactionValidation>>,
   setOrder: Dispatch<SetStateAction<Order>>) {
   return async () => {
@@ -21,7 +22,8 @@ export default function processBuyForm(market: Market,
       id: market.id,
       outcomeIndex: outcomeIndex,
       positionDirection: positionDirection,
-      shares: shares
+      shares: shares,
+      sharePrice: sharePrice
     })
 
     if (!response.ok) {
