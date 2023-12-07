@@ -17,6 +17,7 @@ import {
 } from "../../util/TransactionValidationStateManagement";
 import MarketTransactionModal from "./MarketTransactionModal";
 import TransactionType from "../../model/TransactionType";
+import { directionCost, isYes } from "../../util/TradeMarketTransaction";
 
 import styles from "../../style/TransactionForm.module.css";
 
@@ -25,15 +26,9 @@ export default function SellForm() {
   const { marketReturnData, order, setOrder } = marketDetailContextValue;
   const { market, salePriceList } = marketReturnData;
 
-  const transactionType = TransactionType.Sale;
   const outcome = market.outcomes[order.outcomeIndex];
-  const outcomeSalePriceList =
-    salePriceList[order.outcomeIndex][order.positionDirection === PositionDirection.YES ? 0 : 1];
-  const sharePrice =
-    order.shares > outcomeSalePriceList.length ? outcomeSalePriceList[-1] : outcomeSalePriceList[order.shares - 1];
-
-  const directionCost = order.positionDirection === PositionDirection.YES ? sharePrice : 1 - sharePrice;
-  const inputDisabled = outcomeSalePriceList.length === 0;
+  const outcomeSalePriceList = salePriceList[order.outcomeIndex][isYes(order.positionDirection) ? 0 : 1];
+  const orderDirectionCost = directionCost(order.positionDirection, order.shares, outcomeSalePriceList);
 
   const [transactionValidation, setTransactionValidation] = useState<TransactionValidation>({
     valid: true,
@@ -60,7 +55,7 @@ export default function SellForm() {
       <RRForm className={styles.transactionForm} onSubmit={submitHandler}>
         <Container className={styles.transactionFormContainer}>
           <OrderInformation
-            transactionType={transactionType}
+            transactionType={TransactionType.Sale}
             claim={outcome.claim}
             direction={order.positionDirection}
             availableShares={outcomeSalePriceList.length}
@@ -79,18 +74,23 @@ export default function SellForm() {
                 onClick={shareButtonHandler}
                 isInvalid={!transactionValidation.valid}
                 isValid={transactionValidation.valid && transactionValidation.message !== ""}
-                disabled={inputDisabled}
+                disabled={outcomeSalePriceList.length === 0}
               ></Form.Control>
               <Form.Control.Feedback type="invalid">{transactionValidation.message}</Form.Control.Feedback>
               <Form.Control.Feedback type="valid">{transactionValidation.message}</Form.Control.Feedback>
             </Col>
           </Row>
-          <Button variant="primary" type="submit" className={styles.marketButton} disabled={inputDisabled}>
+          <Button
+            variant="primary"
+            type="submit"
+            className={styles.marketButton}
+            disabled={outcomeSalePriceList.length === 0}
+          >
             Sell
           </Button>
           <Row>
             <Col>Proceeds</Col>
-            <Col>{priceNumberFormat(order.shares * directionCost)} CR</Col>
+            <Col>{priceNumberFormat(order.shares * orderDirectionCost)} CR</Col>
           </Row>
         </Container>
       </RRForm>
@@ -100,9 +100,9 @@ export default function SellForm() {
         showModal={transactionValidation.showModal}
         order={order}
         outcomeClaim={outcome.claim}
-        directionCost={directionCost}
+        directionCost={orderDirectionCost}
         handleClose={closeHandler}
-        handleSubmit={processSellForm(market, order, sharePrice, setTransactionValidation, setOrder)}
+        handleSubmit={processSellForm(market, order, orderDirectionCost, setTransactionValidation, setOrder)}
       />
     </>
   );

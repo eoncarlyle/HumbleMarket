@@ -1,19 +1,7 @@
 package com.iainschmitt.perdiction.controller;
 
-import com.iainschmitt.perdiction.model.Market;
-import com.iainschmitt.perdiction.model.MarketProposal;
-import com.iainschmitt.perdiction.model.MarketTransaction;
-import com.iainschmitt.perdiction.model.PositionDirection;
-import com.iainschmitt.perdiction.model.rest.MarketProposalData;
-import com.iainschmitt.perdiction.model.rest.MarketReturnData;
-import com.iainschmitt.perdiction.model.rest.MarketTransactionRequestData;
-import com.iainschmitt.perdiction.repository.MarketProposalRepository;
-import com.iainschmitt.perdiction.repository.MarketRepository;
-import com.iainschmitt.perdiction.service.AuthService;
-import com.iainschmitt.perdiction.service.MarketTransactionService;
-import com.iainschmitt.perdiction.service.UserService;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -26,6 +14,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.iainschmitt.perdiction.model.Market;
+import com.iainschmitt.perdiction.model.MarketProposal;
+import com.iainschmitt.perdiction.model.MarketTransaction;
+import com.iainschmitt.perdiction.model.PositionDirection;
+import com.iainschmitt.perdiction.model.rest.MarketProposalData;
+import com.iainschmitt.perdiction.model.rest.MarketReturnData;
+import com.iainschmitt.perdiction.model.rest.MarketTransactionRequestData;
+import com.iainschmitt.perdiction.repository.MarketProposalRepository;
+import com.iainschmitt.perdiction.repository.MarketRepository;
+import com.iainschmitt.perdiction.service.AuthService;
+import com.iainschmitt.perdiction.service.MarketTransactionService;
+import com.iainschmitt.perdiction.service.UserService;
+
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/market")
@@ -65,10 +68,10 @@ public class MarketTransactionController {
         authService.authenticateTokenThrows(token);
         var user = userService.getUserByEmail(authService.getClaim(token, "email"));
         var market = marketRepository.findById(id).get();
-        var salePriceList = marketTransactionService.getSalePriceList(market, user);
         var userCredits = user.getCredits();
         return new ResponseEntity<>(
-                MarketReturnData.of(market, salePriceList, userCredits),
+                MarketReturnData.of(market, marketTransactionService.getPurchasePriceList(market, user),
+                        marketTransactionService.getSalePriceList(market, user), userCredits),
                 HttpStatus.OK);
     }
 

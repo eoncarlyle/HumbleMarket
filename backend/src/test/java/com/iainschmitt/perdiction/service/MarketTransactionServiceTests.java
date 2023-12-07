@@ -1,7 +1,5 @@
 package com.iainschmitt.perdiction.service;
 
-import static com.iainschmitt.perdiction.service.MarketTransactionService.price;
-import static com.iainschmitt.perdiction.service.MarketTransactionService.priceValidSale;
 import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -21,7 +19,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
 import com.iainschmitt.perdiction.model.Market;
-import com.iainschmitt.perdiction.model.MarketTransaction;
 import com.iainschmitt.perdiction.model.MarketTransactionType;
 import com.iainschmitt.perdiction.model.Outcome;
 import com.iainschmitt.perdiction.model.Position;
@@ -363,7 +360,7 @@ public class MarketTransactionServiceTests {
             noBuyPriceList.add(MarketTransactionService.price(availableYesShares, availableNoShares - sharesToBuy));
         }
 
-        assertThat(marketTransactionService.getBuyPriceList(market, user0))
+        assertThat(marketTransactionService.getPurchasePriceList(market, user0))
                 .isEqualTo(List.of(List.of(yesBuyPriceList, noBuyPriceList)));
     }
 
@@ -540,6 +537,11 @@ public class MarketTransactionServiceTests {
                 Instant.now().plus(Duration.ofHours(1L)).toEpochMilli(),
                 outcomeClaimsList("Between 40 °F and 50 °F", "Between 40 °F and 50 °F"), true);
         assertThat(marketTransactionService.validMarketCreationData(invalidSingleOutcomeMarket)).isEqualTo(false);
+    }
+
+    @Test
+    public void BigDecimalNormalisation() {
+        assertThat(new BigDecimal("0.5")).isEqualTo(toBigDecimal("0.50"));
     }
 
     public String getAdminId() {

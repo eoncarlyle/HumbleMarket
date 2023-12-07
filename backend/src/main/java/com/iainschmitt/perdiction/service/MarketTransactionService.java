@@ -127,7 +127,6 @@ public class MarketTransactionService {
         var tradeValue = positionPrice.multiply(toBigDecimal(shares));
         var bank = getBankUser();
 
-        // TODO pm-15: Move these validations to new method
         purchaseTransactionValidation(user, direction, shares, outcome, sharePrice, tradeValue);
 
         // Transaction, Position Handling
@@ -172,7 +171,7 @@ public class MarketTransactionService {
             throw new IllegalArgumentException("Too many shares requested");
         }
 
-        if (!sharePrice.equals(price(getPurchaseNewSharesY(direction, shares, outcome),
+        if (!toBigDecimal(sharePrice.doubleValue()).equals(price(getPurchaseNewSharesY(direction, shares, outcome),
                 getPurchaseNewSharesN(direction, shares, outcome)))) {
             throw new IllegalArgumentException("Invalid or out-of-date share sale price");
         }
@@ -258,15 +257,9 @@ public class MarketTransactionService {
         if (shares > validUserShares) {
             throw new IllegalArgumentException("Insufficient Shares");
         }
-        if (!sharePrice.equals(price(newSharesY, newSharesN))) {
+        if (!toBigDecimal(sharePrice.doubleValue()).equals(price(newSharesY, newSharesN))) {
             throw new IllegalArgumentException("Invalid or out-of-date share sale price");
         }
-    }
-
-    public static boolean priceValidSale(Market market, int outcomeIndex, PositionDirection direction, int shares,
-            BigDecimal sharePrice) {
-        var outcome = market.getOutcomes().get(outcomeIndex);
-        return sharePrice.equals(price(outcome.getSharesY(), outcome.getSharesN()));
     }
 
     @Scheduled(fixedRateString = "${marketCloseIntervalMinutes}", timeUnit = TimeUnit.MINUTES)
@@ -360,6 +353,10 @@ public class MarketTransactionService {
         return true;
     }
 
+    public static BigDecimal toBigDecimal(String val) {
+        return new BigDecimal(Double.valueOf(val));
+    }
+
     public static BigDecimal toBigDecimal(double val) {
         return new BigDecimal(val).setScale(2, ROUNDING_RULE);
     }
@@ -407,7 +404,7 @@ public class MarketTransactionService {
         return returnList;
     }
 
-    public List<List<List<BigDecimal>>> getBuyPriceList(Market market, User user) {
+    public List<List<List<BigDecimal>>> getPurchasePriceList(Market market, User user) {
         List<List<List<BigDecimal>>> returnList = new ArrayList<>();
 
         for (int outcomeIndex = 0; outcomeIndex < market.getOutcomes().size(); outcomeIndex++) {
@@ -478,6 +475,16 @@ public class MarketTransactionService {
             return price(outcome.getSharesY() - shares, outcome.getSharesN());
         } else {
             return price(outcome.getSharesY(), outcome.getSharesN() - shares);
+        }
+    }
+
+    public static BigDecimal salePriceCalculator(Market market, int outcomeIndex, PositionDirection direction,
+            int shares) {
+        var outcome = market.getOutcome(outcomeIndex);
+        if (direction.equals(PositionDirection.YES)) {
+            return price(outcome.getSharesY() + shares, outcome.getSharesN());
+        } else {
+            return price(outcome.getSharesY(), outcome.getSharesN() + shares);
         }
     }
 }

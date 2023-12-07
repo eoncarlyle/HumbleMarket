@@ -85,7 +85,6 @@ public class TransactionControllerIntegrationTests {
         marketTransactionService.createMarket(market);
         var marketId = marketRepository.findAll().get(0).getId();
 
-        // TODO pm-15: This test will fail, is missing the outcome price
         webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(new MarketTransactionRequestData() {
                     {
@@ -96,7 +95,8 @@ public class TransactionControllerIntegrationTests {
                         setSharePrice(MarketTransactionService.purchasePriceCalculator(
                                 marketRepository.findAll().get(0), 1, PositionDirection.YES, 1));
                     }
-                }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(202));
+                }).exchange().expectStatus()
+                .isEqualTo(HttpStatusCode.valueOf(202));
     }
 
     @Test
@@ -111,7 +111,6 @@ public class TransactionControllerIntegrationTests {
         marketTransactionService.createMarket(market);
         var marketId = marketRepository.findAll().get(0).getId();
 
-        // TODO pm-15: This test will fail, is missing the outcome price
         var response = webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", token)
                 .contentType(MediaType.APPLICATION_JSON).bodyValue(new MarketTransactionRequestData() {
                     {
@@ -120,12 +119,54 @@ public class TransactionControllerIntegrationTests {
                         setPositionDirection(PositionDirection.YES);
                         setShares(1);
                         setSharePrice(MarketTransactionService.purchasePriceCalculator(
-                                marketRepository.findAll().get(0), 1, PositionDirection.YES, 1));
+                                marketRepository.findAll().get(0), 1, PositionDirection.YES, shares));
                     }
                 }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(422)).expectBody().returnResult();
 
         assertThat(new String(response.getResponseBody()))
                 .isEqualTo("{\"status\":422,\"message\":\"Insufficient Funds\"}");
+    }
+
+    @Test
+    void purchaseThenSaleSuccess() {
+        var user = User.of(DEFAULT_USER_EMAIL);
+        user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
+        user.setCredits(toBigDecimal(100d));
+        userService.saveUser(user);
+        marketTransactionService.createMarket(defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail()));
+
+        var marketId = marketRepository.findAll().get(0).getId();
+        var orderOutcomeIndex = 1;
+        var orderShares = 3;
+
+        webTestClient.post().uri(MARKET_URI_PATH + "/purchase").header("Authorization", authService.createToken(user))
+                .contentType(MediaType.APPLICATION_JSON).bodyValue(
+                        new MarketTransactionRequestData() {
+                            {
+                                setId(marketId);
+                                setOutcomeIndex(orderOutcomeIndex);
+                                setPositionDirection(PositionDirection.YES);
+                                setShares(orderShares);
+                                setSharePrice(MarketTransactionService.purchasePriceCalculator(
+                                        marketRepository.findAll().get(0), orderOutcomeIndex, PositionDirection.YES,
+                                        orderShares));
+                            }
+                        })
+                .exchange().expectStatus()
+                .isEqualTo(HttpStatusCode.valueOf(202));
+
+        webTestClient.post().uri(MARKET_URI_PATH + "/sale").header("Authorization", authService.createToken(user))
+                .contentType(MediaType.APPLICATION_JSON).bodyValue(new MarketTransactionRequestData() {
+                    {
+                        setId(marketId);
+                        setOutcomeIndex(orderOutcomeIndex);
+                        setPositionDirection(PositionDirection.YES);
+                        setShares(orderShares);
+                        setSharePrice(MarketTransactionService.salePriceCalculator(
+                                marketRepository.findAll().get(0), orderOutcomeIndex, PositionDirection.YES,
+                                orderShares));
+                    }
+                }).exchange().expectStatus().isEqualTo(HttpStatusCode.valueOf(202));
     }
 
     @Test

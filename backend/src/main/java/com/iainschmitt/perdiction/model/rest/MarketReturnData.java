@@ -10,11 +10,13 @@ import com.iainschmitt.perdiction.model.Market;
 @AllArgsConstructor
 public class MarketReturnData {
     public Market market;
+    public List<List<List<BigDecimal>>> purchasePriceList;
     public List<List<List<BigDecimal>>> salePriceList;
     public BigDecimal userCredits;
 
-    public static MarketReturnData of(Market market, List<List<List<BigDecimal>>> salePriceList,
+    public static MarketReturnData of(Market market, List<List<List<BigDecimal>>> purchasePriceList,
+            List<List<List<BigDecimal>>> salePriceList,
             BigDecimal userCredits) {
-        return new MarketReturnData(market, salePriceList, userCredits);
+        return new MarketReturnData(market, purchasePriceList, salePriceList, userCredits);
     }
 }
