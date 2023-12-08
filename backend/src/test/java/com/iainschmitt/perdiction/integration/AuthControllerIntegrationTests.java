@@ -13,9 +13,7 @@ import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
 import com.iainschmitt.perdiction.model.rest.AuthData;
 import com.iainschmitt.perdiction.model.User;
-import com.iainschmitt.perdiction.model.WhitelistEmail;
 import com.iainschmitt.perdiction.service.UserService;
-import com.iainschmitt.perdiction.repository.WhitelistEmailRepository;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient(timeout = "36000")
@@ -24,9 +22,7 @@ public class AuthControllerIntegrationTests {
     private WebTestClient webTestClient;
     @Autowired
     private UserService userService;
-    @Autowired
-    private WhitelistEmailRepository whitelistEmailRepository;
-    
+
     // TODO: Remove the `returnResult` invocation on this and other test classes
     private static final String AUTH_URI_PATH = "/auth";
 
@@ -35,7 +31,6 @@ public class AuthControllerIntegrationTests {
     @BeforeEach
     void clearTestUserDB() {
         userService.deleteAll();
-        whitelistEmailRepository.save(new WhitelistEmail(testUserEmail));
     }
 
     @Test
@@ -130,7 +125,8 @@ public class AuthControllerIntegrationTests {
         var user = User.of(testUserEmail);
         user.setPasswordHash("!A_Minimal_Password_Really");
 
-        webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(String.format("{\"email\":\"%s\"}", testUserEmail)).exchange()
+        webTestClient.post().uri(AUTH_URI_PATH + "/login").bodyValue(String.format("{\"email\":\"%s\"}", testUserEmail))
+                .exchange()
                 .expectStatus().isEqualTo(HttpStatusCode.valueOf(415)).expectBody().returnResult();
     }
 }

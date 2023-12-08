@@ -28,8 +28,6 @@ import com.iainschmitt.perdiction.service.MarketTransactionService;
 import com.iainschmitt.perdiction.repository.MarketRepository;
 import com.iainschmitt.perdiction.repository.PositionRepository;
 import com.iainschmitt.perdiction.repository.TransactionRepository;
-import com.iainschmitt.perdiction.repository.WhitelistEmailRepository;
-import com.iainschmitt.perdiction.model.WhitelistEmail;
 
 import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigDecimal;
 import static com.iainschmitt.perdiction.service.MarketTransactionService.price;
@@ -53,8 +51,6 @@ public class TransactionControllerIntegrationTests {
     private TransactionRepository transactionRepository;
     @Autowired
     private ExternalisedConfiguration externalisedConfiguration;
-    @Autowired
-    private WhitelistEmailRepository whitelistEmailRepository;
 
     public String DEFAULT_USER_EMAIL = "user1@iainschmitt.com";
     private static final String MARKET_URI_PATH = "/market";
@@ -224,7 +220,6 @@ public class TransactionControllerIntegrationTests {
         userService.saveUser(user);
         var token = authService.createToken(user, Duration.ofSeconds(0));
         Thread.sleep(1001L);
-        whitelistEmailRepository.save(new WhitelistEmail(DEFAULT_USER_EMAIL));
 
         var market = defaultMultiOutcomeMarket(externalisedConfiguration.getAdminEmail());
         marketTransactionService.createMarket(market);
@@ -248,7 +243,6 @@ public class TransactionControllerIntegrationTests {
         assertThat(new String(response.getResponseBody()))
                 .isEqualTo("{\"status\":403,\"message\":\"Failed authentication: invalid token\"}");
 
-        whitelistEmailRepository.save(new WhitelistEmail(DEFAULT_USER_EMAIL));
     }
 
     private MarketProposalData defaultMultiOutcomeMarket(String creatorId) {
