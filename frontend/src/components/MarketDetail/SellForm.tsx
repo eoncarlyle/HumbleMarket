@@ -4,7 +4,6 @@ import { Container, Row, Col, Form, Button } from "react-bootstrap";
 
 import { priceNumberFormat } from "../../util/Numeric";
 import shareChangeHandlerCreator from "../../util/ShareChangeHandlerCreator";
-import PositionDirection from "../../model/PositionDirection";
 import TransactionValidation from "../../model/TransactionValidation";
 import processSellForm from "../../util/ProcessSellForm";
 import OrderInformation from "./OrderInformation";
