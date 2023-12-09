@@ -20,21 +20,29 @@ export default function HomeNavbar() {
           </LinkContainer> */}
           {token && !tokenExpired() ? (
             <>
-              <NavDropdown title={ <PersonCircle/> } active={true}>
+              <NavDropdown title={<PersonCircle />} active={true}>
                 <LinkContainer to="/account">
                   <NavDropdown.Item>Account Detail</NavDropdown.Item>
                 </LinkContainer>
                 <LinkContainer to="/auth/logout">
                   <NavDropdown.Item>Logout</NavDropdown.Item>
                 </LinkContainer>
-                {isAdmin() ? <>
-                  <LinkContainer to="/admin">
-                    <NavDropdown.Item>Market Proposal Review</NavDropdown.Item>
-                  </LinkContainer>
-                  <LinkContainer to="/resolve">
-                    <NavDropdown.Item>Market Proposal Resolve</NavDropdown.Item>
-                  </LinkContainer>
-                </> : <></>}
+                {isAdmin() ? (
+                  <>
+                    <LinkContainer to="/admin">
+                      <NavDropdown.Item>Market Proposal Review</NavDropdown.Item>
+                    </LinkContainer>
+                    <LinkContainer to="/resolve">
+                      <NavDropdown.Item>Market Proposal Resolve</NavDropdown.Item>
+                    </LinkContainer>
+                    <NavDropdown.Divider />
+                    <LinkContainer to="/about">
+                      <NavDropdown.Item>About This Project</NavDropdown.Item>
+                    </LinkContainer>
+                  </>
+                ) : (
+                  <></>
+                )}
               </NavDropdown>
             </>
           ) : (
@@ -46,4 +54,3 @@ export default function HomeNavbar() {
     </>
   );
 }
-

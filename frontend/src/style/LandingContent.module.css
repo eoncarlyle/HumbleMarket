@@ -10,3 +10,7 @@ p {
 a {
   margin: 0% 3%;
 }
+
+.landingRow {
+  justify-content: center;
+}

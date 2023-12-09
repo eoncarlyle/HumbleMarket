@@ -3,7 +3,7 @@ import { Card, Button } from "react-bootstrap";
 import Market from "../../model/Market";
 import MarketResolutionState from "../../model/MarketResolutionState";
 import PositionDirection from "../../model/PositionDirection";
-import { isYes } from "../../util/TradeMarketTransaction";
+import { isYes } from "../../util/MarketTransaction";
 
 import styles from "../../style/MarketCard.module.css";
 
