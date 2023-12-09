@@ -1,26 +1,13 @@
 import { Dispatch, SetStateAction } from "react";
-import { Dispatch, SetStateAction } from "react";
-import AdminPanelState, { AdminPanelState, SingleMarketState } from "../model/AdminPanelState";
-import AdminPanelState from "../model/AdminPanelState";
-import MarketProposalInputs from "../model/MarketProposalInputs";
 import MarketProposalInputs from "../model/MarketProposalInputs";
 import MarketProposalValidationData, { neutralMarketProposalValidationData } from "../model/MarketProposalValidationData";
-import MarketProposalValidationData, { neutralMarketProposalValidationData } from "../model/MarketProposalValidationData";
-import { getAuthenticatedResponse } from "./Auth";
-import { getAuthenticatedResponse } from "./Auth";
-
-import { Dispatch, SetStateAction } from "react";
-import AdminPanelState from "../model/AdminPanelState";
-import { neutralMarketProposalValidationData } from "../model/MarketProposalValidationData";
 import { getAuthenticatedResponse } from "./Auth";
 import AdminPanelState, { SingleMarketState } from "../model/AdminPanelState";
 import MarketProposalReviewState from "../model/MarketProposalReviewState";
 import Market from "../model/Market";
 import MarketResolutionState from "../model/MarketResolutionState";
-import MarketResolutionState from "../model/MarketResolutionState";
 
-
-export default async function processMarketProposalForm(
+export async function processMarketProposalForm(
   marketProposalInputs: MarketProposalInputs,
   setMarketProposalInputs: Dispatch<SetStateAction<MarketProposalInputs>>,
   setMarketProposalValidationData: Dispatch<SetStateAction<MarketProposalValidationData>>,
@@ -104,7 +91,9 @@ export default async function processMarketProposalForm(
     outcomeClaims: marketProposalValidationData.outcomeClaims,
     isCreated: marketProposalValidationData.isCreated,
   });
-} export default async function processMarketProposalReview(
+}
+
+export async function processMarketProposalReview(
   marketProposal: MarketProposal,
   marketReviewAccepted: boolean,
   setMarketProposalReviewState: Dispatch<SetStateAction<MarketProposalReviewState>>,
@@ -146,7 +135,8 @@ export default async function processMarketProposalForm(
     setAdminPanelState(newAdminPanelState);
   }
 }
-export default async function processMarketResolution(
+
+export async function processMarketResolution(
   marketResolutionState: MarketResolutionState,
   setMarketResolutionState: React.Dispatch<React.SetStateAction<MarketResolutionState>>
 ) {

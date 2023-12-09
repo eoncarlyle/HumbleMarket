@@ -1,7 +1,7 @@
 import { Modal, Button } from "react-bootstrap";
 
 import MarketResolutionState from "../../model/MarketResolutionState";
-import processMarketResolution from "../../util/MarketLifecycle";
+import { processMarketResolution } from "../../util/MarketLifecycle";
 
 interface ResolutionPanelModalProps {
   marketResolutionState: MarketResolutionState;

@@ -1,7 +1,7 @@
 import { Link, Form as RRForm, useActionData } from "react-router-dom";
 import { Button, Form } from "react-bootstrap";
 
-import AuthValidationData from "../util/Auth";
+import { AuthValidationData } from "../util/Auth";
 import "../style/AuthForm.module.css";
 
 export default function LogInContent() {

@@ -6,7 +6,7 @@ import TransactionType from "../../model/TransactionType";
 import PositionDirection from "../../model/PositionDirection";
 import MarketDetailCard from "./MarketDetailCard";
 import MarketReturnData from "../../model/MarketReturnData";
-import getMarket from "../../util/GetMarket";
+import { getMarket } from "../../util/Rest";
 import MarketDetailContextValue from "../../model/MarketDetailContextValue";
 import MarketDetailContext from "../../util/MarketDetailContext";
 
