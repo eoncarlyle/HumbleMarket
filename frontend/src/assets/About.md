@@ -1,13 +1,6 @@
----
-title: Introducing Signals
-date: 2022-09-06
-authors:
-  - Marvin Hagemeister
-  - Jason Miller
----
-
-Signals are a way of expressing state that ensure apps stay fast regardless of how complex they get. Signals are based on reactive principles and provide excellent developer ergonomics, with a unique implementation optimized for Virtual DOM.
-
-At its core, a signal is an object with a `.value` property that holds some value. Accessing a signal's value property from within a component automatically updates that component when the value of that signal changes.
-
-In addition to being straightforward and easy to write, this also ensures state updates stay fast regardless of how many components your app has. Signals are fast by default, automatically optimizing updates behind the scenes for you.
+Schmitt's Humblemarket is a project by Iain Schmitt.
+This is a fake money prediction market, similar to Manifold Markets.
+Humblermarket users can buy and sell positions that a given outcome will or won't take place by the time a market closes.
+When an outcome market closes, correct positions redeem for one credit per share , while incorrect positions redeem for zero credits per share.
+Features are still being added to the application, as of December 2023 only admin users can create markets but user created markets will be added soon.
+Bugs and issues can be reported to market@iainschmitt.com.
