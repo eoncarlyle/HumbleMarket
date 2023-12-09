@@ -1,7 +1,7 @@
 import { Modal, Button } from "react-bootstrap";
 
 import MarketResolutionState from "../../model/MarketResolutionState";
-import processMarketResolution from "../../util/ProcessMarketResolution";
+import processMarketResolution from "../../util/MarketLifecycle";
 
 interface ResolutionPanelModalProps {
   marketResolutionState: MarketResolutionState;
@@ -13,7 +13,7 @@ export default function ResolutionPanelModal({
   setMarketResolutionState,
 }: ResolutionPanelModalProps) {
   let cardBody: string;
-  
+
   const outcome = marketResolutionState.market?.outcomes?.at(marketResolutionState.outcomeIndex);
 
   const closeHandler = () => {
@@ -33,12 +33,11 @@ export default function ResolutionPanelModal({
   };
 
   if (!marketResolutionState.market) {
-    cardBody = ""
-  }
-  else if (marketResolutionState.market.outcomes.length > 1) {
+    cardBody = "";
+  } else if (marketResolutionState.market.outcomes.length > 1) {
     cardBody = `Resolve ${marketResolutionState.market?.question} market with outcome ${outcome.claim}?`;
   } else {
-    cardBody = `Resolve ${marketResolutionState.market?.question} to ${outcome.claim}: ${marketResolutionState.direction}?` 
+    cardBody = `Resolve ${marketResolutionState.market?.question} to ${outcome.claim}: ${marketResolutionState.direction}?`;
   }
 
   return (
@@ -46,9 +45,7 @@ export default function ResolutionPanelModal({
       <Modal.Header>
         <Modal.Title> Confirm Market Resolution </Modal.Title>
       </Modal.Header>
-      <Modal.Body>
-        {cardBody}
-      </Modal.Body>
+      <Modal.Body>{cardBody}</Modal.Body>
       <Modal.Footer>
         <Button variant="danger" onClick={closeHandler}>
           Cancel

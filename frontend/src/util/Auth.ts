@@ -1,4 +1,5 @@
 import { decodeJwt } from "jose";
+import ValidationField from "../model/ValidationField";
 
 //TODO Move this to model directory, change to interface:
 
@@ -44,7 +45,7 @@ export async function getAuthenticatedResponse(requestSubpath: string, method: s
       },
       body: JSON.stringify(body),
     });
-  
+
   } else {
     try {
       return fetch(getBaseUrl() + requestSubpath, {
@@ -58,4 +59,10 @@ export async function getAuthenticatedResponse(requestSubpath: string, method: s
       throw e
     }
   }
+}
+
+export interface AuthValidationData {
+  email: ValidationField;
+  password: ValidationField;
+  passwordConf: ValidationField;
 }

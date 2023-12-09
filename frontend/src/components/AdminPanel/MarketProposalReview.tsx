@@ -3,7 +3,7 @@ import { useLoaderData } from "react-router-dom";
 import { Card, Button, Row, Col } from "react-bootstrap";
 
 import MarketProposalReviewState from "../../model/MarketProposalReviewState";
-import processMarketProposalReview from "../../util/ProcessMarketProposalReview";
+import processMarketProposalReview from "../../util/MarketLifecycle";
 import AdminPanelState, { SingleMarketState } from "../../model/AdminPanelState";
 
 import styles from "../../style/MarketProposalForm.module.css";

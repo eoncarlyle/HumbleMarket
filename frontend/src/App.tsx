@@ -10,18 +10,19 @@ import AccountOverview from "./components/AccountOverview";
 import AdminPanel from "./components/AdminPanel/AdminPanel";
 
 import { getAuthToken } from "./util/Auth";
-import { action as logInAction } from "./util/LogInAction.ts";
-import { action as signUpAction } from "./util/SignUpAction.ts";
-import { action as logOutAction } from "./util/LogOutAction.ts";
-import { loader as homeLoader } from "./util/MarketsLoader.ts";
-import { loader as marketProposalsLoader } from "./util/MarketProposalsLoader.ts";
-import { loader as marketLoader } from "./util/MarketLoader.ts";
-import { loader as accountLoader } from "./util/AccountLoader.ts";
-import { loader as marketsReadyForResolution } from "./util/MarketsReadyForResolutionLoader.ts";
+import { logInAction, signUpAction, logOutAction } from "./util/Actions.ts";
+import {
+  marketProposalsLoader,
+  marketLoader,
+  accountLoader,
+  marketsReadyForResolutionLoader,
+  homeLoader,
+} from "./util/Loaders.ts";
 
 import "./style/App.css";
 import ResolutionPanel from "./components/ResolutionPanel/ResolutionPanel.tsx";
 import ErrorElement from "./components/ErrorElement.tsx";
+import About from "./components/About.tsx";
 
 const router = createBrowserRouter([
   {
@@ -40,7 +41,11 @@ const router = createBrowserRouter([
             id: "home",
             element: <HomeContent />,
             loader: homeLoader,
-          }, //TODO: Include error element
+          },
+          {
+            path: "/about",
+            element: <About />,
+          },
           {
             path: "/market/:marketId",
             element: <MarketDetail />,
@@ -59,7 +64,7 @@ const router = createBrowserRouter([
           {
             path: "/resolve",
             element: <ResolutionPanel />,
-            loader: marketsReadyForResolution,
+            loader: marketsReadyForResolutionLoader,
           },
           {
             path: "/error",

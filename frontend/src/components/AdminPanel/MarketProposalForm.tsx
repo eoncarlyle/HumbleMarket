@@ -5,7 +5,7 @@ import MarketProposalInputs from "../../model/MarketProposalInputs";
 import MarketProposalValidationData, {
   neutralMarketProposalValidationData,
 } from "../../model/MarketProposalValidationData";
-import processMarketProposalForm from "../../util/ProcessMarketProposalForm";
+import processMarketProposalForm from "../../util/processMarketProposalForm";
 import AdminPanelState from "../../model/AdminPanelState";
 import RowWithColumns from "../../util/RowWithColumns";
 

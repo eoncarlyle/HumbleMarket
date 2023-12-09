@@ -3,20 +3,21 @@ import { Form as RRForm } from "react-router-dom";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 
 import { priceNumberFormat } from "../../util/Numeric";
-import shareChangeHandlerCreator from "../../util/ShareChangeHandlerCreator";
 import TransactionValidation from "../../model/TransactionValidation";
-import processSellForm from "../../util/ProcessSellForm";
 import OrderInformation from "./OrderInformation";
 import MarketDetailContext from "../../util/MarketDetailContext";
 import MarketDetailContextValue from "../../model/MarketDetailContextValue";
-import {
-  submitHandlerFactory,
-  closeHandlerFactory,
-  shareButtonHandlerFactory,
-} from "../../util/TransactionValidationStateManagement";
 import MarketTransactionModal from "./MarketTransactionModal";
 import TransactionType from "../../model/TransactionType";
-import { directionCost, isYes } from "../../util/TradeMarketTransaction";
+import {
+  closeHandlerFactory,
+  shareButtonHandlerFactory,
+  submitHandlerFactory,
+  processSellForm,
+  shareChangeHandlerCreator,
+  directionCost,
+  isYes,
+} from "../../util/MarketTransaction";
 
 import styles from "../../style/TransactionForm.module.css";
 
