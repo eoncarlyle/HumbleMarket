@@ -8,7 +8,9 @@ export function logOutAction() {
   localStorage.removeItem("token");
   localStorage.removeItem("expire");
   return redirect("/");
-} export async function signUpAction({ request }: any) {
+}
+
+export async function signUpAction({ request }: any) {
   const formData = await request.formData();
 
   const validationData: AuthValidationData = { email: { valid: true, message: "" }, password: { valid: true, message: "" }, passwordConf: { valid: true, message: "" }, };
