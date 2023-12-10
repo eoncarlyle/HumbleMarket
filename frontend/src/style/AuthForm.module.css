@@ -1,25 +1,15 @@
 h2 {
-  margin: 3% auto;
+  margin: 2rem auto;
 }
 
 form {
   margin: auto;
   text-align: left;
-  width: min(350px, 80%);
+  max-width: 20rem; 
   font-size: x-large;
 }
 
 button {
   width: 100%;
-  margin: 6% auto;
-}
-
-p {
-  text-align: center;
-  font-size: large;
-  margin: 3% auto 1.5% auto;
-}
-
-a {
-  margin: 1.5%;
+  margin: 2rem auto;
 }

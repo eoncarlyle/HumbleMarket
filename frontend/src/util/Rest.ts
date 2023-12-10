@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import MarketReturnData from "../model/MarketReturnData";
 import { getAuthToken, getAuthenticatedResponse } from "./Auth";
 
-
 // TODO: Fix the typing on this
 export async function getMarket(marketId: string) {
   //TODO: catch exceptions like these in a way that they clear data and log out
@@ -15,7 +14,10 @@ export async function getMarket(marketId: string) {
 }
 
 export function useFile(path: string, setArticleText: React.Dispatch<React.SetStateAction<string | null>>) {
+
   useEffect(() => {
-    fetch(path).then((response) => response.text()).then((text) => setArticleText(text))
+    fetch(path)
+      .then((response) => response.text())
+      .then((text) => setArticleText(text))
   }, [path, setArticleText])
 }

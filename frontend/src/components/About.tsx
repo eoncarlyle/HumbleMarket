@@ -1,21 +1,14 @@
-import { useState } from "react";
-import { useFile } from "../util/Rest";
-import { Container } from "react-bootstrap";
+import { Col } from "react-bootstrap";
 
-import "../style/Article.module.css";
+import WrappedMarkdown from "./WrappedMarkdown";
+
+import styles from "../style/Article.module.css";
 
 export default function About() {
-  const [articleText, setArticleText] = useState<string | null>(null);
-  const path = "/src/assets/About.md";
-  useFile(path, setArticleText);
-  if (articleText)
-    return (
-      <>
-        <h1>About</h1>
-        <Container>
-          <p>{articleText}</p>
-        </Container>
-      </>
-    );
-  else return <></>;
+  return (
+    <Col className={styles.articleCol}>
+      <h2>About</h2>
+      <WrappedMarkdown className={styles.articleBody} path={"/src/assets/About.md"} />
+    </Col>
+  );
 }
