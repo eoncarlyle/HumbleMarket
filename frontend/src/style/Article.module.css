@@ -1,7 +1,12 @@
-h1 {
-    margin: 3rem;
+.articleCol {
+    max-width: 60rem;
+    margin: auto;
 }
 
-p {
-    text-align: start;
+.articleBody {
+    text-align: left;
+}
+
+.linkText {
+font-size: x-large;    
 }

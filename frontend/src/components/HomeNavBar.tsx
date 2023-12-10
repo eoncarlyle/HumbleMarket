@@ -39,6 +39,10 @@ export default function HomeNavbar() {
                     <LinkContainer to="/about">
                       <NavDropdown.Item>About This Project</NavDropdown.Item>
                     </LinkContainer>
+                    <NavDropdown.Divider />
+                    <LinkContainer to="/auth/logout">
+                      <NavDropdown.Item>Logout</NavDropdown.Item>
+                    </LinkContainer>
                   </>
                 ) : (
                   <></>
