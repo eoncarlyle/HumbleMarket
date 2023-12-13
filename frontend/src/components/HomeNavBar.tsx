@@ -44,9 +44,9 @@ export default function HomeNavbar() {
                       <NavDropdown.Item>Logout</NavDropdown.Item>
                     </LinkContainer>
                   </>
-                ) : (
-                  <></>
-                )}
+          ) : (
+            <></>
+          )}
               </NavDropdown>
             </>
           ) : (
