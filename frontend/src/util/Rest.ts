@@ -3,14 +3,14 @@ import MarketReturnData from "../model/MarketReturnData";
 import { getAuthToken, getAuthenticatedResponse } from "./Auth";
 
 // TODO: Fix the typing on this
-export async function getMarket(marketId: string) {
+export async function getMarket(marketId: string): Promise<MarketReturnData> {
   //TODO: catch exceptions like these in a way that they clear data and log out
   if (!getAuthToken()) throw new Error("Invalid authentication token");
   const response = await getAuthenticatedResponse(`/market/${marketId}`, "GET");
 
   //TODO: Flesh out the non-happy path better
   const responseData = await response.json();
-  return responseData as MarketReturnData;
+  return responseData;
 }
 
 export function useFile(path: string, setArticleText: React.Dispatch<React.SetStateAction<string | null>>) {

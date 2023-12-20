@@ -10,7 +10,7 @@ export default function HomeNavbar() {
   const token = useRouteLoaderData("root") as string;
   return (
     <>
-      <Navbar sticky="top" bg="dark" variant="dark">
+      <Navbar sticky="top" bg="dark" variant="dark" expand="sm">
         <LinkContainer to="/">
           <Navbar.Brand>Schmitt's Humblemarket</Navbar.Brand>
         </LinkContainer>
@@ -18,7 +18,7 @@ export default function HomeNavbar() {
           {/* <LinkContainer to="/">
             <Nav.Link>Home</Nav.Link>
           </LinkContainer> */}
-          {token && !tokenExpired() ? (
+          {token && !tokenExpired() && (
             <>
               <NavDropdown title={<PersonCircle />} active={true}>
                 <LinkContainer to="/account">
@@ -27,7 +27,7 @@ export default function HomeNavbar() {
                 <LinkContainer to="/auth/logout">
                   <NavDropdown.Item>Logout</NavDropdown.Item>
                 </LinkContainer>
-                {isAdmin() ? (
+                {isAdmin() && (
                   <>
                     <LinkContainer to="/admin">
                       <NavDropdown.Item>Market Proposal Review</NavDropdown.Item>
@@ -44,13 +44,9 @@ export default function HomeNavbar() {
                       <NavDropdown.Item>Logout</NavDropdown.Item>
                     </LinkContainer>
                   </>
-          ) : (
-            <></>
-          )}
+                )}
               </NavDropdown>
             </>
-          ) : (
-            <></>
           )}
         </Nav>
       </Navbar>
