@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.model.rest;
+package com.iainschmitt.prediction.model.rest;
 
 import jakarta.validation.Validation;
 import jakarta.validation.ValidationException;
@@ -23,9 +23,11 @@ public class AuthData {
     }
 
     public static AuthData of(String email, String passwordHash) {
-        return new AuthData() {{
+        return new AuthData() {
+            {
                 setEmail(email);
                 setPasswordHash(passwordHash);
-            }};
+            }
+        };
     }
 }

@@ -1,8 +1,8 @@
-package com.iainschmitt.perdiction.repository;
+package com.iainschmitt.prediction.repository;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-import com.iainschmitt.perdiction.model.MarketTransaction;
+import com.iainschmitt.prediction.model.MarketTransaction;
 
 public interface TransactionRepository extends MongoRepository<MarketTransaction, String> {
 

@@ -6,7 +6,7 @@
   <import class="ch.qos.logback.core.FileAppender"/>
 
   <appender name="FILE" class="FileAppender">
-    <file>../log/perdiction-market-test.log</file>
+    <file>../log/prediction-market-test.log</file>
     <append>true</append>
     <encoder class="PatternLayoutEncoder">
       <pattern>%-4relative [%thread] %-5level %logger{35} -%kvp- %msg%n</pattern>

@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.controller;
+package com.iainschmitt.prediction.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.iainschmitt.perdiction.model.rest.AuthData;
-import com.iainschmitt.perdiction.model.rest.LogInReturnData;
-import com.iainschmitt.perdiction.model.rest.SignUpReturnData;
-import com.iainschmitt.perdiction.service.AuthService;
+import com.iainschmitt.prediction.model.rest.AuthData;
+import com.iainschmitt.prediction.model.rest.LogInReturnData;
+import com.iainschmitt.prediction.model.rest.SignUpReturnData;
+import com.iainschmitt.prediction.service.AuthService;
 
 @Validated
 @RestController

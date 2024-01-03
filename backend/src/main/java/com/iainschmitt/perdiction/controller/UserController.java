@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.controller;
+package com.iainschmitt.prediction.controller;
 
 import java.util.List;
 
@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.iainschmitt.perdiction.model.Position;
-import com.iainschmitt.perdiction.model.rest.AccountReturnData;
-import com.iainschmitt.perdiction.repository.PositionRepository;
-import com.iainschmitt.perdiction.service.AuthService;
-import com.iainschmitt.perdiction.service.UserService;
+import com.iainschmitt.prediction.model.Position;
+import com.iainschmitt.prediction.model.rest.AccountReturnData;
+import com.iainschmitt.prediction.repository.PositionRepository;
+import com.iainschmitt.prediction.service.AuthService;
+import com.iainschmitt.prediction.service.UserService;
 
 @RestController
 @RequestMapping("/user")

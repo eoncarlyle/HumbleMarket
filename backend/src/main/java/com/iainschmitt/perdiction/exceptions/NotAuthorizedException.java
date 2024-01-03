@@ -1,7 +1,7 @@
-package com.iainschmitt.perdiction.exceptions;
+package com.iainschmitt.prediction.exceptions;
 
 public class NotAuthorizedException extends RuntimeException {
-    
+
     public NotAuthorizedException(String message) {
         super(message);
     }

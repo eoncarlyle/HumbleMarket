@@ -1,6 +1,6 @@
-package com.iainschmitt.perdiction.service;
+package com.iainschmitt.prediction.service;
 
-import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigDecimal;
+import static com.iainschmitt.prediction.service.MarketTransactionService.toBigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -17,17 +17,17 @@ import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
-import com.iainschmitt.perdiction.model.Market;
-import com.iainschmitt.perdiction.model.MarketTransactionType;
-import com.iainschmitt.perdiction.model.Outcome;
-import com.iainschmitt.perdiction.model.Position;
-import com.iainschmitt.perdiction.model.PositionDirection;
-import com.iainschmitt.perdiction.model.User;
-import com.iainschmitt.perdiction.model.rest.MarketProposalData;
-import com.iainschmitt.perdiction.repository.MarketRepository;
-import com.iainschmitt.perdiction.repository.PositionRepository;
-import com.iainschmitt.perdiction.repository.TransactionRepository;
+import com.iainschmitt.prediction.configuration.ExternalisedConfiguration;
+import com.iainschmitt.prediction.model.Market;
+import com.iainschmitt.prediction.model.MarketTransactionType;
+import com.iainschmitt.prediction.model.Outcome;
+import com.iainschmitt.prediction.model.Position;
+import com.iainschmitt.prediction.model.PositionDirection;
+import com.iainschmitt.prediction.model.User;
+import com.iainschmitt.prediction.model.rest.MarketProposalData;
+import com.iainschmitt.prediction.repository.MarketRepository;
+import com.iainschmitt.prediction.repository.PositionRepository;
+import com.iainschmitt.prediction.repository.TransactionRepository;
 
 import lombok.SneakyThrows;
 

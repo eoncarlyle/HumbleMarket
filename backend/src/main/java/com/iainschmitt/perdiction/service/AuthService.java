@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.service;
+package com.iainschmitt.prediction.service;
 
 import java.security.Key;
 import java.time.Instant;
@@ -14,14 +14,14 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
-import com.iainschmitt.perdiction.exceptions.NotAuthorizedException;
-import com.iainschmitt.perdiction.model.User;
-import com.iainschmitt.perdiction.model.rest.AuthData;
-import com.iainschmitt.perdiction.model.rest.LogInReturnData;
-import com.iainschmitt.perdiction.model.rest.SignUpReturnData;
+import com.iainschmitt.prediction.configuration.ExternalisedConfiguration;
+import com.iainschmitt.prediction.exceptions.NotAuthorizedException;
+import com.iainschmitt.prediction.model.User;
+import com.iainschmitt.prediction.model.rest.AuthData;
+import com.iainschmitt.prediction.model.rest.LogInReturnData;
+import com.iainschmitt.prediction.model.rest.SignUpReturnData;
 
-import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigDecimal;
+import static com.iainschmitt.prediction.service.MarketTransactionService.toBigDecimal;
 
 @Getter
 @Service

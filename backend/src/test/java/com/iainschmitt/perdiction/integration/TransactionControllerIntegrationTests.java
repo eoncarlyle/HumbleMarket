@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.integration;
+package com.iainschmitt.prediction.integration;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -17,20 +17,20 @@ import lombok.SneakyThrows;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
-import com.iainschmitt.perdiction.model.rest.MarketProposalData;
-import com.iainschmitt.perdiction.model.rest.MarketTransactionRequestData;
-import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
-import com.iainschmitt.perdiction.model.PositionDirection;
-import com.iainschmitt.perdiction.model.User;
-import com.iainschmitt.perdiction.service.UserService;
-import com.iainschmitt.perdiction.service.AuthService;
-import com.iainschmitt.perdiction.service.MarketTransactionService;
-import com.iainschmitt.perdiction.repository.MarketRepository;
-import com.iainschmitt.perdiction.repository.PositionRepository;
-import com.iainschmitt.perdiction.repository.TransactionRepository;
+import com.iainschmitt.prediction.model.rest.MarketProposalData;
+import com.iainschmitt.prediction.model.rest.MarketTransactionRequestData;
+import com.iainschmitt.prediction.configuration.ExternalisedConfiguration;
+import com.iainschmitt.prediction.model.PositionDirection;
+import com.iainschmitt.prediction.model.User;
+import com.iainschmitt.prediction.service.UserService;
+import com.iainschmitt.prediction.service.AuthService;
+import com.iainschmitt.prediction.service.MarketTransactionService;
+import com.iainschmitt.prediction.repository.MarketRepository;
+import com.iainschmitt.prediction.repository.PositionRepository;
+import com.iainschmitt.prediction.repository.TransactionRepository;
 
-import static com.iainschmitt.perdiction.service.MarketTransactionService.toBigDecimal;
-import static com.iainschmitt.perdiction.service.MarketTransactionService.price;
+import static com.iainschmitt.prediction.service.MarketTransactionService.toBigDecimal;
+import static com.iainschmitt.prediction.service.MarketTransactionService.price;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient(timeout = "36000")

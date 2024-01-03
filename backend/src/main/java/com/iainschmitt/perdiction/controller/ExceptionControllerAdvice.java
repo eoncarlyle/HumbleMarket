@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.controller;
+package com.iainschmitt.prediction.controller;
 
 import java.util.NoSuchElementException;
 
@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import jakarta.validation.ValidationException;
 
-import com.iainschmitt.perdiction.exceptions.NotAuthorizedException;
-import com.iainschmitt.perdiction.exceptions.NotFoundException;
-import com.iainschmitt.perdiction.model.rest.ErrorReturnData;
+import com.iainschmitt.prediction.exceptions.NotAuthorizedException;
+import com.iainschmitt.prediction.exceptions.NotFoundException;
+import com.iainschmitt.prediction.model.rest.ErrorReturnData;
 
 @ControllerAdvice
 public class ExceptionControllerAdvice {
@@ -33,7 +33,7 @@ public class ExceptionControllerAdvice {
     public ResponseEntity<ErrorReturnData> noSuchElementExceptionHandler(Exception e) {
         return createErrorReturnEntity(e, 404);
     }
-    
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorReturnData> illegalArgumentExceptionHandler(Exception e) {
         return createErrorReturnEntity(e, 422);

@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.service;
+package com.iainschmitt.prediction.service;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -6,14 +6,14 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.iainschmitt.perdiction.exceptions.NotFoundException;
-import com.iainschmitt.perdiction.model.Position;
-import com.iainschmitt.perdiction.model.User;
-import com.iainschmitt.perdiction.model.rest.AccountReturnData;
-import com.iainschmitt.perdiction.model.rest.PositionReturnData;
-import com.iainschmitt.perdiction.repository.MarketRepository;
-import com.iainschmitt.perdiction.repository.PositionRepository;
-import com.iainschmitt.perdiction.repository.UserRepository;
+import com.iainschmitt.prediction.exceptions.NotFoundException;
+import com.iainschmitt.prediction.model.Position;
+import com.iainschmitt.prediction.model.User;
+import com.iainschmitt.prediction.model.rest.AccountReturnData;
+import com.iainschmitt.prediction.model.rest.PositionReturnData;
+import com.iainschmitt.prediction.repository.MarketRepository;
+import com.iainschmitt.prediction.repository.PositionRepository;
+import com.iainschmitt.prediction.repository.UserRepository;
 
 @Service
 public class UserService {
