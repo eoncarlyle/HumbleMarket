@@ -1,7 +1,7 @@
-package com.iainschmitt.perdiction.model.rest;
+package com.iainschmitt.prediction.model.rest;
 
-import com.iainschmitt.perdiction.model.PositionDirection;
-import com.iainschmitt.perdiction.model.MarketTransactionType;
+import com.iainschmitt.prediction.model.PositionDirection;
+import com.iainschmitt.prediction.model.MarketTransactionType;
 
 public class MarketTransactionData {
     public MarketTransactionType transactionType;

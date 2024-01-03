@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.integration;
+package com.iainschmitt.prediction.integration;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,9 +11,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 
-import com.iainschmitt.perdiction.model.rest.AuthData;
-import com.iainschmitt.perdiction.model.User;
-import com.iainschmitt.perdiction.service.UserService;
+import com.iainschmitt.prediction.model.rest.AuthData;
+import com.iainschmitt.prediction.model.User;
+import com.iainschmitt.prediction.service.UserService;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient(timeout = "36000")

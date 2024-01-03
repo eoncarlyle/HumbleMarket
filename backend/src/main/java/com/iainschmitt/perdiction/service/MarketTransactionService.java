@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.service;
+package com.iainschmitt.prediction.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,23 +17,23 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
-import com.iainschmitt.perdiction.model.Market;
-import com.iainschmitt.perdiction.model.MarketProposal;
-import com.iainschmitt.perdiction.model.MarketProposalBasis;
-import com.iainschmitt.perdiction.model.MarketTransaction;
-import com.iainschmitt.perdiction.model.MarketTransactionType;
-import com.iainschmitt.perdiction.model.Outcome;
-import com.iainschmitt.perdiction.model.Position;
-import com.iainschmitt.perdiction.model.PositionDirection;
-import com.iainschmitt.perdiction.model.User;
-import com.iainschmitt.perdiction.model.rest.MarketProposalData;
-import com.iainschmitt.perdiction.model.rest.MarketTransactionRequestData;
-import com.iainschmitt.perdiction.model.rest.MarketTransactionReturnData;
-import com.iainschmitt.perdiction.repository.MarketProposalRepository;
-import com.iainschmitt.perdiction.repository.MarketRepository;
-import com.iainschmitt.perdiction.repository.PositionRepository;
-import com.iainschmitt.perdiction.repository.TransactionRepository;
+import com.iainschmitt.prediction.configuration.ExternalisedConfiguration;
+import com.iainschmitt.prediction.model.Market;
+import com.iainschmitt.prediction.model.MarketProposal;
+import com.iainschmitt.prediction.model.MarketProposalBasis;
+import com.iainschmitt.prediction.model.MarketTransaction;
+import com.iainschmitt.prediction.model.MarketTransactionType;
+import com.iainschmitt.prediction.model.Outcome;
+import com.iainschmitt.prediction.model.Position;
+import com.iainschmitt.prediction.model.PositionDirection;
+import com.iainschmitt.prediction.model.User;
+import com.iainschmitt.prediction.model.rest.MarketProposalData;
+import com.iainschmitt.prediction.model.rest.MarketTransactionRequestData;
+import com.iainschmitt.prediction.model.rest.MarketTransactionReturnData;
+import com.iainschmitt.prediction.repository.MarketProposalRepository;
+import com.iainschmitt.prediction.repository.MarketRepository;
+import com.iainschmitt.prediction.repository.PositionRepository;
+import com.iainschmitt.prediction.repository.TransactionRepository;
 
 import lombok.extern.slf4j.Slf4j;
 

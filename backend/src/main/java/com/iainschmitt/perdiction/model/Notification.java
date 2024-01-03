@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.model;
+package com.iainschmitt.prediction.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.model;
+package com.iainschmitt.prediction.model;
 
 public enum PositionDirection {
     YES, NO

@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.repository;
+package com.iainschmitt.prediction.repository;
 
 import java.util.List;
 
@@ -6,8 +6,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
-import com.iainschmitt.perdiction.model.Position;
-import com.iainschmitt.perdiction.model.PositionDirection;
+import com.iainschmitt.prediction.model.Position;
+import com.iainschmitt.prediction.model.PositionDirection;
 
 @Component
 @Repository

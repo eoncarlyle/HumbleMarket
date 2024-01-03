@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.model;
+package com.iainschmitt.prediction.model;
 
 import java.util.List;
 
@@ -6,7 +6,7 @@ import org.springframework.data.annotation.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import com.iainschmitt.perdiction.model.rest.MarketProposalData;
+import com.iainschmitt.prediction.model.rest.MarketProposalData;
 
 public class MarketProposal extends MarketProposalBasis {
     @Getter
@@ -14,7 +14,7 @@ public class MarketProposal extends MarketProposalBasis {
     private String id;
 
     public MarketProposal(String question, String creatorId, int marketMakerK, long closeDate,
-    List<String> outcomeClaims, boolean isPublic) {
+            List<String> outcomeClaims, boolean isPublic) {
         super(question, creatorId, marketMakerK, closeDate, outcomeClaims, isPublic);
     }
 

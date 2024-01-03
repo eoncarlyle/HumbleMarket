@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.model.rest;
+package com.iainschmitt.prediction.model.rest;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;

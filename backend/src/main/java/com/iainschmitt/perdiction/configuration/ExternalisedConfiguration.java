@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.configuration;
+package com.iainschmitt.prediction.configuration;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -8,12 +8,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.beans.factory.annotation.Value;
 import io.jsonwebtoken.security.Keys;
 
-
-
 @Configuration
 @EnableScheduling
 public class ExternalisedConfiguration {
-    //! This assumes that the admin, bank user documents have already created at runtime
+    // ! This assumes that the admin, bank user documents have already created at
+    // runtime
     @Value("${adminEmail}")
     private String adminEmail;
     @Value("${bankEmail}")
@@ -26,7 +25,7 @@ public class ExternalisedConfiguration {
     public String getAdminEmail() {
         return adminEmail;
     }
-    
+
     public String getBankEmail() {
         return bankEmail;
     }

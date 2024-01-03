@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.service;
+package com.iainschmitt.prediction.service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -13,10 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import jakarta.validation.ValidationException;
 
-import com.iainschmitt.perdiction.configuration.ExternalisedConfiguration;
-import com.iainschmitt.perdiction.exceptions.NotAuthorizedException;
-import com.iainschmitt.perdiction.model.rest.AuthData;
-import com.iainschmitt.perdiction.model.User;
+import com.iainschmitt.prediction.configuration.ExternalisedConfiguration;
+import com.iainschmitt.prediction.exceptions.NotAuthorizedException;
+import com.iainschmitt.prediction.model.rest.AuthData;
+import com.iainschmitt.prediction.model.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -65,26 +65,28 @@ public class AuthServiceTests {
         var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         when(userService.exists(user.getEmail()))
-            .thenReturn(false);
+                .thenReturn(false);
 
         // Anoynmous class done here because @Builder conflicts with @ResponseBody
         // parsing
         assertThat(userService.exists(user.getEmail())).isFalse();
-        assertThatNoException().isThrownBy(() -> authService.createUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash())));
+        assertThatNoException()
+                .isThrownBy(() -> authService.createUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash())));
     }
 
     @Test
     public void userAccountCreation_DuplicationFailure() {
         var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
-        
+
         when(userService.exists(user.getEmail()))
-            .thenReturn(false);
-        
-        assertThatNoException().isThrownBy(() -> authService.createUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash())));
-        
+                .thenReturn(false);
+
+        assertThatNoException()
+                .isThrownBy(() -> authService.createUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash())));
+
         when(userService.exists(user.getEmail()))
-            .thenReturn(true);
+                .thenReturn(true);
         assertThatThrownBy(() -> authService.createUserAccount(new AuthData() {
             {
                 setEmail(user.getEmail());
@@ -111,18 +113,20 @@ public class AuthServiceTests {
         var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash("!pass");
 
-        assertThatThrownBy(() -> authService.createUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash()))).isInstanceOf(ValidationException.class);
+        assertThatThrownBy(() -> authService.createUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash())))
+                .isInstanceOf(ValidationException.class);
     }
 
     @Test
     public void logInUserAccount_Success() {
         var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
-        
+
         when(userService.exists(user.getEmail())).thenReturn(true);
         when(userService.getUserByEmail(user.getEmail())).thenReturn(user);
 
-        assertThatNoException().isThrownBy(() -> authService.logInUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash())));
+        assertThatNoException()
+                .isThrownBy(() -> authService.logInUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash())));
     }
 
     @Test
@@ -130,7 +134,8 @@ public class AuthServiceTests {
         var user = User.of("user1@iainschmitt.com");
         user.setPasswordHash(sha256Hex("!A_Minimal_Password_Really"));
         when(userService.exists(user.getEmail())).thenReturn(false);
-        assertThatThrownBy(() -> authService.logInUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash()))).isInstanceOf(NotAuthorizedException.class);
+        assertThatThrownBy(() -> authService.logInUserAccount(AuthData.of(user.getEmail(), user.getPasswordHash())))
+                .isInstanceOf(NotAuthorizedException.class);
     }
 
     @Test

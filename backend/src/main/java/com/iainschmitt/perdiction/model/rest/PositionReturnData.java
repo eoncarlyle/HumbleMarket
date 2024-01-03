@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.model.rest;
+package com.iainschmitt.prediction.model.rest;
 
 import java.math.BigDecimal;
 
@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import com.iainschmitt.perdiction.model.PositionDirection;
+import com.iainschmitt.prediction.model.PositionDirection;
 
 @Getter
 @Setter

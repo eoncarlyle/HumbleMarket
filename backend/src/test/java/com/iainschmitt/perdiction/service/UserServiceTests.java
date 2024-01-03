@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.service;
+package com.iainschmitt.prediction.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,11 +8,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.iainschmitt.perdiction.exceptions.NotFoundException;
-import com.iainschmitt.perdiction.model.User;
-import com.iainschmitt.perdiction.repository.MarketRepository;
-import com.iainschmitt.perdiction.repository.PositionRepository;
-import com.iainschmitt.perdiction.repository.UserRepository;
+import com.iainschmitt.prediction.exceptions.NotFoundException;
+import com.iainschmitt.prediction.model.User;
+import com.iainschmitt.prediction.repository.MarketRepository;
+import com.iainschmitt.prediction.repository.PositionRepository;
+import com.iainschmitt.prediction.repository.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;

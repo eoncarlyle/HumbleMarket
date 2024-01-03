@@ -1,11 +1,11 @@
-package com.iainschmitt.perdiction.model.rest;
+package com.iainschmitt.prediction.model.rest;
 
 import java.util.List;
 import java.math.BigDecimal;
 
 import lombok.AllArgsConstructor;
 
-import com.iainschmitt.perdiction.model.Market;
+import com.iainschmitt.prediction.model.Market;
 
 @AllArgsConstructor
 public class MarketReturnData {

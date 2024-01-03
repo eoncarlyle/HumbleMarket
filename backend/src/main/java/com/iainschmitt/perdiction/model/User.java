@@ -1,4 +1,4 @@
-package com.iainschmitt.perdiction.model;
+package com.iainschmitt.prediction.model;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -16,7 +16,7 @@ public class User {
     @Setter
     private String passwordHash;
     @Setter
-    
+
     @Getter
     private BigDecimal credits;
     // TODO: Overall just fix the notifications
