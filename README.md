@@ -1,6 +1,6 @@
 **README**
 
-The production application is hosted at [humblemarket.iainschmitt.com](https://humblemarket.iainschmitt.com/). Don't hesitate to contact me at [market@iainschmitt.com](mailto:market@iainschmitt.com) or report a bug on this repository to report any issues.
+This was a project to implement a fake-money prediction market, but halfway through I decided I didn't want to write a worse version of [Manifold Markets](https://manifold.markets/). 
 
 **Development Concerns**
 
